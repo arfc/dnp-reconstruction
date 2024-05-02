@@ -1,0 +1,41 @@
+=sampler
+
+read parameters
+library="end7dec"
+perturb_xs=yes
+perturb_yields=yes
+perturb_decay=yes
+n_samples = 500
+plt=yes
+print_data=yes
+end parameters
+
+read case[irrad]
+    import = "C:\Users\58z\Documents\gitlab\delnu-data-recon\scripts\scale_inputs\godiva_irrad_post_pulse.inp"
+end case
+
+read save
+    file="ft71f002"
+end save
+
+read response[oriout]
+    type=origen_nuclides
+    step_from=2
+    step_to=903
+    nuclides = cu73 zn79 ga79 ga80 ga81 ga82 ge84 ge85 ge86 as84 as85 as86 as87 se87 se88 se89 br87 br88 br89 br90 br91 br92 br93 kr92 kr93 kr94 kr95 kr96 rb92 rb93 rb94 rb95 rb96 rb97 rb98 rb100 sr97 sr98 sr99 sr100 y97 y98 y99 y100 y101 y102 y103 zr103 zr104 zr105 nb104 nb105 nb106 nb107 mo109 mo110 tc109 tc110 tc111 tc112 rh116 rh117 ag120 ag121 cd130 in127 in128 in129 in130 in131 in132 sn133 sn134 sn135 sb135 sb136 sb137 te136 te137 te138 i137 i138 i139 i140 i141 xe141 xe142 xe143 xe144 cs141 cs142 cs143 cs144 cs145 cs146 cs147 ba147 ba148 ba149 la147 la148 la149 la150 end
+end response
+
+'read response[stdout]
+'    type=stdcmp
+'    mixture=2
+'    nuclides = i-137 end
+'end response
+
+'read response[lambda]
+'    type=grep
+'    regexp = ":xsdrn.lambda:"
+'end response
+
+
+
+end
