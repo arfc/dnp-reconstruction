@@ -152,6 +152,7 @@ class SPECTRA:
                 valid_list.append(isotope)
 
             elif isotope in settings.endf_spectra:
+                # https://www-nds.iaea.org/exfor/endf.htm
                 df = read_excel(settings.endf_spectra_filename,
                         sheet_name=isotope)
                 for key in df:
