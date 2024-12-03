@@ -1,4 +1,4 @@
-from scipy.integrate import cumtrapz
+from scipy.integrate import cumulative_trapezoid
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -12,7 +12,7 @@ def delnu_per_fiss(times, counts, fissions, efficiency):
     norm_cnts = list()
     for cnt in counts:
         norm_cnts.append(cnt / (fissions * efficiency))
-    #int_cnt = cumtrapz(norm_cnts,
+    #int_cnt = cumulative_trapezoid(norm_cnts,
     #                   x=times)
     #tot_cnt = int_cnt[-1] - int_cnt[0]
     tot_cnt = np.trapz(norm_cnts, x=times)
@@ -26,7 +26,7 @@ def delnu_per_fiss_norm(times, norm_counts):
     Calculates the number of delayed neutrons per fission
         for a given dataset without eff or fiss
     """
-    int_cnt = cumtrapz(norm_counts,
+    int_cnt = cumulative_trapezoid(norm_counts,
                        x=times)
     tot_cnt = int_cnt[-1] - int_cnt[0]
     dnpf = tot_cnt

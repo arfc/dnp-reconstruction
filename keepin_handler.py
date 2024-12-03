@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import cumtrapz
+from scipy.integrate import cumulative_trapezoid
 import misc_funcs
 import settings
 
@@ -228,7 +228,7 @@ def debug_run(deb_group):
     keepin_group_data, keepin_net_data = keepin_response.data_store()
     keepin_delnu = keepin_response.simulate_instant(times, fissions, efficiency)
     plt.plot(times, keepin_delnu, label=f'{deb_group} keepin')
-    int_keepin_cnt = cumtrapz(keepin_delnu, x=times)
+    int_keepin_cnt = cumulative_trapezoid(keepin_delnu, x=times)
     tot_keepin_cnt = int_keepin_cnt[-1] - int_keepin_cnt[0]
     print(f'Max Keepin counts: {max(keepin_delnu)}')
     print(f'Total Kepein Counts: {tot_keepin_cnt}')
@@ -285,9 +285,9 @@ if __name__ == '__main__':
                                                                                             fissions,
                                                                                             efficiency)
         plt.plot(times, keepin_delnu, label='keepin')
-        int_keepin_cnt = cumtrapz(keepin_delnu, x=times)
+        int_keepin_cnt = cumulative_trapezoid(keepin_delnu, x=times)
         tot_keepin_cnt = int_keepin_cnt[-1] - int_keepin_cnt[0]
-        true_keepin_cnt = cumtrapz(keepin_response.true_data_resp,
+        true_keepin_cnt = cumulative_trapezoid(keepin_response.true_data_resp,
                                    x=keepin_response.true_data_time)
         true_tot_keepin_cnt = true_keepin_cnt[-1] - true_keepin_cnt[0]
         print(f'Keepin n/f: {misc_funcs.delnu_per_fiss(times, keepin_delnu, fissions, efficiency)}')
@@ -298,7 +298,7 @@ if __name__ == '__main__':
         predict_keepin_cnt = fissions * efficiency * keepin_net_data[0]
         print(f'Predicted Total Keepin Counts: {predict_keepin_cnt}')
         plt.plot(times, ensdf_keepin_delnu, label='ensdf-keepin')
-        int_ensdf_cnt = cumtrapz(ensdf_keepin_delnu, x=times)
+        int_ensdf_cnt = cumulative_trapezoid(ensdf_keepin_delnu, x=times)
         tot_ensdf_cnt = int_ensdf_cnt[-1] - int_ensdf_cnt[0]
         print(f'Max ensdf counts: {max(ensdf_keepin_delnu)}')
         print(f'Total ensdf Counts: {tot_ensdf_cnt}')
