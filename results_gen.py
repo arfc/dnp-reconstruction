@@ -1870,8 +1870,9 @@ if __name__ == '__main__':
                 lam_err = (np.log(2) / ORIGEN_dict[isotope]['halflife'][0]**2 *
                            ORIGEN_dict[isotope]['halflife'][1])
                 atom_err = ORIGEN_dict[isotope]['conc'][1]
-                activity_err += np.sqrt(((lam * atoms * np.exp(-lam * t) * Pn_err)**2 +
-                            (Pn * atoms * (1-lam*t) * np.exp(-lam*t) * lam_err)**2 +
+
+                activity_err += np.sqrt(((lam * atoms[tind] * np.exp(-lam * t) * Pn_err)**2 +
+                            (Pn * atoms[tind] * (1-lam*t) * np.exp(-lam*t) * lam_err)**2 +
                             (Pn * lam * np.exp(-lam*t) * atom_err)**2))
                 for eind, e in enumerate(energy_mesh):
                     # spectra uses closest datapoint
@@ -1880,7 +1881,8 @@ if __name__ == '__main__':
                     net_spectra[eind] += (activity *
                                           ORIGEN_dict[isotope]['spectrum_values'][closest_bindex])
                     cur_spectra_err = 0
-                    net_spec_err[eind] += (efficiency * activity_err / max_energy) ** 2 + cur_spectra_err**2
+                    err_val = (efficiency * activity_err / max_energy) ** 2 + cur_spectra_err**2
+                    net_spec_err[eind] += err_val
             net_spec_err = np.sqrt(net_spec_err)
             if spectra_normalized:
                 name = 'Probability'
@@ -2020,6 +2022,8 @@ if __name__ == '__main__':
         n = 1
         max_energy = max(energy_data)
         cur_begin_time = time.time()
+        l2_norms = list()
+        diff_avgs = list()
         for tind, t in enumerate(time_data):
             # ORIGEN_IAEA Section
             activity_err = 0
@@ -2099,23 +2103,38 @@ if __name__ == '__main__':
                 #input(f'Pure ORIGEN net counts at {t}s: {np.sum(spectra_matrix[:, tind] / normalize)}\n')
             y = spectra_matrix[:, tind] / normalize
             spec_puorigen[:, tind] = spectra_matrix[:, tind] / normalize
-            plt.step(energy_data, y, where='mid', label='Pure ORIGEN')
-            plt.xlabel('Energy [MeV]')
-            plt.ylabel(name)
-            plt.title(f'{t}s')
-            plt.legend()
-            plt.tight_layout()
-            plt.savefig(current_path+f'{tind}.png')
-            plt.close()
+            #plt.step(energy_data, y, where='mid', label='Pure ORIGEN')
+            #plt.xlabel('Energy [MeV]')
+            #plt.ylabel(name)
+            #plt.title(f'{t}s')
+            #plt.legend()
+            #plt.tight_layout()
+            #plt.savefig(current_path+f'{tind}.png')
+            #plt.close()
 
             cur_pcnt_diff = abs(spec_oriaea[:, tind] - spec_puorigen[:, tind]) #* 100 / (spectra_matrix[:, tind]/normalize)
-            plt.step(energy_data, cur_pcnt_diff, where='mid')
-            plt.xlabel('Energy [MeV]')
-            plt.ylabel('Absolute Difference')
-            plt.title(f'{t}s')
-            plt.savefig(current_path+f'{tind}-{name}-diff.png')
-            plt.close()
+            #plt.step(energy_data, cur_pcnt_diff, where='mid')
+            #plt.xlabel('Energy [MeV]')
+            #plt.ylabel('Absolute Difference')
+            #plt.title(f'{t}s')
+            #plt.savefig(current_path+f'{tind}-{name}-diff.png')
+            #plt.close()
+
+            # Do difference of average energy over time
+            avg_pure = [spec_puorigen[i, tind] * e for i, e in enumerate(energy_data)]
+            avg_iaea = [spec_oriaea[i, tind] * e for i, e in enumerate(energy_data)]
+            #actual_cur_pcnt_diff = abs(spec_oriaea[:, tind] - spec_puorigen[:, tind]) / (0.5*spec_oriaea[:, tind] + 0.5*spec_puorigen[:, tind]) * 100
+            diff_avgs.append(abs(sum(avg_pure) - sum(avg_iaea)))
+            #l2_norms.append(np.linalg.norm(cur_pcnt_diff))
+        plt.close()
+        plt.plot(time_data, diff_avgs)
+        plt.xlabel('Time [s]')
+        plt.ylabel('Difference of Average Energies [MeV]')
+        plt.savefig(current_path+f'l2normdiff.png')
+        plt.close()
+        input('halt')
         misc_funcs.movie_gen(current_path, len(time_data))
+
 
         # 2D plot gen
         fig, ax = plt.subplots()
