@@ -1086,9 +1086,9 @@ if __name__ == '__main__':
         pathname = 'compare-origen-pure-origen/'
         current_path = imdir+pathname
         misc_funcs.dir_handle(current_path)
-        misc_funcs.multplt(t_ori, pure_delnu_ori, label='origen_pure_dn', alpha=alpha)
+        misc_funcs.multplt(t_ori, pure_delnu_ori, label='Pure ORIGEN', alpha=alpha)
         print(f'Pure ORIGEN delnu 0s: {pure_delnu_ori[0]}')
-        misc_funcs.multplt(times, origen_ensdf_dn, label=f'origen_ensdf_dn', alpha=alpha)
+        misc_funcs.multplt(times, origen_ensdf_dn, label=f'IAEA ORIGEN', alpha=alpha)
         print(f'ORIGEN-IAEA delnu 0s: {origen_ensdf_dn[0]}')
         plt.yscale('log')
         plt.ylabel('Delayed Neutron Count Rate [#/s]')
@@ -1277,11 +1277,18 @@ if __name__ == '__main__':
 ##                plt.fill_between(times, origen_ensdf_dn+origen_ensdf_errs, origen_ensdf_dn-origen_ensdf_errs, alpha=alpha/2)
 ##            else:
 ##                pass
-        plt.stackplot(times, counts_list_list_new, labels=target_list_iaea_ori)
-        #plt.stackplot(times, counts_list_list_new, labels=target_list_iaea_ori)
-        #plt.yscale('log')
-        #plt.ylim(bottom=1, top=1E8)
-        plt.ylabel('Differnce in Delayed Neutron Count Rate [#/s]')
+        label_dict = {'ge86': r'$^{86}$Ge','y98m': r'$^{98m}$Y',
+                      'i137': r'$^{137}$I', 'i140': r'$^{140}$I',
+                      'y97': r'$^{97}$Y'}
+        label_use = [label_dict[i] for i in target_list_iaea_ori]
+        plt.stackplot(times, np.abs(counts_list_list_new), labels=label_use)
+        #for i, each in enumerate(counts_list_list_new):
+        #    plt.plot(times, np.abs(each), label=label_use[i])
+        plt.yscale('log')
+        plt.xscale('log')
+        plt.ylim((1, 1e7))
+        #plt.ylabel('Pure ORIGEN - IAEA ORIGEN Count Rate [#/s]')
+        plt.ylabel('Count Rate Difference [#/s]')
         plt.xlabel('Time [s]')
         plt.legend()
         plt.tight_layout()

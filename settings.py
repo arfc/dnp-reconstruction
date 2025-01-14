@@ -1,5 +1,25 @@
 import time
 import numpy as np
+import matplotlib.pyplot as plt
+
+plt.rcParams["font.size"] = 16
+plt.rcParams["axes.labelsize"] = 12
+plt.rcParams["axes.labelweight"] = "bold"
+plt.rcParams["lines.linewidth"] = 1.5
+plt.rcParams["lines.markersize"] = 1
+plt.rcParams["axes.grid"] = True
+plt.rcParams["axes.grid.which"] = "major"
+plt.rcParams["grid.linestyle"] = "--"
+plt.rcParams["grid.linewidth"] = 1
+plt.rcParams["xtick.direction"] = "in"
+plt.rcParams["ytick.direction"] = "in"
+plt.rcParams["xtick.major.size"] = 6.0
+plt.rcParams["ytick.major.size"] = 6.0
+plt.rcParams["xtick.minor.size"] = 3.0
+plt.rcParams["ytick.minor.size"] = 3.0
+plt.rcParams["figure.autolayout"] = True
+plt.rcParams['savefig.dpi'] = 600
+
 
 begin = time.time()
 fissions = 1.46516E18 # W17x17
@@ -19,7 +39,7 @@ endf_spectra_sheetname = 'BVII'
 # Ensure this is corret
 sample = 'uranium' # e50_dec_3 or e50_dec_33 or uranium or plutonium
 irradiation = 'pulse' # pulse or infinite
-input(f'Problem: {sample} with {irradiation} irradiation [Enter to Continue]')
+print(f'Problem: {sample} with {irradiation} irradiation [Enter to Continue]')
 print('-'*100)
 
 
@@ -30,7 +50,7 @@ start_time = 0
 use_errorbars = True
 target = 'all'
 decay_nodes = 3
-percent_variation = [0.1, 0.05, 0.04, 0.03, 0.02, 0.01, 0.005, 0.001]
+percent_variation = [0.005] #[0.1, 0.05, 0.04, 0.03, 0.02, 0.01, 0.005, 0.001]
 
 DEBUG_IGNORE_ISOTOPES = []# ['ge86', 'i140', 'y98m', 'y97', 'i137', 'br93']
 
@@ -63,7 +83,7 @@ test_custom_fit     = False # Use custom group (in results_gen)
 triton_no_ori_over  = False # Show isotopes in TRITON but not in ORIGEN
 keepin_pure         = False # Keepin data
 find_worst_lam_isos = False # Isotopes biggest diff IAEA/ORI lambdas
-find_worst_pn_isos  = True # Isotopes biggest diff IAEA/ORI Pn
+find_worst_pn_isos  = False # Isotopes biggest diff IAEA/ORI Pn
 find_worst_tot_isos = False # Isotopes biggest diff IAEA/ORI net
 view_pn_ori_pure    = False # ORIGEN with IAEA Pn values
 iaea_ori_pure       = False # Compare IAEA ORIGEN and Pure ORIGEN
@@ -78,7 +98,7 @@ integral_keep_ori_be= False # Integral as a function of time for the different g
 
 # Targeted
 # Lambda
-targets_iso_iaea_ori = False # Targets for IAEA with ORIGEN decays
+targets_iso_iaea_ori = True # Targets for IAEA with ORIGEN decays
 #target_list_iaea_ori = ['ge86', 'rb95', 'br90', 'rb94', 'br89'] # Old
 target_list_iaea_ori = ['ge86', 'y98m', 'i137', 'i140', 'y97'] # New
 # Pn

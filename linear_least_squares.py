@@ -254,13 +254,13 @@ class LLS:
 ##                    counter += 1
 ##            pcnt_within = counter / len(stored_abundances[each]) * 100
 ##            print(f'Sigma within: {pcnt_within}%')
-            plt.vlines(stored_abundances[each][0], 0, max(n), linestyle='dotted', label='Solution',
+            plt.vlines(stored_abundances[each][0], 0, max(n), linestyle='dotted', label='Mean',
                        color='green')
             #plt.vlines(np.mean(histval), 0, max(n), linestyle='dotted', label='Mean', color='black')
             #plt.vlines(dev, 0, max(n), linestyle='dotted', label='Mean 1\u03C3', color='yellow')
             plt.axvspan(stored_abundances[each][0] - dev,
                         stored_abundances[each][0] + dev,
-                        0, max(n), label='\u03C3', color='yellow',
+                        0, max(n), label='1\u03C3', color='yellow',
                         alpha=0.25)
             # Print what percentage is in range
 ##            counter = 0
@@ -276,8 +276,10 @@ class LLS:
             plt.xlabel('Group Yield')
             plt.ylabel('Frequency')
             plt.legend()
-            plt.title(f'{each}')
+            plt.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
+            #plt.title(f'{each}')
             #plt.show()
+            plt.tight_layout()
             plt.savefig(settings.imdir + f'g{each}-yield-MC.png')
             plt.close()
             abundance_errors.append(dev) #ai_err
