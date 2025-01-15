@@ -98,12 +98,12 @@ integral_keep_ori_be= False # Integral as a function of time for the different g
 
 # Targeted
 # Lambda
-targets_iso_iaea_ori = True # Targets for IAEA with ORIGEN decays
+targets_iso_iaea_ori = False # Targets for IAEA with ORIGEN decays
 #target_list_iaea_ori = ['ge86', 'rb95', 'br90', 'rb94', 'br89'] # Old
 target_list_iaea_ori = ['ge86', 'y98m', 'i137', 'i140', 'y97'] # New
 # Pn
 targets_pure_ori_ori = False # Targets for IAEA with ORIGEN Pns
-target_list_ori_ori  = ['ge86', 'br91', 'y100', 'as85', 'i138'] # Old
+#target_list_ori_ori  = ['ge86', 'br91', 'y100', 'as85', 'i138'] # Old
 target_list_ori_ori  = ['ge86', 'br91', 'as86', 'as85', 'i138'] # New
 
 # Net
@@ -112,6 +112,13 @@ targets_net_pure_ori = False # Targets for Pure ORIGEN
 #target_list_pure_tot = ['br88', 'br87', 'i137', 'te136', 'cs141'] # Old
 target_list_pure_tot = ['br91', 'as86', 'as85', 'i138', 'i137'] # New
 #target_list = ['all']
+
+
+label_dict = {'ge86': r'$^{86}$Ge','y98m': r'$^{98m}$Y',
+              'i137': r'$^{137}$I', 'i140': r'$^{140}$I',
+              'y97': r'$^{97}$Y', 'br91': r'$^{91}$Br',
+              'as86': r'$^{86}$As', 'as85': r'$^{85}$As',
+              'i138': r'$^{138}$I'}
 
 # For good results, run with coarse time steps (330 final, 1 step) (more nodes better)
 test_group_fit      = False # Use test group (see results_gen)
@@ -136,7 +143,7 @@ keepin_pure_iaea_prk= False # Keepin, Pure, and IAEA ORIGEN response
 # Spectras
 energy_mesh = np.linspace(0, 1.8, 10) #500I 1.8e6 1e-5
 spectra_normalized  = True # Normalizes by dividing by sum of energy bins at given time; probability (default True)
-spectra_uncertainty = False # Plot with or without uncertainties (negligible)
+spectra_uncertainty = True # Plot with or without uncertainties (negligible)
 pure_ori_t_spectra  = False # Pure ORIGEN spectral results over time
 pure_ori_2d_spectra = False # Pure ORIGEN spectral results in 2D matrix form
 iaea_ori_t_spectra  = False # IAEA ORIGEN spectral results over time

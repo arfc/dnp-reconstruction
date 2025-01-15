@@ -1277,22 +1277,19 @@ if __name__ == '__main__':
 ##                plt.fill_between(times, origen_ensdf_dn+origen_ensdf_errs, origen_ensdf_dn-origen_ensdf_errs, alpha=alpha/2)
 ##            else:
 ##                pass
-        label_dict = {'ge86': r'$^{86}$Ge','y98m': r'$^{98m}$Y',
-                      'i137': r'$^{137}$I', 'i140': r'$^{140}$I',
-                      'y97': r'$^{97}$Y'}
         label_use = [label_dict[i] for i in target_list_iaea_ori]
-        plt.stackplot(times, np.abs(counts_list_list_new), labels=label_use)
-        #for i, each in enumerate(counts_list_list_new):
-        #    plt.plot(times, np.abs(each), label=label_use[i])
+        #plt.stackplot(times, np.abs(counts_list_list_new), labels=label_use)
+        for i, each in enumerate(counts_list_list_new):
+            plt.plot(times, np.abs(each), label=label_use[i])
         plt.yscale('log')
         plt.xscale('log')
-        plt.ylim((1, 1e7))
+        plt.ylim((1, 1e8))
         #plt.ylabel('Pure ORIGEN - IAEA ORIGEN Count Rate [#/s]')
         plt.ylabel('Count Rate Difference [#/s]')
         plt.xlabel('Time [s]')
         plt.legend()
         plt.tight_layout()
-        plt.savefig(current_path+f'origen_ensdf_dn_targets.png')
+        plt.savefig(current_path+f'origen_ensdf_dn_targets_lam.png')
         plt.close()
 
     if targets_pure_ori_ori:
@@ -1333,14 +1330,19 @@ if __name__ == '__main__':
             counts_list_list_new.append(diff_counts)
             print(f'{cur_target} peak: {max(diff_counts)}')
             #plt.plot(use_time, diff_counts, label=f'{target}')
-        plt.stackplot(use_time, counts_list_list_new, labels=target_list_ori_ori)
+        label_use = [label_dict[i] for i in target_list_ori_ori]
+        #plt.stackplot(use_time, np.abs(counts_list_list_new), labels=label_use)
+        for i, each in enumerate(counts_list_list_new):
+            plt.plot(times, np.abs(each), label=label_use[i])
+        plt.yscale('log')
+        plt.xscale('log')
         #plt.yscale('log')
-        #plt.ylim((1e1, 1e7))
-        plt.ylabel('Differnce in Delayed Neutron Count Rate [#/s]')
+        plt.ylim((1, 1e8))
+        plt.ylabel('Count Rate Difference [#/s]')
         plt.xlabel('Time [s]')
         plt.legend()
         plt.tight_layout()
-        plt.savefig(current_path+f'origen_origen_dn_targets.png')
+        plt.savefig(current_path+f'origen_origen_dn_targets_pn.png')
         plt.close()
 
     if targets_net_pure_ori:
@@ -1350,6 +1352,7 @@ if __name__ == '__main__':
         misc_funcs.dir_handle(current_path)
         counts_list_list_new_pre = list()
         counts_list_list_new_post = list()
+        counts_list_list_new_full = list()
 
         split = 150
         scale_builder = scale_handler.SCALE(ORIGEN_out,
@@ -1423,33 +1426,55 @@ if __name__ == '__main__':
             plt.savefig(current_path+f'{cur_target}.png')
             plt.close()
 
-            counts_list_list_new_pre.append(diff_counts[:split_index])
-            counts_list_list_new_post.append(diff_counts[split_index:])
+            #counts_list_list_new_pre.append(diff_counts[:split_index])
+            #counts_list_list_new_post.append(diff_counts[split_index:])
+            counts_list_list_new_full.append(diff_counts)
             biggest = max(diff_counts)
             negativest = -min(diff_counts)
-            print(f'{cur_target} 330s diff: {diff_counts[-1]}')
+            print(f'{cur_target} 0s diff: {diff_counts[0]}')
             #print(f'{cur_target} peak: {max(biggest, negativest)}')
             #plt.plot(use_time, diff_counts, label=f'{target}')
 
-        plt.stackplot(use_time[:split_index], counts_list_list_new_pre, labels=target_list_pure_tot)
+        label_use = [label_dict[i] for i in target_list_pure_tot]
+#        plt.stackplot(use_time[:split_index], np.abs(counts_list_list_new_pre), labels=label_use)
+#        plt.yscale('log')
+#        plt.xscale('log')
+#        #plt.yscale('log')
+#        #plt.ylim((1e1, 1e7))
+#        plt.ylabel('Count Rate Difference [#/s]')
+#        plt.xlabel('Time [s]')
+#        plt.legend()
+#        plt.tight_layout()
+#        plt.savefig(current_path+f'origen_iaea_dn_targets-pre{split}.png')
+#        plt.close()
+#
+#        plt.stackplot(use_time[split_index:], np.abs(counts_list_list_new_post), labels=label_use)
+#        plt.yscale('log')
+#        plt.xscale('log')
+#        #plt.yscale('log')
+#        #plt.ylim((1e1, 1e7))
+#        plt.ylabel('Count Rate Difference [#/s]')
+#        plt.xlabel('Time [s]')
+#        plt.legend()
+#        plt.tight_layout()
+#        plt.savefig(current_path+f'origen_iaea_dn_targets-post{split}.png')
+#        plt.close()
+
+        #plt.stackplot(use_time, np.abs(counts_list_list_new_full), labels=label_use)
+        for i, each in enumerate(counts_list_list_new_full):
+            plt.plot(times, np.abs(each), label=label_use[i])
+        plt.yscale('log')
+        plt.xscale('log')
+        plt.ylim((1, 1e8))
         #plt.yscale('log')
         #plt.ylim((1e1, 1e7))
-        plt.ylabel('Differnce in Delayed Neutron Count Rate [#/s]')
+        plt.ylabel('Count Rate Difference [#/s]')
         plt.xlabel('Time [s]')
         plt.legend()
         plt.tight_layout()
-        plt.savefig(current_path+f'origen_iaea_dn_targets-pre{split}.png')
+        plt.savefig(current_path+f'origen_iaea_dn_targets_net.png')
         plt.close()
 
-        plt.stackplot(use_time[split_index:], counts_list_list_new_post, labels=target_list_pure_tot)
-        #plt.yscale('log')
-        #plt.ylim((1e1, 1e7))
-        plt.ylabel('Differnce in Delayed Neutron Count Rate [#/s]')
-        plt.xlabel('Time [s]')
-        plt.legend()
-        plt.tight_layout()
-        plt.savefig(current_path+f'origen_iaea_dn_targets-post{split}.png')
-        plt.close()
 
         t_ori, pure_delnu_ori = scale_builder.origen_delnu_parser(target)
         origen_iaea_dn, origen_ensdf_errs = results_generator.delnu_gen(ORIGEN_out,
@@ -2086,7 +2111,7 @@ if __name__ == '__main__':
                 #print(f'ORIGEN-IAEA net counts at {t}s: {np.sum(net_spectra)}')
             y = net_spectra/normalize
             spec_oriaea[:, tind] = net_spectra/normalize
-            plt.step(energy_data, y, where='mid', label='ORIGEN-IAEA')
+            plt.step(energy_data, y, where='mid', label='IAEA-ORIGEN')
             if spectra_uncertainty:
                 plt.fill_between(energy_data, y+use_err,
                                  y-use_err, alpha=alpha/2,
@@ -2103,21 +2128,20 @@ if __name__ == '__main__':
             #norm_factor = spectra_normalize / np.sum(spectra_matrix[:, tind])
             if spectra_normalized:
                 normalize = np.sum(spectra_matrix[:, tind])
-                name = 'Probability'
+                name = 'Probability / 2.0 keV'
             else:
                 normalize = mass_normalize/(efficiency)
                 name = 'Neutron Intensity'
                 #input(f'Pure ORIGEN net counts at {t}s: {np.sum(spectra_matrix[:, tind] / normalize)}\n')
             y = spectra_matrix[:, tind] / normalize
             spec_puorigen[:, tind] = spectra_matrix[:, tind] / normalize
-            #plt.step(energy_data, y, where='mid', label='Pure ORIGEN')
-            #plt.xlabel('Energy [MeV]')
-            #plt.ylabel(name)
-            #plt.title(f'{t}s')
-            #plt.legend()
-            #plt.tight_layout()
-            #plt.savefig(current_path+f'{tind}.png')
-            #plt.close()
+            plt.step(energy_data, y, where='mid', label='Pure ORIGEN')
+            plt.xlabel('Energy [MeV]')
+            plt.ylabel(name)
+            plt.legend()
+            plt.tight_layout()
+            plt.savefig(current_path+f'{tind}.png')
+            plt.close()
 
             cur_pcnt_diff = abs(spec_oriaea[:, tind] - spec_puorigen[:, tind]) #* 100 / (spectra_matrix[:, tind]/normalize)
             #plt.step(energy_data, cur_pcnt_diff, where='mid')
@@ -2139,8 +2163,10 @@ if __name__ == '__main__':
         plt.ylabel('Difference of Average Energies [MeV]')
         plt.savefig(current_path+f'l2normdiff.png')
         plt.close()
-        input('halt')
+        print('generating movie')
+        movie_start = time.time()
         misc_funcs.movie_gen(current_path, len(time_data))
+        print(f'movie took {time.time() - movie_start} s')
 
 
         # 2D plot gen
@@ -2612,6 +2638,18 @@ if __name__ == '__main__':
         ori_group_errs  = np.asarray(ori_group_errs)
 
 
+        iaea_group_delnu, iaea_group_errs = prefab_group_delnu(times,
+                       ori_iaea_lamvec,
+                       ori_iaea_lamerr,
+                       ori_iaea_abuvec,
+                       ori_iaea_abuerr,
+                       fissions,
+                       efficiency)
+
+        iaea_group_delnu = np.asarray(iaea_group_delnu)
+        iaea_group_errs  = np.asarray(iaea_group_errs)
+
+
         #scale_group_delnu, _ = prefab_group_delnu(times,
         #               scale_lamvec,
         #               pure_ori_lamerr,
@@ -2622,9 +2660,10 @@ if __name__ == '__main__':
 
 
         #plt.plot(times, scale_group_delnu / keepin_delnu, label='SCALE Fit')
-        plt.plot(times, keepin_delnu / keepin_delnu, label='Keepin')
-        plt.plot(times, ori_group_delnu / keepin_delnu, label='ORIGEN')
-        plt.plot(times, brady_england_delnu / keepin_delnu, label='Brady/England')
+        plt.plot(times, keepin_delnu / keepin_delnu, label='Keepin [6]')
+        plt.plot(times, brady_england_delnu / keepin_delnu, label='Brady/England [11]')
+        plt.plot(times, ori_group_delnu / keepin_delnu, label='Pure ORIGEN')
+        plt.plot(times, iaea_group_delnu / keepin_delnu, label='IAEA-ORIGEN')
         plt.xlabel('Time [s]')
         plt.ylabel('Keepin Normalized Counts')
         plt.legend()
@@ -2637,9 +2676,10 @@ if __name__ == '__main__':
         ori_err = np.sqrt( (ori_group_delnu/keepin_delnu**2 * keepin_errs)**2 + (ori_group_errs/keepin_delnu)**2 )
         bradeng_err = np.sqrt( (brady_england_delnu/keepin_delnu**2 * keepin_errs)**2 + (be_errs/keepin_delnu)**2 )
 
-        misc_funcs.multplt(times, keepin_delnu / keepin_delnu, label='Keepin Fit', errors=keepin_err, alpha=alpha)
-        misc_funcs.multplt(times, ori_group_delnu / keepin_delnu, label='ORIGEN Fit', errors=ori_err, alpha=alpha)
-        misc_funcs.multplt(times, brady_england_delnu / keepin_delnu, label='Brady/England Fit', errors=bradeng_err, alpha=alpha)
+        misc_funcs.multplt(times, keepin_delnu / keepin_delnu, label='Keepin [6]', errors=keepin_err, alpha=alpha)
+        misc_funcs.multplt(times, brady_england_delnu / keepin_delnu, label='Brady/England [11]', errors=bradeng_err, alpha=alpha)
+        misc_funcs.multplt(times, ori_group_delnu / keepin_delnu, label='Pure ORIGEN', errors=ori_err, alpha=alpha)
+        misc_funcs.multplt(times, iaea_group_delnu / keepin_delnu, label='IAEA-ORIGEN', errors=ori_err, alpha=alpha)
 
         #misc_funcs.multplt(times, scale_group_delnu / keepin_delnu, label='SCALE Fit', alpha=alpha)
 
