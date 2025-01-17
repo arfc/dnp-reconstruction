@@ -439,7 +439,11 @@ class SPECTRA:
             b_err = b.copy()
             for tind, t in enumerate(self.times):
                 b[tind] = spectral_matrix[eind, tind] #/ (settings.efficiency * settings.fissions)
-            x, res_sq, res = self.lsqnonneg(A, b)
+            #x, res_sq, res = self.lsqnonneg(A, b)
+            x, res  = self.nnlspr(A, b)
+
+
+
             if uncertainty:
                 _, spec_errs = generic_MC_lstsq_err(A, A_err, b, b_err, tot_iters = settings.spectra_iters)
                 group_uncertainties[:, eind] = spec_errs
@@ -583,6 +587,9 @@ class SPECTRA:
             net_spectra = np.zeros(len(self.energy_mesh))
             # sum over each isotope
             for isotope in valid_list:
+                #print('ga80 only 586')
+                #if isotope != "ga80":
+                #    continue
                 atoms = ORIGEN_dict[isotope]['conc'][0]
                 Pn = ORIGEN_dict[isotope]['emission'][0]
                 lam = np.log(2) / ORIGEN_dict[isotope]['halflife'][0]
@@ -610,3 +617,14 @@ class SPECTRA:
 
         return spectral_matrix, valid_list
 
+    def nnlspr(self, A, b):
+        def func(x):
+            return (b - np.dot(A, x)) / b
+
+        # Initial guess for the parameters
+        params0 = np.ones(A.shape[1])
+
+        # Perform the non-negative least squares fit
+        result = scp.least_squares(func, params0, bounds=(0, np.inf))
+
+        return result.x, result.fun
