@@ -108,15 +108,15 @@ def movie_gen(current_path, num_files):
     None
     """
 
-    filenames = list()
-    for i in range(num_files):
-        name = f'{i}.png'
-        filenames.append(current_path + name)
-
-    import imageio
-    images = []
-    for filename in filenames:
-        images.append(imageio.v2.imread(filename))
-    imageio.mimsave(f'{current_path}movie.gif', images) 
+#    filenames = list()
+#    for i in range(num_files):
+#        name = f'{i}.png'
+#        filenames.append(current_path + name)
+#
+#    import imageio
+#    images = []
+#    for filename in filenames:
+#        images.append(imageio.v2.imread(filename))
+#    imageio.mimsave(f'{current_path}movie.gif', images) 
 
     return
