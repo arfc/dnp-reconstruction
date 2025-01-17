@@ -2311,7 +2311,7 @@ if __name__ == '__main__':
             plt.ylabel(f'{name} / {energy_bin_kev} keV')
             plt.step(energy_mesh, fit_spectra/normalize, where='mid', 
                     label=f'{fit_groups} Fit')
-            plt.title(f'{t}s')
+            #plt.title(f'{t}s')
             plt.legend()
             plt.savefig(current_path+f'{tind}.png')
             plt.close()
@@ -2352,6 +2352,9 @@ if __name__ == '__main__':
         n = 1
         cur_begin_time = time.time()
         for tind, t in enumerate(times):
+            # Only print later time values
+            if tind < len(times) - 10:
+                continue
             if tind/len(times) >= 0.1 * n:
                 n += 1
                 net_time = time.time() - cur_begin_time
@@ -2395,7 +2398,7 @@ if __name__ == '__main__':
             plt.step(energy_mesh, fit_spectra/normalize, where='mid', 
                     label=f'{fit_groups} Fit') 
             plt.fill_between(energy_mesh, fit_spectra/normalize - use_err, fit_spectra/normalize + use_err, alpha=alpha, step='mid')
-            plt.title(f'{t}s')
+            #plt.title(f'{t}s')
             plt.legend()
             plt.savefig(current_path+f'{tind}.png')
             plt.close()
@@ -2492,37 +2495,38 @@ if __name__ == '__main__':
         # Compare group spectra results with actual spectra
         n = 1
         cur_begin_time = time.time()
-        for tind, t in enumerate(time_data):
-            if tind/len(time_data) >= 0.1 * n:
-                n += 1
-                net_time = time.time() - cur_begin_time
-                full_complete_time = net_time / (0.1 * (n-1))
-                print(f'    Progress: {round(tind/len(time_data) * 100)}% in {round(net_time, 0)}s')
-                print(f'        Estimated completion in {round(full_complete_time - net_time, 0)}s')
-            # Actual spectra
-            plt.step(energy_data, spectra_matrix[:, tind], where='mid',
-                    label='Data')
-            plt.xlabel('Energy [MeV]')
-            # Fit spectra
-            fit_spectra = np.zeros(len(energy_data))
-            for group_ind, group_result in enumerate(group_spectra):
-                lam = lamvec[group_ind]
-                abu = abuvec[group_ind]
-                fit_spectra += lam * abu * np.exp(-lam * t) * group_result
-            if spectra_normalized:
-                name = 'Probability'
-                normalize = np.sum(np.abs(fit_spectra))
-            else:
-                name = 'Counts'
-                normalize = 1/(fissions * efficiency)
-            plt.ylabel(f'{name} / {energy_bin_kev} keV')
-            plt.step(energy_data, fit_spectra/normalize, where='mid', 
-                    label=f'{fit_groups} Fit')
-            plt.title(f'{t}s')
-            plt.legend()
-            plt.savefig(current_path+f'{tind}.png')
-            plt.close()
-        misc_funcs.movie_gen(current_path, len(time_data))
+        print('2518 and 2504 removed plotting')
+#        for tind, t in enumerate(time_data):
+#            if tind/len(time_data) >= 0.1 * n:
+#                n += 1
+#                net_time = time.time() - cur_begin_time
+#                full_complete_time = net_time / (0.1 * (n-1))
+#                print(f'    Progress: {round(tind/len(time_data) * 100)}% in {round(net_time, 0)}s')
+#                print(f'        Estimated completion in {round(full_complete_time - net_time, 0)}s')
+#            # Actual spectra
+#            plt.step(energy_data, spectra_matrix[:, tind], where='mid',
+#                    label='Data')
+#            plt.xlabel('Energy [MeV]')
+#            # Fit spectra
+#            fit_spectra = np.zeros(len(energy_data))
+#            for group_ind, group_result in enumerate(group_spectra):
+#                lam = lamvec[group_ind]
+#                abu = abuvec[group_ind]
+#                fit_spectra += lam * abu * np.exp(-lam * t) * group_result
+#            if spectra_normalized:
+#                name = 'Probability'
+#                normalize = np.sum(np.abs(fit_spectra))
+#            else:
+#                name = 'Counts'
+#                normalize = 1/(fissions * efficiency)
+#            plt.ylabel(f'{name} / {energy_bin_kev} keV')
+#            plt.step(energy_data, fit_spectra/normalize, where='mid', 
+#                    label=f'{fit_groups} Fit')
+#            plt.title(f'{t}s')
+#            plt.legend()
+#            plt.savefig(current_path+f'{tind}.png')
+#            plt.close()
+#        misc_funcs.movie_gen(current_path, len(time_data))
 
     if keepin_data_origen:
         # Generate plot comparing Keepin data and ORIGEN data
