@@ -1580,7 +1580,7 @@ if __name__ == '__main__':
                                            abundance_errs=keepin_abuerr)
             soln_matrix, err_matrix = group_solve.group_prk()
             misc_funcs.multplt(prk_times, soln_matrix[0, :], errors=err_matrix[0, :],
-                               label=f'Keepin Step Insertion of {reactivity_magnitude}$',
+                               label=f'Keepin [6] step insertion of {reactivity_magnitude}$',
                                alpha=alpha)
         
         plt.yscale('log')
@@ -1607,7 +1607,7 @@ if __name__ == '__main__':
                                            abundance_errs=ori_iaea_abuerr)
             soln_matrix, err_matrix = group_solve.group_prk()
             misc_funcs.multplt(prk_times, soln_matrix[0, :], errors=err_matrix[0, :],
-                               label=f'ORIGEN-IAEA Step Insertion of {reactivity_magnitude}$',
+                               label=f'ORIGEN-IAEA step insertion of {reactivity_magnitude}$',
                                alpha=alpha)
 
             group_solve = prk_handler.GPRK(pure_ori_lamvec, pure_ori_abuvec,
@@ -1617,14 +1617,14 @@ if __name__ == '__main__':
                                            abundance_errs=pure_ori_abuerr)
             soln_matrix, err_matrix = group_solve.group_prk()
             misc_funcs.multplt(prk_times, soln_matrix[0, :], errors=err_matrix[0, :],
-                               label=f'Pure ORIGEN Step Insertion of {reactivity_magnitude}$',
+                               label=f'Pure ORIGEN step insertion of {reactivity_magnitude}$',
                                alpha=alpha)
         
         
         plt.yscale('log')
         #plt.yticks([0.1, 1, 10])
         plt.xlabel('Time [s]')
-        plt.ylabel('Realtive Neutron Density')
+        plt.ylabel('Relative Neutron Density')
         plt.legend()
         plt.tight_layout()
         plt.savefig(current_path+f'response.png')
@@ -1645,7 +1645,7 @@ if __name__ == '__main__':
                                            abundance_errs=ori_iaea_abuerr)
             soln_matrix, err_matrix = group_solve.group_prk()
             misc_funcs.multplt(prk_times, soln_matrix[0, :], errors=err_matrix[0, :],
-                               label=f'ORIGEN-IAEA Step Insertion of {reactivity_magnitude}$',
+                               label=f'ORIGEN-IAEA step insertion of {reactivity_magnitude}$',
                                alpha=alpha)
 
             group_solve = prk_handler.GPRK(pure_ori_lamvec, pure_ori_abuvec,
@@ -1655,7 +1655,7 @@ if __name__ == '__main__':
                                            abundance_errs=pure_ori_abuerr)
             soln_matrix, err_matrix = group_solve.group_prk()
             misc_funcs.multplt(prk_times, soln_matrix[0, :], errors=err_matrix[0, :],
-                               label=f'Pure ORIGEN Step Insertion of {reactivity_magnitude}$',
+                               label=f'Pure ORIGEN step insertion of {reactivity_magnitude}$',
                                alpha=alpha)
 
             group_solve = prk_handler.GPRK(keepin_lamvec, keepin_abuvec,
@@ -1665,13 +1665,13 @@ if __name__ == '__main__':
                                            abundance_errs=keepin_abuerr)
             soln_matrix, err_matrix = group_solve.group_prk()
             misc_funcs.multplt(prk_times, soln_matrix[0, :], errors=err_matrix[0, :],
-                               label=f'Keepin Step Insertion of {reactivity_magnitude}$',
+                               label=f'Keepin [6] step insertion of {reactivity_magnitude}$',
                                alpha=alpha)
         
         plt.yscale('log')
         #plt.yticks([0.1, 1, 10])
         plt.xlabel('Time [s]')
-        plt.ylabel('Realtive Neutron Density')
+        plt.ylabel('Relative Neutron Density')
         plt.legend()
         plt.tight_layout()
         plt.savefig(current_path+f'response.png')
@@ -2676,14 +2676,16 @@ if __name__ == '__main__':
         plt.close()
 
         
-        keepin_err = np.zeros(len(keepin_delnu))
+        #keepin_err = np.zeros(len(keepin_delnu))
+        keepin_err = np.sqrt( (keepin_delnu/keepin_delnu**2 * keepin_errs)**2 + (keepin_errs/keepin_delnu)**2 )
         ori_err = np.sqrt( (ori_group_delnu/keepin_delnu**2 * keepin_errs)**2 + (ori_group_errs/keepin_delnu)**2 )
         bradeng_err = np.sqrt( (brady_england_delnu/keepin_delnu**2 * keepin_errs)**2 + (be_errs/keepin_delnu)**2 )
 
-        misc_funcs.multplt(times, keepin_delnu / keepin_delnu, label='Keepin [6]', errors=keepin_err, alpha=alpha)
-        misc_funcs.multplt(times, brady_england_delnu / keepin_delnu, label='Brady/England [11]', errors=bradeng_err, alpha=alpha)
-        misc_funcs.multplt(times, ori_group_delnu / keepin_delnu, label='Pure ORIGEN', errors=ori_err, alpha=alpha)
-        misc_funcs.multplt(times, iaea_group_delnu / keepin_delnu, label='IAEA-ORIGEN', errors=ori_err, alpha=alpha)
+        misc_funcs.multplt(times, keepin_delnu / keepin_delnu, label='Keepin [6]', errors=keepin_err, alpha=alpha, cnst_line=True)
+        misc_funcs.multplt(times, brady_england_delnu / keepin_delnu, label='Brady/England [11]', errors=bradeng_err, alpha=alpha, cnst_line=True)
+        misc_funcs.multplt(times, ori_group_delnu / keepin_delnu, label='Pure ORIGEN', errors=ori_err, alpha=alpha, cnst_line=True)
+        misc_funcs.multplt(times, iaea_group_delnu / keepin_delnu, label='IAEA-ORIGEN', errors=ori_err, alpha=alpha, cnst_line=True)
+        plt.xscale('log')
 
         #misc_funcs.multplt(times, scale_group_delnu / keepin_delnu, label='SCALE Fit', alpha=alpha)
 
