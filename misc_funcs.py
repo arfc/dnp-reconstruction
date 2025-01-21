@@ -38,7 +38,8 @@ def multplt(x,
             y,
             label='unlabeled',
             alpha=1,
-            errors=None):
+            errors=None,
+            cnst_line=False):
     """
     Makes multiplotting on a single figure easier
     """
@@ -53,6 +54,7 @@ def multplt(x,
 
      ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
      ('loosely dashdotdotted', (0, (3, 10, 1, 10, 1, 10)))]
+    hatches = ["o", "|", "-", "/" , "\\", "O", ".", "*" ]
     #linestyle=linestyle_tuple[np.random.randint(0, len(linestyle_tuple))][-1]
     global miscmultpltid
     try:
@@ -63,7 +65,9 @@ def multplt(x,
     if miscmultpltid == len(linestyle_tuple):
         miscmultpltid = 0
     linestyle=linestyle_tuple[miscmultpltid][-1]
-    plt.plot(x, y, label=label, alpha=alpha, linestyle=linestyle)
+    if cnst_line:
+        linestyle='-'
+    line, = plt.plot(x, y, label=label, alpha=alpha, linestyle=linestyle)
     if type(errors) != type(None):
         if type(errors) == type(list()):
             errors = np.array(errors)
@@ -75,7 +79,10 @@ def multplt(x,
             y = y[0]
         #plt.errorbar(x, y, yerr=errors, elinewidth=1,
                      #alpha=alpha, linestyle=linestyle, label=label)
-        plt.fill_between(x, y+errors, y-errors, alpha=alpha/2)
+        hatch = hatches[miscmultpltid]
+        plt.fill_between(x, y+errors, y-errors, alpha=alpha/3,
+                         hatch=hatch,
+                         edgecolor=line.get_color())
         
     else:
         #
