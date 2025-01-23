@@ -1280,7 +1280,11 @@ if __name__ == '__main__':
         label_use = [label_dict[i] for i in target_list_iaea_ori]
         #plt.stackplot(times, np.abs(counts_list_list_new), labels=label_use)
         for i, each in enumerate(counts_list_list_new):
-            plt.plot(times, np.abs(each), label=label_use[i])
+            if each[0] < 0:
+                linestyle = '--'
+            else:
+                linestyle = '-'
+            plt.plot(times, np.abs(each), label=label_use[i], linestyle=linestyle)
         plt.yscale('log')
         plt.xscale('log')
         plt.ylim((1, 1e8))
@@ -1333,7 +1337,11 @@ if __name__ == '__main__':
         label_use = [label_dict[i] for i in target_list_ori_ori]
         #plt.stackplot(use_time, np.abs(counts_list_list_new), labels=label_use)
         for i, each in enumerate(counts_list_list_new):
-            plt.plot(times, np.abs(each), label=label_use[i])
+            if each[0] < 0:
+                linestyle = '--'
+            else:
+                linestyle = '-'
+            plt.plot(times, np.abs(each), label=label_use[i], linestyle=linestyle)
         plt.yscale('log')
         plt.xscale('log')
         #plt.yscale('log')
@@ -1462,7 +1470,11 @@ if __name__ == '__main__':
 
         #plt.stackplot(use_time, np.abs(counts_list_list_new_full), labels=label_use)
         for i, each in enumerate(counts_list_list_new_full):
-            plt.plot(times, np.abs(each), label=label_use[i])
+            if each[0] < 0:
+                linestyle = '--'
+            else:
+                linestyle = '-'
+            plt.plot(times, np.abs(each), label=label_use[i], linestyle=linestyle)
         plt.yscale('log')
         plt.xscale('log')
         plt.ylim((1, 1e8))
@@ -2157,7 +2169,6 @@ if __name__ == '__main__':
             #actual_cur_pcnt_diff = abs(spec_oriaea[:, tind] - spec_puorigen[:, tind]) / (0.5*spec_oriaea[:, tind] + 0.5*spec_puorigen[:, tind]) * 100
             diff_avgs.append(abs(sum(avg_pure) - sum(avg_iaea)))
             #l2_norms.append(np.linalg.norm(cur_pcnt_diff))
-        plt.close()
         plt.plot(time_data, diff_avgs)
         plt.xlabel('Time [s]')
         plt.ylabel('Difference of Average Energies [MeV]')
@@ -2310,7 +2321,7 @@ if __name__ == '__main__':
                 normalize = 1/(fissions * efficiency)
             plt.ylabel(f'{name} / {energy_bin_kev} keV')
             plt.step(energy_mesh, fit_spectra/normalize, where='mid', 
-                    label=f'{fit_groups} Fit')
+                    label=f'{fit_groups} Group Fit')
             #plt.title(f'{t}s')
             plt.legend()
             plt.savefig(current_path+f'{tind}.png')
@@ -2352,8 +2363,7 @@ if __name__ == '__main__':
         n = 1
         cur_begin_time = time.time()
         for tind, t in enumerate(times):
-            # Only print later time values
-            if tind < len(times) - 10:
+            if t < 320:
                 continue
             if tind/len(times) >= 0.1 * n:
                 n += 1
@@ -2396,7 +2406,7 @@ if __name__ == '__main__':
                 use_err = np.sqrt(fit_err)
             plt.ylabel(f'{name} / {energy_bin_kev} keV')
             plt.step(energy_mesh, fit_spectra/normalize, where='mid', 
-                    label=f'{fit_groups} Fit') 
+                    label=f'{fit_groups} Group Fit') 
             plt.fill_between(energy_mesh, fit_spectra/normalize - use_err, fit_spectra/normalize + use_err, alpha=alpha, step='mid')
             #plt.title(f'{t}s')
             plt.legend()
