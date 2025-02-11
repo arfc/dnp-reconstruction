@@ -27,7 +27,7 @@ fissions_error = 6.464567E13
 volume = 108961.423 # W17x17
 efficiency = 3.754492213194589e-08
 mass_normalize = 1
-alpha = 0.7
+alpha = 0.75
 show_iso = 'all'
 TRITON_out = './scale_outputs/godiva_3d_depl.out'
 ensdf_fname = './ensdf_data/eval_net.xlsx'
@@ -50,19 +50,19 @@ start_time = 0
 use_errorbars = True
 target = 'all'
 decay_nodes = 3
-percent_variation = [0.005] #[0.1, 0.05, 0.04, 0.03, 0.02, 0.01, 0.005, 0.001]
+percent_variation = []#0.1, 0.05, 0.04, 0.03, 0.02, 0.01, 0.005, 0.001]
 
 DEBUG_IGNORE_ISOTOPES = []# ['ge86', 'i140', 'y98m', 'y97', 'i137', 'br93']
 
 fit_groups = 6
 decay_dims = 2
-abund_iters = 100
+abund_iters = 5000
 spectra_iters = 100
-#halflife_base = np.array([54.51, 21.84, 6.00, 2.23, 0.496, 0.179]) # Keepin
+halflife_base = np.array([54.51, 21.84, 6.00, 2.23, 0.496, 0.179]) # Keepin
 #halflife_base = np.array([55.64, 24.59, 4.338, 2.704, 0.378, 0.222]) # Important Isos
 #halflife_base = np.array([53.14725, 21.27271, 5.83048, 2.19182, 0.52832, 0.11451]) # ORI-BEST
 #halflife_base = np.array([52.12799, 22.54858, 4.74958, 1.83765, 0.45254, 0.09341]) # ORI-BEST Pu
-halflife_base = np.array([48.79745, 19.25847, 3.6288, 1.26018, 0.31798, 0.09831]) # IAEA-BEST
+#halflife_base = np.array([48.79745, 19.25847, 3.6288, 1.26018, 0.31798, 0.09831]) # IAEA-BEST
 #halflife_base = np.array([53.32415, 23.066, 6.36757, 2.38545, 0.95107, 0.30229]) # IAEA-BEST Pu
 #halflife_base = np.array([53.6869, 21.51022, 4.91714, 2.01612, 0.6467, 0.13188]) # e50_dec_33 ORI-BEST
 #halflife_base = np.array([58.65942, 25.76584, 11.83736, 3.44084, 11.83325, 5.28915]) # e50_dec_3 IAEA-BEST
@@ -122,7 +122,7 @@ label_dict = {'ge86': r'$^{86}$Ge','y98m': r'$^{98m}$Y',
 
 # For good results, run with coarse time steps (330 final, 1 step) (more nodes better)
 test_group_fit      = False # Use test group (see results_gen)
-ori_ensdf_group_fit = False #True # IAEA ORIGEN group fit
+ori_ensdf_group_fit = False # IAEA ORIGEN group fit
 tri_ensdf_group_fit = False # IAEA TRITON group fit
 ori_pure_group_fit  = False # Pure ORIGEN group fit
 group_abundance_err = True #True # Default on, calculate errors using stochastic method
@@ -132,7 +132,7 @@ group_abundance_err = True #True # Default on, calculate errors using stochastic
 reactivity_magnitudes = [0.5]
 gen_time = 1E-7 #5.56122E-9 #1E-5
 prk_dt = 1E-5
-prk_tf = 1
+prk_tf = 10
 nubar = 2.60340
 prk_times = np.arange(0, prk_tf+prk_dt, prk_dt)
 ori_iaea_keepin_prk = False # IAEA ORIGEN with Keepin PRK response
@@ -143,19 +143,19 @@ keepin_pure_iaea_prk= False # Keepin, Pure, and IAEA ORIGEN response
 # Spectras
 energy_mesh = np.linspace(0, 1.8, 10) #500I 1.8e6 1e-5
 spectra_normalized  = True # Normalizes by dividing by sum of energy bins at given time; probability (default True)
-spectra_uncertainty = True # Plot with or without uncertainties (negligible)
+spectra_uncertainty = False # Plot with or without uncertainties (negligible)
 pure_ori_t_spectra  = False # Pure ORIGEN spectral results over time
 pure_ori_2d_spectra = False # Pure ORIGEN spectral results in 2D matrix form
 iaea_ori_t_spectra  = False # IAEA ORIGEN spectral results over time
 iaea_ori_2d_spectra = False # IAEA ORIGEN spectral results in 2D matrix form
-spectra_puoriaea_com= False # Comparison of IAEA and Pure ORIGEN spectra
+spectra_puoriaea_com= True # Comparison of IAEA and Pure ORIGEN spectra
 display_endf_spectra= False # Generate plots of ENDF group spectra
 
 # Spectra Fitting
 spectra_expstrp_oria= False # Generate group spectra using exponential stripping
-spectra_lstsq_oriaea= False # IAEA ORIGEN group spectra using fraction fitting
-alt_spc_lstsq_oriaea= False # IAEA ORIGEN group spectra using data least squares
-spec_compare_oriaea = False # Compare fraction fitting and data least squares
+spectra_lstsq_oriaea= False # IAEA ORIGEN group spectra using fraction fitting (Figure 9)
+alt_spc_lstsq_oriaea= False # IAEA ORIGEN group spectra using data least squares (Figure 9)
+spec_compare_oriaea = False # Compare fraction fitting and data least squares (Figure 9 old)
 spectra_puori_fit   = False # Pure ORIGEN group spectra using data least squares
 
 
