@@ -47,5 +47,23 @@ ax.set_xticks(x + 1.5*width, groups, fontsize=12, weight='bold')
 ax.legend(fontsize=12)
 plt.tight_layout()
 
+#plt.savefig('group_bar.png')
+plt.close()
+
+markers = ['v', '^', 'v', '^']
+colors = ['b', 'b', 'orange', 'orange']
+count = 0
+for key, val in data.items():
+    x = [1, 2, 3, 4, 5, 6]
+    size = [20] * 6
+    plt.scatter(x, val, marker=markers[count], c=colors[count],
+                label=key, sizes=size)
+    count += 1
+
+plt.ylabel('Absolute Percent Difference [%]')
+plt.xlabel('Group')
+plt.legend(fontsize=12)
+plt.tight_layout()
+
 plt.savefig('group_bar.png')
 plt.close()
