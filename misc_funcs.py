@@ -39,7 +39,8 @@ def multplt(x,
             label='unlabeled',
             alpha=1,
             errors=None,
-            cnst_line=False):
+            cnst_line=False,
+            marker=None):
     """
     Makes multiplotting on a single figure easier
     """
@@ -67,7 +68,8 @@ def multplt(x,
     linestyle=linestyle_tuple[miscmultpltid][-1]
     if cnst_line:
         linestyle='-'
-    line, = plt.plot(x, y, label=label, alpha=alpha, linestyle=linestyle)
+    line, = plt.plot(x, y, label=label, alpha=alpha, linestyle=linestyle,
+                     marker=marker, markersize=5, markevery=0.1)
     if type(errors) != type(None):
         if type(errors) == type(list()):
             errors = np.array(errors)
