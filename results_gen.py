@@ -1064,8 +1064,8 @@ if __name__ == '__main__':
         pathname = 'origen-pure-origen/'
         current_path = imdir+pathname
         misc_funcs.dir_handle(current_path)
-        misc_funcs.multplt(t_ori, pure_delnu_ori, label='origen_pure_dn', alpha=alpha)
-        misc_funcs.multplt(times, origen_origen_dn, label=f'origen_origen_dn', alpha=alpha)
+        misc_funcs.multplt(times, origen_origen_dn, label=f'IAEA-ORIGEN', alpha=alpha, marker='s')
+        misc_funcs.multplt(t_ori, pure_delnu_ori, label='Pure ORIGEN', alpha=alpha, marker='o')
         plt.yscale('log')
         plt.ylabel('Delayed Neutron Count Rate [#/s]')
         plt.xlabel('Time [s]')
