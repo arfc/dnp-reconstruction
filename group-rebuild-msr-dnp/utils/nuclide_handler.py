@@ -1,8 +1,13 @@
 
 
-def get_all_nuclides() -> list[str]:
+def get_all_nuclides(input_data: dict) -> list[str]:
     """
     Get all nuclides from the nuclear data
+
+    Parameters
+    ----------
+    input_data : dict
+        Dictionary containing settings and data selections
 
     Returns
     -------
