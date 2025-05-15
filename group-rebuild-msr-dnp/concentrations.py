@@ -3,20 +3,20 @@ import numpy as np
 import mypy
 import warnings
 import logging
-import verbose
 
 class Concentrations:
     """
     Class to handle the formation of concentrations from data
     """
     def __init__(self, input_data: dict) -> None:
-        self.all_nuclides = get_all_nuclides()
         self.input_data = input_data
+        self.all_nuclides = get_all_nuclides(input_data)
         return None
     
     def data_concentrations(self) -> dict[str, list[float]]:
         """
-        Generate the concentrations of each nuclide from nuclear data
+        Generate the concentrations of each nuclide from nuclear data based on
+        irradiation of the sample for the irradiation times.
 
         Returns
         -------
