@@ -15,7 +15,10 @@
         "excore_s": 0,
         "net_irrad_s": 420,
         "parent_feeding": false,
-        "fissile_target": "235U",
+        "fissile_targets": ["235U"],
+        "fissile_fission_fractions": {
+            "235U": 0.9998
+        },
         "reprocessing": {
             "Xe": 0.0
         }
