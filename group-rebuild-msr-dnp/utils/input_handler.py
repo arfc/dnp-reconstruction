@@ -8,7 +8,7 @@ class InputHandler:
         Parameters
         ----------
         input_path : str
-            _description_
+            Path to the input file.
         """
         self.input_path = input_path
         return None
