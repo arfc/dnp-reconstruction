@@ -1,4 +1,6 @@
 {
     "data_directory": "./data/openmc",
-    "data_type": "openmc"
+    "data_type": "openmc",
+    "energy_MeV": 0.0253e-6,
+    "fissile_target": "235U"
 }
