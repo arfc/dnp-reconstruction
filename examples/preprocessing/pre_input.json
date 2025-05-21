@@ -1,3 +1,4 @@
 {
+    "data_directory": "./data/openmc",
     "data_type": "openmc"
 }
