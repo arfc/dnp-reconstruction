@@ -2,5 +2,8 @@
     "data_directory": "./data/openmc",
     "data_type": "openmc",
     "energy_MeV": 0.0253e-6,
-    "fissile_target": "235U"
+    "fissile_targets": ["235U"],
+    "fissile_fission_fractions": {
+        "235U": 0.9998
+    }
 }
