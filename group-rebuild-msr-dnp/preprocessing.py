@@ -20,3 +20,9 @@ class Preprocess:
         Processes OpenMC all chain_* files and cross section data using OpenMC
         """
         return None
+    
+    def _openmc_chain_preprocess(self) -> None:
+        """
+        Processes OpenMC all chain_* files
+        """
+        return None
