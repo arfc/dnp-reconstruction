@@ -86,7 +86,12 @@ class Preprocess:
         data: dict[str: dict[str: float]] = dict()
         for nuc in chain_nucs:
             data[nuc] = {}
-            data[nuc]['half_life'] = nuclide_halflives[nuc]
+            data[nuc]['name'] = nuc
+            if nuclide_halflives[nuc] != None:
+                data[nuc]['half_life'] = nuclide_halflives[nuc]
+            else:
+                data[nuc]['half_life'] = np.inf
+            
             data[nuc]['FY'] = fit_FY_chain[nuc]
         
         return data
