@@ -19,6 +19,7 @@
         "fissile_fission_fractions": {
             "235U": 0.9998
         },
+        "reprocessing_locations": ["excore"],
         "reprocessing": {
             "Xe": 0.0
         }
