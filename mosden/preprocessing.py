@@ -17,6 +17,8 @@ class Preprocess:
         self.input_data = self.input_handler.read_input()
 
         self.data_dir = self.input_data['data_directory']
+        self.overwrite = self.input_data['overwrite']
+        self.out_dir = self.input_data['output_directory']
         return None
     
     def openmc_preprocess(self) -> None:
@@ -31,9 +33,10 @@ class Preprocess:
         Processes OpenMC all chain_* files
         """
         for file in os.listdir(self.data_dir + '/chain/'):
-            file_data = self._process_chain_file(file)
-            csv_path = self.data_dir + '/processed/'
-            CSVHandler(csv_path).write_csv(file_data)
+            full_path = os.path.join(self.data_dir + '/chain/', file)
+            file_data = self._process_chain_file(full_path)
+            csv_path = self.data_dir + self.out_dir + file.split('.')[0] + '.csv'
+            CSVHandler(csv_path, self.overwrite).write_csv(file_data)
         return None
     
     def _process_chain_file(self, file: str) -> dict[str, dict[str, float]]:
@@ -50,7 +53,22 @@ class Preprocess:
         data : dict[str, dict[str, float]]
             Dictionary containing the processed data.
         """
+        import openmc.deplete
+        chain = openmc.deplete.Chain.from_xml(file)
+        nuclides: list[openmc.deplete.Nuclide] = chain.nuclides
+        for nuc in nuclides:
+            data[nuc.name] = {}
+            data[nuc.name]['half_life'] = nuc.half_life
+            input(nuc.yield_data)
+            input(nuc.yield_energies)
+            help(nuc)
+            input('...')
+        fission_yields: list[dict[str: {str: float}]] = chain.fission_yields
         # Placeholder for actual processing logic
         data = {}
         # Implement the logic to read and process the chain file here
         return data
+
+
+preproc = Preprocess('../examples/keepin_1957/pre_input.json')
+preproc.openmc_preprocess()
