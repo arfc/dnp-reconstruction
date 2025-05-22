@@ -44,7 +44,8 @@ class Preprocess:
         for file in os.listdir(self.data_dir + '/chain/'):
             full_path: str = os.path.join(self.data_dir + '/chain/', file)
             file_data: dict[str: dict[str, float]] = self._process_chain_file(full_path, fissile)
-            csv_path: str = self.out_dir + '/' + file.split('.')[0] + '.csv'
+            path_nuc_energy: str = fissile + '/' + str(self.energy_MeV) + 'MeV'
+            csv_path: str = self.out_dir + f'/{path_nuc_energy}/' + file.split('.')[0] + '.csv'
             CSVHandler(csv_path, self.overwrite).write_csv(file_data)
         return None
     
@@ -114,10 +115,13 @@ class Preprocess:
         """
         fit_FY_chain: dict[str: float] = {}
         for product in FY_chain:
-            xs = list(FY_chain[product].keys())
+            xs = [energy*1e-6 for energy in FY_chain[product].keys()]
             ys = list(FY_chain[product].values())
-            coeffs = np.polyfit(xs, ys, order)
-            fit_FY_chain[product] = np.polyval(coeffs, self.energy_MeV)
+            if order == 1:
+                fit_FY_chain[product] = np.interp(self.energy_MeV, xs, ys)
+            else:
+                coeffs = np.polyfit(xs, ys, order)
+                fit_FY_chain[product] = np.polyval(coeffs, self.energy_MeV)
         return fit_FY_chain
 
 
