@@ -1,4 +1,5 @@
 {
+    "run": true,
     "data_directory": "./data/openmc",
     "data_type": "openmc",
     "energy_MeV": 0.0253e-6,
