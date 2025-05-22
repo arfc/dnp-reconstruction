@@ -1,6 +1,8 @@
 {
     "run": true,
+    "overwrite": true,
     "data_directory": "./data/openmc",
+    "output_directory": "/data/openmc/processed",
     "data_type": "openmc",
     "energy_MeV": 0.0253e-6,
     "fissile_targets": ["235U"],
