@@ -8,6 +8,14 @@ Molten Salt Delayed Neutron (MoSDeN) is a tool used for reconstruction of delaye
 Preprocessing should be run to generate any data needed (if it does not already exist as processed data).
 This data is dependent on the energy of the irradiating neutrons as well as the fissile nuclide target.
 
+#### Getting data
+The exact organization of data is flexible, with some notable exceptions:
+- OpenMC chain files to be preprocessed should all be in a subdirectory labeled "omcchain"
+
+Data can be collected from different sources:
+- [OpenMC depletion chains](https://openmc.org/depletion-chains/)
+- [ENDF data](https://www.nndc.bnl.gov/endf-releases/)
+
 ### Processing
 Processing consists of three steps:
 1. Generate concentrations (or collect fission yield data).
