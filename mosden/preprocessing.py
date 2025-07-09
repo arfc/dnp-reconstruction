@@ -41,8 +41,8 @@ class Preprocess:
         fissile : str
             Name of the fissile target to process.
         """
-        for file in os.listdir(self.data_dir + '/chain/'):
-            full_path: str = os.path.join(self.data_dir + '/chain/', file)
+        for file in os.listdir(self.data_dir + '/omcchain/'):
+            full_path: str = os.path.join(self.data_dir + '/omcchain/', file)
             file_data: dict[str: dict[str, float]] = self._process_chain_file(full_path, fissile)
             path_nuc_energy: str = fissile + '/' + str(self.energy_MeV) + 'MeV'
             csv_path: str = self.out_dir + f'/{path_nuc_energy}/' + file.split('.')[0] + '.csv'
