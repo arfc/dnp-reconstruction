@@ -33,8 +33,9 @@
     }, 
     "modeling_options": {
         "parent_feeding": false,
-        "concentration_handling": "data-only",
-        "delayed_neutron_handling": "data-only"
+        "depletion": false,
+        "concentration_handling": "CFY",
+        "delayed_neutron_handling": "CFY"
     },
     "run_options": {
         "iterate_concentration_targets": [],
