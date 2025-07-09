@@ -20,7 +20,7 @@ class Preprocess:
         self.data_dir: str = self.input_data['data_directory']
         self.overwrite: bool = self.input_data['overwrite']
         self.out_dir: str = self.input_data['output_directory']
-        self.fissile_targets: list = self.input_data['fissile_targets']
+        self.fissile_targets: list = list(self.input_data['fissile_fractions'].keys())
         self.energy_MeV: float = self.input_data['energy_MeV']
         return None
     

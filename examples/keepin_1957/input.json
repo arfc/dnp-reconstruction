@@ -15,9 +15,9 @@
         "excore_s": 0,
         "net_irrad_s": 420,
         "parent_feeding": false,
-        "fissile_targets": ["235U"],
-        "fissile_fission_fractions": {
-            "235U": 0.9998
+        "fissile_fractions": {
+            "U235": 0.9998,
+            "U238": 0.0002
         },
         "reprocessing_locations": ["excore"],
         "reprocessing": {
