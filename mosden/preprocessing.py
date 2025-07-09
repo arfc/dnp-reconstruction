@@ -1,5 +1,5 @@
-from utils.input_handler import InputHandler
-from utils.csv_handler import CSVHandler
+from mosden.utils.input_handler import InputHandler
+from mosden.utils.csv_handler import CSVHandler
 import os
 import numpy as np
 
@@ -124,6 +124,6 @@ class Preprocess:
                 fit_FY_chain[product] = np.polyval(coeffs, self.energy_MeV)
         return fit_FY_chain
 
-
-preproc = Preprocess('../examples/keepin_1957/pre_input.json')
-preproc.openmc_preprocess()
+if __name__ == "__main__":
+    preproc = Preprocess('../examples/keepin_1957/pre_input.json')
+    preproc.openmc_preprocess()
