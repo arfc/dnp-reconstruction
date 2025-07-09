@@ -2,7 +2,7 @@
 Molten Salt Delayed Neutron (MoSDeN) is a tool used for reconstruction of delayed neutron precursor groups in molten salt reactors.
 
 
-## Using the tool
+## Understanding the tool
 
 ### Preprocessing
 Preprocessing should be run to generate any data needed (if it does not already exist as processed data).
@@ -16,3 +16,8 @@ Processing consists of three steps:
 
 ### Postprocessing
 Postprocessing handles plotting and data analysis from the processed results, including analysis of each step.
+
+## Using the tool
+
+`pip install .` or `pip install -e .` can be used to make the package available to use on the command line as `mosden` (or in an editable version for development purposes).
+Use `mosden -i <input.json>` to do a normal run, `mosden -pre <preproc.json>` for preprocessing, or `mosden -post <postproc.json>` for post-processing.
