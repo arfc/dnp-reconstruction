@@ -1,4 +1,3 @@
-from utils.nuclide_handler import get_all_nuclides
 import numpy as np
 import mypy
 import warnings
@@ -9,8 +8,7 @@ class Concentrations:
     Class to handle the formation of concentrations from data
     """
     def __init__(self, input_data: dict) -> None:
-        self.input_data = input_data
-        self.all_nuclides = get_all_nuclides(input_data)
+        self.input_data: dict = input_data
         return None
     
     def data_concentrations(self) -> dict[str, list[float]]:
