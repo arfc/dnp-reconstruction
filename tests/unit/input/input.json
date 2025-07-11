@@ -2,7 +2,7 @@
     "file_options": {
         "overwrite": true,
         "unprocessed_data_dir": "./data/unprocessed/endfb71",
-        "processed_data_dir": "./data/processed/endfb71",
+        "processed_data_dir": "./tests/unit/output",
         "output_dir": "./results",
         "log_level": 1,
         "log_file": "./results/log.log"
@@ -14,10 +14,10 @@
         "decay_time_spacing": "linear",
         "temperature_K": 920,
         "density_g_cm3": 2.3275,
-        "energy_MeV": 0.0253e-6,
+        "energy_MeV": 1.0,
         "fissile_fractions": {
-            "U235": 0.9998,
-            "U238": 0.0002
+            "U235": 0.8,
+            "U238": 0.2
         }
     },
     "modeling_options": {

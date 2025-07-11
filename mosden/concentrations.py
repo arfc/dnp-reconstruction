@@ -1,5 +1,4 @@
 import numpy as np
-import mypy
 import warnings
 import logging
 

@@ -8,7 +8,7 @@ def test_preprocess_init():
     Test the initialization of the Preprocess class.
     """
 
-    input_path = './tests/unit/inputs/test_input.json'
+    input_path = './tests/unit/input/input.json'
     preproc = Preprocess(input_path)
     assert preproc.input_path == input_path, f"Expected input path {input_path}, but got {preproc.input_path}"
     assert preproc.out_dir == './tests/unit/output', f"Expected output directory './tests/unit/output', but got {preproc.out_dir}"
