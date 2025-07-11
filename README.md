@@ -11,6 +11,7 @@ This data is dependent on the energy of the irradiating neutrons as well as the 
 #### Getting data
 The exact organization of data is flexible, with some notable exceptions:
 - OpenMC chain files to be preprocessed should all be in a subdirectory labeled "omcchain"
+- ENDF NFY data should all be in a subdirectory labeled "nfy"
 
 Data can be collected from different sources:
 - [OpenMC depletion chains](https://openmc.org/depletion-chains/): these give half-lives and independent fission yields (linearly interpolated energy dependence)
