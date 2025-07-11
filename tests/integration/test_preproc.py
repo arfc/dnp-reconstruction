@@ -1,6 +1,5 @@
 from pathlib import Path
 from mosden.preprocessing import Preprocess
-import shutil
 
 def test_openmc_preprocess():
     """
@@ -33,7 +32,6 @@ def test_openmc_preprocess():
                     assert '0.123' in content, f"'0.123' not found in {file}."
                     assert '100.0' in content, f"'100.0' not found in {file}."
 
-    #shutil.rmtree(output_dir, ignore_errors=True)
     return
 
 def test_endf_preprocess():
@@ -68,7 +66,5 @@ def test_endf_preprocess():
                     assert 'Xe135' in lines[line_num], f"'Xe135' not found on line {line_num + 1} in {file}."
                     assert '0.0696758' in lines[line_num], f"'0.0696758' not found on line {line_num + 1} in {file}."
                     assert '0.000696758' in lines[line_num], f"'0.000696758' not found on line {line_num + 1} in {file}."
-
-
-    shutil.rmtree(output_dir, ignore_errors=True)
+    
     return
