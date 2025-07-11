@@ -13,8 +13,8 @@ The exact organization of data is flexible, with some notable exceptions:
 - OpenMC chain files to be preprocessed should all be in a subdirectory labeled "omcchain"
 
 Data can be collected from different sources:
-- [OpenMC depletion chains](https://openmc.org/depletion-chains/)
-- [ENDF data](https://www.nndc.bnl.gov/endf-releases/)
+- [OpenMC depletion chains](https://openmc.org/depletion-chains/): these give half-lives and independent fission yields (linearly interpolated energy dependence)
+- [ENDF data](https://www.nndc.bnl.gov/endf-releases/): these give (currently) cumulative fission yields (with energy dependence based on nearest energy)
 
 ### Processing
 Processing consists of three steps:
