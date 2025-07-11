@@ -5,7 +5,7 @@ def test_openmc_preprocess():
     """
     Test the OpenMC preprocessing functionality.
     """
-    input_path = Path(__file__).parent / 'inputs' / 'pre_input.json'
+    input_path = Path(__file__).parent / 'input' / 'input.json'
     preproc = Preprocess(str(input_path))
     preproc.openmc_preprocess()
 
@@ -38,7 +38,7 @@ def test_endf_preprocess():
     """
     Test the ENDF preprocessing functionality.
     """
-    input_path = Path(__file__).parent / 'inputs' / 'pre_input.json'
+    input_path = Path(__file__).parent / 'input' / 'input.json'
     preproc = Preprocess(str(input_path))
     preproc.endf_preprocess()
 

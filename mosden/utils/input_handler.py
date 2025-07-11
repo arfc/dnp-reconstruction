@@ -25,3 +25,4 @@ class InputHandler:
         with open(self.input_path, 'r') as file:
             output = json.load(file)
         return output
+    
