@@ -18,8 +18,7 @@ def test_csv_handler():
     read_data = csv_handler.read_csv()
     
     assert read_data == data, f"Expected {data}, but got {read_data}"
-
-    
+ 
     return
 
 def test_input_handler():
