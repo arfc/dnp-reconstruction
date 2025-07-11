@@ -274,8 +274,11 @@ class Preprocess:
             The fitted value at `self.energy_MeV`.
         """
         xs = [energy*1e-6 for energy in energies]
-        coeffs = np.polyfit(xs, values, order)
-        fit_value = np.polyval(coeffs, self.energy_MeV)
+        if order == 1:
+            fit_value = np.interp(self.energy_MeV, xs, values)
+        else:
+            coeffs = np.polyfit(xs, values, order)
+            fit_value = np.polyval(coeffs, self.energy_MeV)
         return fit_value
 
 
