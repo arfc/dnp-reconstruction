@@ -19,11 +19,11 @@ class Preprocess:
         self.input_handler: InputHandler = InputHandler(input_path)
         self.input_data: dict = self.input_handler.read_input()
 
-        self.data_dir: str = self.input_data['data_directory']
-        self.overwrite: bool = self.input_data['overwrite']
-        self.out_dir: str = self.input_data['output_directory']
-        self.fissile_targets: list = list(self.input_data['fissile_fractions'].keys())
-        self.energy_MeV: float = self.input_data['energy_MeV']
+        self.data_dir: str = self.input_data['file_options']['unprocessed_data_dir']
+        self.overwrite: bool = self.input_data['file_options']['overwrite']
+        self.out_dir: str = self.input_data['file_options']['processed_data_dir']
+        self.fissile_targets: list = list(self.input_data['data_options']['fissile_fractions'].keys())
+        self.energy_MeV: float = self.input_data['data_options']['energy_MeV']
         return None
     
     def openmc_preprocess(self) -> None:
