@@ -163,3 +163,4 @@ cython_debug/
 
 /mosden/data/processed
 /tests/integration/output
+/tests/unit/output

@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 class CSVHandler:
-    def __init__(self, file_path: str, overwrite: bool) -> None:
+    def __init__(self, file_path: str, overwrite: bool=False) -> None:
         self.file_path = file_path
         self._create_directory() 
         if not overwrite and self._file_exists():
@@ -30,11 +30,12 @@ class CSVHandler:
         return os.path.isfile(self.file_path)
 
     def read_csv(self) -> dict[str, dict[str, float]]:
-        df = pd.read_csv(self.file_path)
+        df = pd.read_csv(self.file_path, index_col=0)
         data = df.to_dict(orient='index')
         return data
 
     def write_csv(self, data: dict[str, dict[str, float]]) -> None:
         df = pd.DataFrame.from_dict(data, orient='index')
-        df.to_csv(self.file_path, index=False)
+        df.index.name = 'Nuclide'
+        df.to_csv(self.file_path, index=True)
         return None
