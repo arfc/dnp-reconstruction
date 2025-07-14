@@ -75,7 +75,7 @@ class Preprocess:
             full_path: str = os.path.join(self.data_dir + '/nfy/', file)
             file_data : dict[str: dict[str: float]] = self._process_endf_nfy_file(full_path, adjusted_fissile)
             path_nuc_energy: str = fissile + '/' + str(self.energy_MeV) + 'MeV'
-            csv_path: str = self.out_dir + f'/{path_nuc_energy}/' + file.split('.')[0] + '.csv'
+            csv_path: str = self.out_dir + f'/{path_nuc_energy}/' + 'nfy.csv'
             CSVHandler(csv_path, self.overwrite).write_csv(file_data) 
         return None
     
@@ -283,6 +283,6 @@ class Preprocess:
 
 
 if __name__ == "__main__":
-    preproc = Preprocess('../examples/keepin_1957/pre_input.json')
+    preproc = Preprocess('../examples/keepin_1957/input.json')
     preproc.openmc_preprocess()
     preproc.endf_preprocess()

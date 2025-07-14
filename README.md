@@ -11,7 +11,9 @@ This data is dependent on the energy of the irradiating neutrons as well as the 
 #### Getting data
 The exact organization of data is flexible, with some notable exceptions:
 - OpenMC chain files to be preprocessed should all be in a subdirectory labeled "omcchain"
+- OpenMC chain files should be named "chain_<data>_<energy>.csv", where `data` is "endfb71" or similar, and `energy` is "pwr" for thermal spectrum or "sfr" for fast spectrum neutrons.
 - ENDF NFY data should all be in a subdirectory labeled "nfy"
+- ENDF NFY files should be named "nfy-<ZZZ>_<ID>_<AAA>.csv", so 235U would be `nfy-092_U_235.csv`.
 
 Data can be collected from different sources:
 - [OpenMC depletion chains](https://openmc.org/depletion-chains/): these give half-lives and independent fission yields (linearly interpolated energy dependence)
