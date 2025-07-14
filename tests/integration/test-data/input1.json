@@ -6,17 +6,18 @@
             "count_rate": true,
             "postprocessing": true
         },
-        "unprocessed_data_dir": "./tests/integration/data",
+        "unprocessed_data_dir": "./tests/integration/",
         "processed_data_dir": "./tests/integration/data_output",
         "output_dir": "./tests/integration/output",
         "log_level": 1,
         "log_file": "./tests/integration/output/log.log"
     },
     "data_options": {
-        "decay_constant": "endfb71",
-        "cross_section": "endfb71",
+        "decay_constant": "test-data",
+        "cross_section": "test-data",
+        "emission_probability": "test-data",
         "fission_yield": {
-            "data": "endfb71",
+            "data": "test-data",
             "type": "nfy"
         },
         "decay_time_spacing": "linear",

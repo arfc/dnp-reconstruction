@@ -24,6 +24,11 @@ class Preprocess:
         self.out_dir: str = self.input_data['file_options']['processed_data_dir']
         self.fissile_targets: list = list(self.input_data['data_options']['fissile_fractions'].keys())
         self.energy_MeV: float = self.input_data['data_options']['energy_MeV']
+
+        self.half_life_dir: str = self.data_dir + self.input_data['data_options']['decay_constant']
+        self.cross_section_dir: str = self.data_dir + self.input_data['data_options']['cross_section']
+        self.emission_probability_dir: str = self.data_dir + self.input_data['data_options']['emission_probability']
+        self.fission_yield_dir: str = self.data_dir + self.input_data['data_options']['fission_yield']['data']
         return None
     
     def run(self) -> None:
@@ -32,6 +37,7 @@ class Preprocess:
         """
         self.openmc_preprocess()
         self.endf_preprocess()
+        self.iaea_preprocess()
         return None
     
     def openmc_preprocess(self) -> None:
@@ -50,6 +56,25 @@ class Preprocess:
             self._endf_nfy_preprocess(fissile)
         return None
     
+    def iaea_preprocess(self) -> None:
+        """
+        Processes IAEA data for emission probabilities and half-lives.
+        """
+        self._iaea_dn_preprocess()
+        return None
+    
+    def _iaea_dn_preprocess(self) -> None:
+        """
+        Processes IAEA data for emission probabilities and half-lives.
+        """
+        full_path: str = os.path.join(self.data_dir, 'iaea', 'eval.csv')
+        input(full_path)
+
+        iaea_data = CSVHandler(full_path).read_csv()
+        input(iaea_data)
+
+        return None
+
     def _openmc_chain_preprocess(self, fissile: str) -> None:
         """
         Processes OpenMC all chain_* files
@@ -59,8 +84,8 @@ class Preprocess:
         fissile : str
             Name of the fissile target to process.
         """
-        for file in os.listdir(self.data_dir + '/omcchain/'):
-            full_path: str = os.path.join(self.data_dir + '/omcchain/', file)
+        for file in os.listdir(self.half_life_dir + '/omcchain/'):
+            full_path: str = os.path.join(self.half_life_dir + '/omcchain/', file)
             file_data: dict[str: dict[str: float]] = self._process_chain_file(full_path, fissile)
             path_nuc_energy: str = fissile + '/' + str(self.energy_MeV) + 'MeV'
             csv_path: str = self.out_dir + f'/{path_nuc_energy}/' + file.split('.')[0] + '.csv'
@@ -76,12 +101,12 @@ class Preprocess:
         fissile : str
             Name of the fissile target to process.
         """
-        for file in os.listdir(self.data_dir + '/nfy/'):
+        for file in os.listdir(self.fission_yield_dir + '/nfy/'):
             adjusted_fissile: str = self._endf_fissile_name(fissile)
             if not file.startswith(f'nfy-{adjusted_fissile}'):
                 continue
-            full_path: str = os.path.join(self.data_dir + '/nfy/', file)
-            file_data : dict[str: dict[str: float]] = self._process_endf_nfy_file(full_path, adjusted_fissile)
+            full_path: str = os.path.join(self.fission_yield_dir + '/nfy/', file)
+            file_data : dict[str: dict[str: float]] = self._process_endf_nfy_file(full_path)
             path_nuc_energy: str = fissile + '/' + str(self.energy_MeV) + 'MeV'
             csv_path: str = self.out_dir + f'/{path_nuc_energy}/' + 'nfy.csv'
             CSVHandler(csv_path, self.overwrite).write_csv(file_data) 
@@ -134,7 +159,7 @@ class Preprocess:
         
         return f"{Z:03d}_{symbol}_{A}"
     
-    def _process_endf_nfy_file(self, file: str, adjusted_fissile: str) -> dict[str, dict[str: float]]:
+    def _process_endf_nfy_file(self, file: str) -> dict[str, dict[str: float]]:
         """
         Processes a single ENDF NFY file and returns the data as a dictionary.
 
@@ -290,5 +315,4 @@ class Preprocess:
 
 if __name__ == "__main__":
     preproc = Preprocess('../examples/keepin_1957/input.json')
-    preproc.openmc_preprocess()
-    preproc.endf_preprocess()
+    preproc.run()

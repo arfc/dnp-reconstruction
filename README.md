@@ -18,6 +18,7 @@ The exact organization of data is flexible, with some notable exceptions:
 Data can be collected from different sources:
 - [OpenMC depletion chains](https://openmc.org/depletion-chains/): these give half-lives and independent fission yields (linearly interpolated energy dependence)
 - [ENDF data](https://www.nndc.bnl.gov/endf-releases/): these give (currently) cumulative fission yields (with energy dependence based on nearest energy)
+- [IAEA data](https://www-nds.iaea.org/beta-delayed-neutron/database.html): these give emission probabilities and half-lives
 
 ### Processing
 Processing consists of three steps:

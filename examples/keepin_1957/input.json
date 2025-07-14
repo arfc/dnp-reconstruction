@@ -6,8 +6,8 @@
             "count_rate": true,
             "postprocessing": true
         },
-        "unprocessed_data_dir": "./data/unprocessed/endfb71",
-        "processed_data_dir": "./data/processed/endfb71",
+        "unprocessed_data_dir": "./data/unprocessed/",
+        "processed_data_dir": "./data/processed/",
         "output_dir": "./results",
         "log_level": 1,
         "log_file": "./results/log.log"
@@ -15,6 +15,7 @@
     "data_options": {
         "decay_constant": "endfb71",
         "cross_section": "endfb71",
+        "emission_probability": "iaea",
         "fission_yield": {
             "data": "endfb71",
             "type": "nfy"
