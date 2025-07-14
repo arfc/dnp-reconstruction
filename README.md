@@ -31,4 +31,5 @@ Postprocessing handles plotting and data analysis from the processed results, in
 ## Using the tool
 
 `pip install .` or `pip install -e .` can be used to make the package available to use on the command line as `mosden` (or in an editable version for development purposes).
-Use `mosden -i <input.json>` to do a normal run, `mosden -pre <preproc.json>` for preprocessing, or `mosden -post <postproc.json>` for post-processing.
+Use `mosden -i <input.json>` to do a normal run, `mosden -pre <input.json>` for preprocessing, or `mosden -post <input.json>` for post-processing.
+Alternatively, `mosden --all <input.json>` can be used to run preprocessing, calculations, and post-processing.
