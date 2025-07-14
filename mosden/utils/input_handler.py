@@ -65,9 +65,14 @@ class InputHandler:
             raise ValueError(f"Cross section option '{data['data_options']['cross_section']}' is not supported. "
                              f"Supported options are: {possible_data_options}")
 
-        if data['data_options']['fission_yield'] not in possible_data_options:
-            raise ValueError(f"Fission yield option '{data['data_options']['fission_yield']}' is not supported. "
+        if data['data_options']['fission_yield']['data'] not in possible_data_options:
+            raise ValueError(f"Fission yield option '{data['data_options']['fission_yield']['data']}' is not supported. "
                              f"Supported options are: {possible_data_options}")
+        possible_fy_types = ['nfy', 'chain']
+        if data['data_options']['fission_yield']['type'] not in possible_fy_types:
+            raise ValueError(f"Fission yield type '{data['data_options']['fission_yield']['type']}' is not supported. "
+                             f"Supported options are: {possible_fy_types}")
+
         
         possible_decay_spacings = ['linear']
         if data['data_options']['decay_time_spacing'] not in possible_decay_spacings:
