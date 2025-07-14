@@ -7,10 +7,10 @@
             "postprocessing": true
         },
         "unprocessed_data_dir": "./tests/integration/input",
-        "processed_data_dir": "./tests/integration/output",
-        "output_dir": "./results",
+        "processed_data_dir": "./tests/integration/data_output",
+        "output_dir": "./tests/integration/output",
         "log_level": 1,
-        "log_file": "./results/log.log"
+        "log_file": "./tests/integration/output/log.log"
     },
     "data_options": {
         "decay_constant": "endfb71",
