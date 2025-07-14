@@ -17,7 +17,7 @@ def test_openmc_preprocess():
     for fissile in preproc.fissile_targets:
         path_nuc_energy = f"{fissile}/{preproc.energy_MeV}MeV"
         expected_files = list(output_dir.glob(f"{path_nuc_energy}/chain_*.csv"))
-        assert expected_files, f"No CSV files found in {path_nuc_energy}."
+        assert expected_files, f"No CSV files found in {output_dir}/{path_nuc_energy}/chain_*.csv."
 
         # Check if the files contain expected data
         for file in expected_files:
@@ -49,8 +49,8 @@ def test_endf_preprocess():
     # Check if the expected files are created
     for fissile in preproc.fissile_targets:
         path_nuc_energy = f"{fissile}/{preproc.energy_MeV}MeV"
-        expected_files = list(output_dir.glob(f"{path_nuc_energy}/nfy-*.csv"))
-        assert expected_files, f"No CSV files found in {path_nuc_energy}."
+        expected_files = list(output_dir.glob(f"{path_nuc_energy}/nfy*.csv"))
+        assert expected_files, f"No CSV files found in {output_dir}/{path_nuc_energy}/nfy*.csv."
 
         # Check if the files contain expected data
         for file in expected_files:
