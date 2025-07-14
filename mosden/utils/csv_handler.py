@@ -5,8 +5,7 @@ class CSVHandler:
     def __init__(self, file_path: str, overwrite: bool=False) -> None:
         self.file_path = file_path
         self._create_directory() 
-        if not overwrite and self._file_exists():
-            raise FileExistsError(f"File {self.file_path} already exists. Set overwrite=True to overwrite.")
+        self.overwrite = overwrite
         return None
     
     def _create_directory(self) -> None:
@@ -35,6 +34,8 @@ class CSVHandler:
         return data
 
     def write_csv(self, data: dict[str, dict[str, float]]) -> None:
+        if not self.overwrite and self._file_exists():
+            raise FileExistsError(f"File {self.file_path} already exists. Set overwrite=True to overwrite.")
         df = pd.DataFrame.from_dict(data, orient='index')
         df.index.name = 'Nuclide'
         df.to_csv(self.file_path, index=True)
