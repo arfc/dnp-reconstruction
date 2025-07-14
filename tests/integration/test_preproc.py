@@ -1,11 +1,15 @@
 from pathlib import Path
 from mosden.preprocessing import Preprocess
+import pytest
+from mosden.utils.csv_handler import CSVHandler
 
-def test_openmc_preprocess():
+@pytest.mark.parametrize("input_path, reference_output_path", [
+    ("tests/integration/data/input1.json", "tests/integration/data/output/test1/")
+] )
+def test_openmc_preprocess(input_path, reference_output_path):
     """
     Test the OpenMC preprocessing functionality.
     """
-    input_path = Path(__file__).parent / 'input' / 'input.json'
     preproc = Preprocess(str(input_path))
     preproc.openmc_preprocess()
 
@@ -31,14 +35,23 @@ def test_openmc_preprocess():
                     assert 'Xe135' in content, f"'Xe135' not found in {file}."
                     assert '0.123' in content, f"'0.123' not found in {file}."
                     assert '100.0' in content, f"'100.0' not found in {file}."
+        
+                # Check if files match expected output
+                reference_file = Path(reference_output_path) / fissile / f"{preproc.energy_MeV}MeV" / file.name
+                assert reference_file.exists(), f"Reference file {reference_file} does not exist."
+                reference_data = CSVHandler(reference_file).read_csv()
+                data = CSVHandler(file).read_csv()
+                assert data == reference_data, f"Output data for {file} does not match reference data."
 
     return
 
-def test_endf_preprocess():
+@pytest.mark.parametrize("input_path, reference_output_path", [
+    ("tests/integration/data/input1.json", "tests/integration/data/output/test1/")
+] )
+def test_endf_preprocess(input_path, reference_output_path):
     """
     Test the ENDF preprocessing functionality.
     """
-    input_path = Path(__file__).parent / 'input' / 'input.json'
     preproc = Preprocess(str(input_path))
     preproc.endf_preprocess()
 
@@ -66,5 +79,12 @@ def test_endf_preprocess():
                     assert 'Xe135' in lines[line_num], f"'Xe135' not found on line {line_num + 1} in {file}."
                     assert '0.0696758' in lines[line_num], f"'0.0696758' not found on line {line_num + 1} in {file}."
                     assert '0.000696758' in lines[line_num], f"'0.000696758' not found on line {line_num + 1} in {file}."
+
+                # Check if files match expected output
+                reference_file = Path(reference_output_path) / fissile / f"{preproc.energy_MeV}MeV" / file.name
+                assert reference_file.exists(), f"Reference file {reference_file} does not exist."
+                reference_data = CSVHandler(reference_file).read_csv()
+                data = CSVHandler(file).read_csv()
+                assert data == reference_data, f"Output data for {file} does not match reference data."
     
     return
