@@ -31,6 +31,7 @@ class InputHandler:
             output = json.load(file)
         if check:
             self._check_behaviour(output)
+        self._adjust_data(output)
         return output
     
     def _check_behaviour(self, data: dict) -> None:
@@ -90,6 +91,28 @@ class InputHandler:
                              f"Supported options are: {possible_concentration_options}")
 
         return
+    
+    def _adjust_data(self, data: dict) -> None:
+        """
+        Adjust the input data to fit desired formatting.
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary containing settings and data selections.
+        """
+        energy = data['data_options']['energy_MeV']
+        # Two energy group division for selection of chain file
+        if energy <= 1e-3:
+            chain_suffix = 'pwr'
+        elif energy > 1e-3:
+            chain_suffix = 'sfr'
+        chain_middle = data['data_options']['fission_yield']['data']
+            
+        if data['data_options']['fission_yield']['type'] == 'nfy':
+            data['data_options']['fission_yield']['type'] = 'nfy.csv'
+        elif data['data_options']['fission_yield']['type'] == 'chain':
+            data['data_options']['fission_yield']['type'] = 'chain_' + chain_middle + '_' + chain_suffix + '.csv'
 
     
 if __name__ == "__main__":
