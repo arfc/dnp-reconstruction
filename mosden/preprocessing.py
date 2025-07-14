@@ -20,10 +20,18 @@ class Preprocess:
         self.input_data: dict = self.input_handler.read_input()
 
         self.data_dir: str = self.input_data['file_options']['unprocessed_data_dir']
-        self.overwrite: bool = self.input_data['file_options']['overwrite']
+        self.overwrite: bool = self.input_data['file_options']['overwrite']['preprocessing']
         self.out_dir: str = self.input_data['file_options']['processed_data_dir']
         self.fissile_targets: list = list(self.input_data['data_options']['fissile_fractions'].keys())
         self.energy_MeV: float = self.input_data['data_options']['energy_MeV']
+        return None
+    
+    def run(self) -> None:
+        """
+        Run the preprocessing steps.
+        """
+        self.openmc_preprocess()
+        self.endf_preprocess()
         return None
     
     def openmc_preprocess(self) -> None:
@@ -154,7 +162,7 @@ class Preprocess:
             data[nuc] = {}
             data[nuc]['name'] = nuc
             data[nuc]['CFY'] = fit_FY_nfy[nuc].n
-            data[nuc][r'$\sigma$ CFY'] = fit_FY_nfy[nuc].s
+            data[nuc]['sigma CFY'] = fit_FY_nfy[nuc].s
         return data
         
     

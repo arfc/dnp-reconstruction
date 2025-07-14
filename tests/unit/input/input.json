@@ -1,6 +1,11 @@
 {
     "file_options": {
-        "overwrite": true,
+        "overwrite": {
+            "preprocessing": true,
+            "concentrations": true,
+            "count_rate": true,
+            "postprocessing": true
+        },
         "unprocessed_data_dir": "./data/unprocessed/endfb71",
         "processed_data_dir": "./tests/unit/output",
         "output_dir": "./results",
