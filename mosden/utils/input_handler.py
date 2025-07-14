@@ -13,7 +13,7 @@ class InputHandler:
         self.input_path = input_path
         return None
     
-    def read_input(self, check=True) -> dict:
+    def read_input(self, check=True, adjust_data=True) -> dict:
         """
         Read the input file and return the data as a dictionary.
 
@@ -21,6 +21,8 @@ class InputHandler:
         ----------
         check : bool, optional
             If True, checks the behaviour of the input data. Default is True.
+        adjust_data : bool, optional
+            If True, adjusts the data to fit desired formatting. Default is True.
 
         Returns
         -------
@@ -31,7 +33,8 @@ class InputHandler:
             output = json.load(file)
         if check:
             self._check_behaviour(output)
-        self._adjust_data(output)
+        if adjust_data:
+            self._adjust_data(output)
         return output
     
     def _check_behaviour(self, data: dict) -> None:
