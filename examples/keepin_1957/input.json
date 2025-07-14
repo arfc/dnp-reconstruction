@@ -10,7 +10,10 @@
     "data_options": {
         "decay_constant": "endfb71",
         "cross_section": "endfb71",
-        "fission_yield": "endfb71",
+        "fission_yield": {
+            "data": "endfb71",
+            "type": "nfy"
+        },
         "decay_time_spacing": "linear",
         "temperature_K": 920,
         "density_g_cm3": 2.3275,
