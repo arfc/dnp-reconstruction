@@ -12,6 +12,7 @@ def main():
     group.add_argument("-i", "--input", help="Input file for main run")
     group.add_argument("-pre", "--preprocess", help="Input file for preprocessing")
     group.add_argument("-post", "--postprocess", help="Input file for postprocessing")
+    group.add_argument("-a", "--all", action="store_true", help="Run all processes")
 
     args = parser.parse_args()
 
@@ -23,7 +24,13 @@ def main():
         preprocess = Preprocess(args.preprocess)
         preprocess.run()
     elif args.postprocess:
-        print(args.postprocess)
+        raise NotImplementedError("Postprocessing is not yet implemented")
+    elif args.all:
+        preprocess = Preprocess(args.input)
+        preprocess.run()
+        concentrations = Concentrations(args.input)
+        concentrations.generate_concentrations()
+        raise NotImplementedError("Need to implement delayed neutron count rates and grouping")
     else:
         print("No valid option provided. Use -h for help.")
 
