@@ -160,7 +160,6 @@ class Preprocess:
         data: dict[str: dict[str: float]] = dict()
         for nuc in endf_nucs:
             data[nuc] = {}
-            data[nuc]['name'] = nuc
             data[nuc]['CFY'] = fit_FY_nfy[nuc].n
             data[nuc]['sigma CFY'] = fit_FY_nfy[nuc].s
         return data
@@ -204,7 +203,6 @@ class Preprocess:
         data: dict[str: dict[str: float]] = dict()
         for nuc in chain_nucs:
             data[nuc] = {}
-            data[nuc]['name'] = nuc
             if nuclide_halflives[nuc] != None:
                 data[nuc]['half_life'] = nuclide_halflives[nuc]
             else:
