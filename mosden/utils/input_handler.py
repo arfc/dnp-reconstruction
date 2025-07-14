@@ -53,26 +53,28 @@ class InputHandler:
         """
         if data['file_options']['unprocessed_data_dir'] == data['file_options']['processed_data_dir']:
             raise ValueError("Unprocessed and processed data directories cannot be the same.")
-
         if data['file_options']['unprocessed_data_dir'] == data['file_options']['output_dir']:
             raise ValueError("Unprocessed data directory cannot be the same as the output directory.")
-
         if data['file_options']['processed_data_dir'] == data['file_options']['output_dir']:
             raise ValueError("Processed data directory cannot be the same as the output directory.")
         
-        possible_data_options = ['endfb71']
+        possible_data_options = ['test-data', 'endfb71']
         if data['data_options']['decay_constant'] not in possible_data_options:
             raise ValueError(f"Decay data option '{data['data_options']['decay_constant']}' is not supported. "
                              f"Supported options are: {possible_data_options}")
-
         if data['data_options']['cross_section'] not in possible_data_options:
             raise ValueError(f"Cross section option '{data['data_options']['cross_section']}' is not supported. "
                              f"Supported options are: {possible_data_options}")
-
         if data['data_options']['fission_yield']['data'] not in possible_data_options:
             raise ValueError(f"Fission yield option '{data['data_options']['fission_yield']['data']}' is not supported. "
                              f"Supported options are: {possible_data_options}")
-        possible_fy_types = ['nfy', 'chain']
+
+        possible_emission_probabilities = ['test-data', 'iaea']
+        if data['data_options']['emission_probability'] not in possible_emission_probabilities:
+            raise ValueError(f"Emission probability option '{data['data_options']['emission_probability']}' is not supported. "
+                             f"Supported options are: {possible_emission_probabilities}")
+
+        possible_fy_types = ['test-data', 'nfy', 'chain']
         if data['data_options']['fission_yield']['type'] not in possible_fy_types:
             raise ValueError(f"Fission yield type '{data['data_options']['fission_yield']['type']}' is not supported. "
                              f"Supported options are: {possible_fy_types}")
@@ -104,6 +106,7 @@ class InputHandler:
         data : dict
             Dictionary containing settings and data selections.
         """
+        # Adjust fission yield type and chain file suffix based on energy
         energy = data['data_options']['energy_MeV']
         # Two energy group division for selection of chain file
         if energy <= 1e-3:
@@ -116,8 +119,8 @@ class InputHandler:
             data['data_options']['fission_yield']['type'] = 'nfy.csv'
         elif data['data_options']['fission_yield']['type'] == 'chain':
             data['data_options']['fission_yield']['type'] = 'chain_' + chain_middle + '_' + chain_suffix + '.csv'
-
     
+
 if __name__ == "__main__":
     handler = InputHandler("../../examples/keepin_1957/input.json")
     input_data = handler.read_input()

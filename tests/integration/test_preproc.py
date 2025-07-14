@@ -4,7 +4,7 @@ import pytest
 from mosden.utils.csv_handler import CSVHandler
 
 @pytest.mark.parametrize("input_path, reference_output_path", [
-    ("tests/integration/data/input1.json", "tests/integration/data/output/test1/")
+    ("tests/integration/test-data/input1.json", "tests/integration/test-data/output/test1/")
 ] )
 def test_openmc_preprocess(input_path, reference_output_path):
     """
@@ -46,7 +46,7 @@ def test_openmc_preprocess(input_path, reference_output_path):
     return
 
 @pytest.mark.parametrize("input_path, reference_output_path", [
-    ("tests/integration/data/input1.json", "tests/integration/data/output/test1/")
+    ("tests/integration/test-data/input1.json", "tests/integration/test-data/output/test1/")
 ] )
 def test_endf_preprocess(input_path, reference_output_path):
     """
