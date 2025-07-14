@@ -1,8 +1,6 @@
 import argparse
-from . import concentrations
-from . import input_parser
-from . import preprocessing
-from . import postprocessing
+from mosden.preprocessing import Preprocess
+from mosden.concentrations import Concentrations
 from . import __version__
 
 def main():
@@ -18,9 +16,12 @@ def main():
     args = parser.parse_args()
 
     if args.input:
-        print(args.input)
+        concentrations = Concentrations(args.input)
+        concentrations.generate_concentrations()
+        raise NotImplementedError("Need to implement delayed neutron count rates and grouping")
     elif args.preprocess:
-        print(args.preprocess)
+        preprocess = Preprocess(args.preprocess)
+        preprocess.run()
     elif args.postprocess:
         print(args.postprocess)
     else:
