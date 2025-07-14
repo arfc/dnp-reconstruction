@@ -4,6 +4,7 @@ import os
 import numpy as np
 import re
 from uncertainties import ufloat
+import pandas as pd
 
 class Preprocess:
     def __init__(self, input_path: str) -> None:
@@ -25,10 +26,10 @@ class Preprocess:
         self.fissile_targets: list = list(self.input_data['data_options']['fissile_fractions'].keys())
         self.energy_MeV: float = self.input_data['data_options']['energy_MeV']
 
-        self.half_life_dir: str = self.data_dir + self.input_data['data_options']['decay_constant']
-        self.cross_section_dir: str = self.data_dir + self.input_data['data_options']['cross_section']
-        self.emission_probability_dir: str = self.data_dir + self.input_data['data_options']['emission_probability']
-        self.fission_yield_dir: str = self.data_dir + self.input_data['data_options']['fission_yield']['data']
+        self.half_life_dir: str = self.input_data['data_options']['decay_constant']
+        self.cross_section_dir: str = self.input_data['data_options']['cross_section']
+        self.emission_probability_dir: str = self.input_data['data_options']['emission_probability']
+        self.fission_yield_dir: str = self.input_data['data_options']['fission_yield']['data']
         return None
     
     def run(self) -> None:
@@ -60,20 +61,57 @@ class Preprocess:
         """
         Processes IAEA data for emission probabilities and half-lives.
         """
-        self._iaea_dn_preprocess()
+        for fissile in self.fissile_targets:
+            self._iaea_dn_preprocess(fissile)
         return None
-    
-    def _iaea_dn_preprocess(self) -> None:
+
+    def _iaea_dn_preprocess(self, fissile: str) -> None:
         """
         Processes IAEA data for emission probabilities and half-lives.
+
+        Parameters
+        ----------
+        fissile : str
+            Name of the fissile target to process, not needed here but kept for pathing.
         """
         full_path: str = os.path.join(self.data_dir, 'iaea', 'eval.csv')
-        input(full_path)
+        df = pd.read_csv(full_path, header=1)
+        print(df.columns)
+        # nuc, half life (uncertainty), emission probability (uncertainty)
+        data: dict[str, dict[str, float]] = {}
+        for _, row in df.iterrows():
+            iaea_nuc = row['nucid']
+            nuc = self._iaea_to_mosden_nuc(iaea_nuc)
+            half_life = row[' T1/2 [s] ']
+            half_life_uncertainty = row[' D T1/2 [s]']
+            data[nuc] = {}
+            data[nuc]['half_life'] = half_life
+            data[nuc]['sigma half_life'] = half_life_uncertainty
 
-        iaea_data = CSVHandler(full_path).read_csv()
-        input(iaea_data)
-
+        csv_path: str = os.path.join(self.out_dir, 'iaea', 'eval.csv')
+        CSVHandler(csv_path, self.overwrite).write_csv(data)
         return None
+    
+    def _iaea_to_mosden_nuc(self, iaea_nuc: str) -> str:
+        """
+        Converts IAEA nuclide format to MoSDeN format.
+
+        Parameters
+        ----------
+        iaea_nuc : str
+            IAEA nuclide identifier.
+
+        Returns
+        -------
+        str
+            MoSDeN formatted nuclide identifier.
+        """
+        i = 0
+        while i < len(iaea_nuc) and iaea_nuc[i].isdigit():
+            i += 1
+        mass = iaea_nuc[:i]
+        element = iaea_nuc[i:].capitalize()
+        return f"{element}{mass}"
 
     def _openmc_chain_preprocess(self, fissile: str) -> None:
         """
@@ -84,11 +122,12 @@ class Preprocess:
         fissile : str
             Name of the fissile target to process.
         """
-        for file in os.listdir(self.half_life_dir + '/omcchain/'):
-            full_path: str = os.path.join(self.half_life_dir + '/omcchain/', file)
+        data_dir: str = os.path.join(self.data_dir, self.half_life_dir, 'omcchain')
+        out_dir: str = os.path.join(self.out_dir, self.half_life_dir, fissile, f'{self.energy_MeV}MeV')
+        for file in os.listdir(data_dir):
+            full_path: str = os.path.join(data_dir, file)
             file_data: dict[str: dict[str: float]] = self._process_chain_file(full_path, fissile)
-            path_nuc_energy: str = fissile + '/' + str(self.energy_MeV) + 'MeV'
-            csv_path: str = self.out_dir + f'/{path_nuc_energy}/' + file.split('.')[0] + '.csv'
+            csv_path: str = os.path.join(out_dir, file.split('.')[0] + '.csv')
             CSVHandler(csv_path, self.overwrite).write_csv(file_data)
         return None
     
@@ -101,14 +140,15 @@ class Preprocess:
         fissile : str
             Name of the fissile target to process.
         """
-        for file in os.listdir(self.fission_yield_dir + '/nfy/'):
+        data_dir: str = os.path.join(self.data_dir, self.fission_yield_dir, 'nfy')
+        out_dir: str = os.path.join(self.out_dir, self.fission_yield_dir, fissile, f'{self.energy_MeV}MeV')
+        for file in os.listdir(data_dir):
             adjusted_fissile: str = self._endf_fissile_name(fissile)
             if not file.startswith(f'nfy-{adjusted_fissile}'):
                 continue
-            full_path: str = os.path.join(self.fission_yield_dir + '/nfy/', file)
+            full_path: str = os.path.join(data_dir, file)
             file_data : dict[str: dict[str: float]] = self._process_endf_nfy_file(full_path)
-            path_nuc_energy: str = fissile + '/' + str(self.energy_MeV) + 'MeV'
-            csv_path: str = self.out_dir + f'/{path_nuc_energy}/' + 'nfy.csv'
+            csv_path: str = os.path.join(out_dir, 'nfy.csv')
             CSVHandler(csv_path, self.overwrite).write_csv(file_data) 
         return None
     
