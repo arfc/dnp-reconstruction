@@ -35,13 +35,15 @@ def test_input_handler():
     input_handler = InputHandler(input_path)
     
     # Test reading the input file
-    data = input_handler.read_input(check=False)
+    data = input_handler.read_input(check=False, adjust_data=False)
     
     assert data == {"key": "value"}, f"Expected {{'key': 'value'}}, but got {data}"
 
     # Test exceptions in input handling
     with pytest.raises(KeyError):
-        data = input_handler.read_input(check=True)
+        data = input_handler.read_input(check=True, adjust_data=False)
+        data = input_handler.read_input(check=False, adjust_data=True)
+        data = input_handler.read_input(check=True, adjust_data=True)
 
     os.remove(input_path)
     
