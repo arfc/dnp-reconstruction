@@ -62,7 +62,7 @@ class Concentrations:
         CSVHandler(output_path, self.overwrite).write_csv(data)
         return
     
-    def _read_processed_data(self, fissile: str) -> dict:
+    def _read_processed_data(self, fissile: str) -> dict[str, dict[str, float]]:
         """
         Read the processed data for a given fissile nuclide.
 
@@ -82,6 +82,7 @@ class Concentrations:
             raise FileNotFoundError(f"Processed data file {data_path} does not exist.") 
         data = csv_handler.read_csv()
         return data
+
 
 
 if __name__ == "__main__":
