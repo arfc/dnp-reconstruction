@@ -6,7 +6,7 @@
             "count_rate": true,
             "postprocessing": true
         },
-        "unprocessed_data_dir": "./tests/integration/input",
+        "unprocessed_data_dir": "./tests/integration/data",
         "processed_data_dir": "./tests/integration/data_output",
         "output_dir": "./tests/integration/output",
         "log_level": 1,
