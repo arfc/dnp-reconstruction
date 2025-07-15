@@ -92,7 +92,8 @@ class Preprocess:
             P1 = ufloat(row[' pn1 % ']/100, row['D pn1']/100)
             P2 = ufloat(row[' pn2 % ']/100, row['D pn2 ']/100)
             P3 = ufloat(row[' pn3 % ']/100, row['D pn3']/100)
-            emission_prob = 1*P1 + 2*P2 + 3*P3
+            prob_beta = ufloat(row['  beta- %']/100, row[' D beta-']/100)
+            emission_prob = (1*P1 + 2*P2 + 3*P3) * prob_beta
             data[nuc] = {}
             data[nuc]['half_life'] = half_life
             data[nuc]['sigma half_life'] = half_life_uncertainty
