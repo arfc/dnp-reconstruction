@@ -2,6 +2,7 @@ from pathlib import Path
 from mosden.preprocessing import Preprocess
 import pytest
 from mosden.utils.csv_handler import CSVHandler
+import numpy as np
 
 @pytest.mark.parametrize("input_path, reference_output_path", [
     ("tests/integration/test-data/input1.json", "tests/integration/test-data/reference/test1/")
@@ -14,7 +15,7 @@ def test_openmc_preprocess(input_path, reference_output_path):
     preproc.openmc_preprocess()
 
     # Check if the output directory exists
-    output_dir = Path(preproc.out_dir)
+    output_dir = Path(preproc.out_dir) / preproc.half_life_dir
     assert output_dir.exists(), f"Output directory {output_dir} does not exist."
     
     # Check if the expected files are created
@@ -56,7 +57,7 @@ def test_endf_preprocess(input_path, reference_output_path):
     preproc.endf_preprocess()
 
     # Check if the output directory exists
-    output_dir = Path(preproc.out_dir)
+    output_dir = Path(preproc.out_dir) / preproc.fission_yield_dir
     assert output_dir.exists(), f"Output directory {output_dir} does not exist."
 
     # Check if the expected files are created
@@ -96,42 +97,40 @@ def test_iaea_preprocess(input_path, reference_output_path):
     Test the IAEA preprocessing functionality.
     """
     preproc = Preprocess(str(input_path))
+    preproc.data_dir = reference_output_path
     preproc.iaea_preprocess()
 
     # Check if the output directory exists
-    output_dir = Path(preproc.out_dir)
+    output_dir = Path(preproc.out_dir) / preproc.emission_probability_dir
     assert output_dir.exists(), f"Output directory {output_dir} does not exist."
 
     # Check if the expected files are created
-    iaea_dir = output_dir / 'iaea'
-    assert iaea_dir.exists(), f"IAEA directory {iaea_dir} does not exist."
-    
-    csv_path = iaea_dir / 'eval.csv'
+    csv_path = output_dir / 'eval.csv'
     assert csv_path.exists(), f"CSV file {csv_path} does not exist."
 
     # Check if the CSV file contains expected data
     data = CSVHandler(csv_path).read_csv()
-    assert '87BR' in data, "'87BR' not found in IAEA data."
-    assert '11XX' in data, "'11XX' not found in IAEA data."
-    assert '12XX' in data, "'12XX' not found in IAEA data."
-    assert '13XX' in data, "'13XX' not found in IAEA data."
-    assert '14XX' in data, "'14XX' not found in IAEA data."
-    
-    # Check if the emission probabilities are calculated correctly
-    assert 'emission probability' in data['11XX'], "'emission probability' not found for 11XX."
-    assert 'sigma emission probability' in data['11XX'], "'sigma emission probability' not found for 11XX."
-    assert 'emission probability' in data['12XX'], "'emission probability' not found for 12XX."
-    assert 'sigma emission probability' in data['12XX'], "'sigma emission probability' not found for 12XX."
-    assert 'emission probability' in data['13XX'], "'emission probability' not found for 13XX."
-    assert 'sigma emission probability' in data['13XX'], "'sigma emission probability' not found for 13XX."
-    assert 'emission probability' in data['14XX'], "'emission probability' not found for 14XX."
-    assert 'sigma emission probability' in data['14XX'], "'sigma emission probability' not found for 14XX."
+    assert 'Br87' in data, "'Br87' not found in IAEA data."
+    assert 'Xx11' in data, "'Xx11' not found in IAEA data."
+    assert 'Xx12' in data, "'Xx12' not found in IAEA data."
+    assert 'Xx13' in data, "'Xx13' not found in IAEA data."
+    assert 'Xx14' in data, "'Xx14' not found in IAEA data."
 
-    # Check if the values match the expected output
-    assert data['11XX']['emission probability'] == 1.0, "Emission probability for 11XX does not match expected value."
-    assert data['12XX']['emission probability'] == 100.0, "Emission probability for 12XX does not match expected value."
-    assert data['13XX']['emission probability'] == 55.64, "Emission probability for 13XX does not match expected value."
-    assert data['14XX']['emission probability'] == 55.64, "Emission probability for 14XX does not match expected value."
+    # Check if the emission probabilities are calculated correctly
+    assert 'emission probability' in data['Xx11'], "'emission probability' not found for Xx11."
+    assert 'sigma emission probability' in data['Xx11'], "'sigma emission probability' not found for Xx11."
+    assert 'emission probability' in data['Xx12'], "'emission probability' not found for Xx12."
+    assert 'sigma emission probability' in data['Xx12'], "'sigma emission probability' not found for Xx12."
+    assert 'emission probability' in data['Xx13'], "'emission probability' not found for Xx13."
+    assert 'sigma emission probability' in data['Xx13'], "'sigma emission probability' not found for Xx13."
+    assert 'emission probability' in data['Xx14'], "'emission probability' not found for Xx14."
+    assert 'sigma emission probability' in data['Xx14'], "'sigma emission probability' not found for Xx14."
+
+    # Compare with reference data
+    reference_path = Path(reference_output_path) / 'eval.csv'
+    reference_data = CSVHandler(reference_path).read_csv()
+    
+    assert data == reference_data, "Output data does not match the expected reference data."
 
     return
 

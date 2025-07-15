@@ -2,9 +2,10 @@ import pandas as pd
 import os
 
 class CSVHandler:
-    def __init__(self, file_path: str, overwrite: bool=False) -> None:
+    def __init__(self, file_path: str, overwrite: bool=False, create=True) -> None:
         self.file_path = file_path
-        self._create_directory() 
+        if create:
+            self._create_directory() 
         self.overwrite = overwrite
         return None
     
