@@ -94,7 +94,11 @@ class InputHandler:
         if data['modeling_options']['concentration_handling'] not in possible_concentration_options:
             raise ValueError(f"Concentration handling option '{data['modeling_options']['concentration_handling']}' is not supported. "
                              f"Supported options are: {possible_concentration_options}")
-
+        
+        possible_irradiation_options = ['saturation', 'pulse']
+        if data['modeling_options']['irrad_type'] not in possible_irradiation_options:
+            raise ValueError(f"Irradiation type '{data['modeling_options']['irrad_type']}' is not supported. "
+                             f"Supported options are: {possible_irradiation_options}")
         return
     
     def _adjust_data(self, data: dict) -> None:
