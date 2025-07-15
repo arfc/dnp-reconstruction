@@ -76,55 +76,11 @@ class Preprocess:
         """
         data_file: str = os.path.join(self.data_dir, self.emission_probability_dir, 'eval.csv')
         out_file: str = os.path.join(self.out_dir, self.emission_probability_dir, fissile, f'{self.energy_MeV}MeV', 'eval.csv')
-        df = pd.read_csv(data_file, header=1)
-        data: dict[str, dict[str, float]] = {}
-        for _, row in df.iterrows():
-            iaea_nuc = row['nucid']
-            nuc = self._iaea_to_mosden_nuc(iaea_nuc)
-            half_life = row[' T1/2 [s] ']
-            half_life_uncertainty = row[' D T1/2 [s]']
-            if row['D pn1'] < 0:
-                row['D pn1'] = 0
-            if row['D pn2 '] < 0:
-                row['D pn2 '] = 0
-            if row['D pn3'] < 0:
-                row['D pn3'] = 0
-            P1 = ufloat(row[' pn1 % ']/100, row['D pn1']/100)
-            P2 = ufloat(row[' pn2 % ']/100, row['D pn2 ']/100)
-            P3 = ufloat(row[' pn3 % ']/100, row['D pn3']/100)
-            prob_beta = ufloat(row['  beta- %']/100, row[' D beta-']/100)
-            emission_prob = (1*P1 + 2*P2 + 3*P3) * prob_beta
-            data[nuc] = {}
-            data[nuc]['half_life'] = half_life
-            data[nuc]['sigma half_life'] = half_life_uncertainty
-            data[nuc]['emission probability'] = emission_prob.n
-            data[nuc]['sigma emission probability'] = emission_prob.s
-
+        data = CSVHandler(data_file).read_csv(raw_iaea=True) 
         csv_path: str = os.path.join(out_file)
         CSVHandler(csv_path, self.overwrite).write_csv(data)
         return None
     
-    def _iaea_to_mosden_nuc(self, iaea_nuc: str) -> str:
-        """
-        Converts IAEA nuclide format to MoSDeN format.
-
-        Parameters
-        ----------
-        iaea_nuc : str
-            IAEA nuclide identifier.
-
-        Returns
-        -------
-        str
-            MoSDeN formatted nuclide identifier.
-        """
-        i = 0
-        while i < len(iaea_nuc) and iaea_nuc[i].isdigit():
-            i += 1
-        mass = iaea_nuc[:i]
-        element = iaea_nuc[i:].capitalize()
-        return f"{element}{mass}"
-
     def _openmc_chain_preprocess(self, fissile: str) -> None:
         """
         Processes OpenMC all chain_* files
@@ -367,4 +323,6 @@ class Preprocess:
 
 if __name__ == "__main__":
     preproc = Preprocess('../examples/keepin_1957/input.json')
-    preproc.run()
+    preproc.iaea_preprocess()
+    #preproc.openmc_preprocess()
+    #preproc.endf_preprocess()
