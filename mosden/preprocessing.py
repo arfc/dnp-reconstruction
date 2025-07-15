@@ -61,11 +61,10 @@ class Preprocess:
         """
         Processes IAEA data for emission probabilities and half-lives.
         """
-        for fissile in self.fissile_targets:
-            self._iaea_dn_preprocess(fissile)
+        self._iaea_dn_preprocess()
         return None
 
-    def _iaea_dn_preprocess(self, fissile: str) -> None:
+    def _iaea_dn_preprocess(self) -> None:
         """
         Processes IAEA data for emission probabilities and half-lives.
 
@@ -84,9 +83,21 @@ class Preprocess:
             nuc = self._iaea_to_mosden_nuc(iaea_nuc)
             half_life = row[' T1/2 [s] ']
             half_life_uncertainty = row[' D T1/2 [s]']
+            if row['D pn1'] < 0:
+                row['D pn1'] = 0
+            if row['D pn2 '] < 0:
+                row['D pn2 '] = 0
+            if row['D pn3'] < 0:
+                row['D pn3'] = 0
+            P1 = ufloat(row[' pn1 % ']/100, row['D pn1']/100)
+            P2 = ufloat(row[' pn2 % ']/100, row['D pn2 ']/100)
+            P3 = ufloat(row[' pn3 % ']/100, row['D pn3']/100)
+            emission_prob = 1*P1 + 2*P2 + 3*P3
             data[nuc] = {}
             data[nuc]['half_life'] = half_life
             data[nuc]['sigma half_life'] = half_life_uncertainty
+            data[nuc]['emission probability'] = emission_prob.n
+            data[nuc]['sigma emission probability'] = emission_prob.s
 
         csv_path: str = os.path.join(self.out_dir, 'iaea', 'eval.csv')
         CSVHandler(csv_path, self.overwrite).write_csv(data)
