@@ -61,10 +61,11 @@ class Preprocess:
         """
         Processes IAEA data for emission probabilities and half-lives.
         """
-        self._iaea_dn_preprocess()
+        for fissile in self.fissile_targets:
+            self._iaea_dn_preprocess(fissile)
         return None
 
-    def _iaea_dn_preprocess(self) -> None:
+    def _iaea_dn_preprocess(self, fissile: str) -> None:
         """
         Processes IAEA data for emission probabilities and half-lives.
 
@@ -74,10 +75,8 @@ class Preprocess:
             Name of the fissile target to process, not needed here but kept for pathing.
         """
         data_file: str = os.path.join(self.data_dir, self.emission_probability_dir, 'eval.csv')
-        out_file: str = os.path.join(self.out_dir, self.emission_probability_dir, 'eval.csv')
+        out_file: str = os.path.join(self.out_dir, self.emission_probability_dir, fissile, f'{self.energy_MeV}MeV', 'eval.csv')
         df = pd.read_csv(data_file, header=1)
-        print(df.columns)
-        # nuc, half life (uncertainty), emission probability (uncertainty)
         data: dict[str, dict[str, float]] = {}
         for _, row in df.iterrows():
             iaea_nuc = row['nucid']
