@@ -73,8 +73,9 @@ class Preprocess:
         fissile : str
             Name of the fissile target to process, not needed here but kept for pathing.
         """
-        full_path: str = os.path.join(self.data_dir, 'iaea', 'eval.csv')
-        df = pd.read_csv(full_path, header=1)
+        data_file: str = os.path.join(self.data_dir, self.emission_probability_dir, 'eval.csv')
+        out_file: str = os.path.join(self.out_dir, self.emission_probability_dir, 'eval.csv')
+        df = pd.read_csv(data_file, header=1)
         print(df.columns)
         # nuc, half life (uncertainty), emission probability (uncertainty)
         data: dict[str, dict[str, float]] = {}
@@ -100,7 +101,7 @@ class Preprocess:
             data[nuc]['emission probability'] = emission_prob.n
             data[nuc]['sigma emission probability'] = emission_prob.s
 
-        csv_path: str = os.path.join(self.out_dir, 'iaea', 'eval.csv')
+        csv_path: str = os.path.join(out_file)
         CSVHandler(csv_path, self.overwrite).write_csv(data)
         return None
     
