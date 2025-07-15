@@ -5,13 +5,14 @@ import numpy as np
 import pytest
 
 @pytest.mark.parametrize("input_path, reference_output_path", [
-    ("tests/integration/test-data/input1.json", "tests/integration/test-data/reference/test1/")
+    ("tests/integration/test-data/input1.json", "tests/integration/test-data/reference/test1")
 ] )
 def test_generate_CFY_concentrations(input_path, reference_output_path):
     """
     Test the CFY concentration generation method.
     """
     concentrations = Concentrations(input_path)
+    concentrations.data_path = reference_output_path
     
     # Generate concentrations
     concentrations.generate_concentrations()
