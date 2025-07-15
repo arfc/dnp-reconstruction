@@ -97,40 +97,43 @@ def test_iaea_preprocess(input_path, reference_output_path):
     Test the IAEA preprocessing functionality.
     """
     preproc = Preprocess(str(input_path))
-    preproc.data_dir = reference_output_path
     preproc.iaea_preprocess()
 
     # Check if the output directory exists
-    output_dir = Path(preproc.out_dir) / preproc.emission_probability_dir
-    assert output_dir.exists(), f"Output directory {output_dir} does not exist."
+    for fissile in preproc.fissile_targets:
+        path_nuc_energy = f"{fissile}/{preproc.energy_MeV}MeV"
+        output_dir = Path(preproc.out_dir) / preproc.emission_probability_dir / path_nuc_energy
+        assert output_dir.exists(), f"Output directory {output_dir} does not exist."
 
-    # Check if the expected files are created
-    csv_path = output_dir / 'eval.csv'
-    assert csv_path.exists(), f"CSV file {csv_path} does not exist."
+        # Check if the expected files are created
+        csv_path = output_dir / 'eval.csv'
+        assert csv_path.exists(), f"CSV file {csv_path} does not exist."
 
-    # Check if the CSV file contains expected data
-    data = CSVHandler(csv_path).read_csv()
-    assert 'Br87' in data, "'Br87' not found in IAEA data."
-    assert 'Xx11' in data, "'Xx11' not found in IAEA data."
-    assert 'Xx12' in data, "'Xx12' not found in IAEA data."
-    assert 'Xx13' in data, "'Xx13' not found in IAEA data."
-    assert 'Xx14' in data, "'Xx14' not found in IAEA data."
+        # Check if the CSV file contains expected data
+        data = CSVHandler(csv_path).read_csv() 
+        assert data, "Output CSV file is empty."
 
-    # Check if the emission probabilities are calculated correctly
-    assert 'emission probability' in data['Xx11'], "'emission probability' not found for Xx11."
-    assert 'sigma emission probability' in data['Xx11'], "'sigma emission probability' not found for Xx11."
-    assert 'emission probability' in data['Xx12'], "'emission probability' not found for Xx12."
-    assert 'sigma emission probability' in data['Xx12'], "'sigma emission probability' not found for Xx12."
-    assert 'emission probability' in data['Xx13'], "'emission probability' not found for Xx13."
-    assert 'sigma emission probability' in data['Xx13'], "'sigma emission probability' not found for Xx13."
-    assert 'emission probability' in data['Xx14'], "'emission probability' not found for Xx14."
-    assert 'sigma emission probability' in data['Xx14'], "'sigma emission probability' not found for Xx14."
+        assert 'Br87' in data, "'Br87' not found in IAEA data."
+        assert 'Xx11' in data, "'Xx11' not found in IAEA data."
+        assert 'Xx12' in data, "'Xx12' not found in IAEA data."
+        assert 'Xx13' in data, "'Xx13' not found in IAEA data."
+        assert 'Xx14' in data, "'Xx14' not found in IAEA data."
 
-    # Compare with reference data
-    reference_path = Path(reference_output_path) / 'eval.csv'
-    reference_data = CSVHandler(reference_path).read_csv()
-    
-    assert data == reference_data, "Output data does not match the expected reference data."
+        # Check if the emission probabilities are calculated correctly
+        assert 'emission probability' in data['Xx11'], "'emission probability' not found for Xx11."
+        assert 'sigma emission probability' in data['Xx11'], "'sigma emission probability' not found for Xx11."
+        assert 'emission probability' in data['Xx12'], "'emission probability' not found for Xx12."
+        assert 'sigma emission probability' in data['Xx12'], "'sigma emission probability' not found for Xx12."
+        assert 'emission probability' in data['Xx13'], "'emission probability' not found for Xx13."
+        assert 'sigma emission probability' in data['Xx13'], "'sigma emission probability' not found for Xx13."
+        assert 'emission probability' in data['Xx14'], "'emission probability' not found for Xx14."
+        assert 'sigma emission probability' in data['Xx14'], "'sigma emission probability' not found for Xx14."
+
+        # Compare with reference data
+        reference_path = Path(reference_output_path) / 'eval.csv'
+        reference_data = CSVHandler(reference_path).read_csv()
+        
+        assert data == reference_data, "Output data does not match the expected reference data."
 
     return
 
