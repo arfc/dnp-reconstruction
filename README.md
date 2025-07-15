@@ -14,6 +14,7 @@ The exact organization of data is flexible, with some notable exceptions:
 - OpenMC chain files should be named "chain_<data>_<energy>.csv", where `data` is "endfb71" or similar, and `energy` is "pwr" for thermal spectrum or "sfr" for fast spectrum neutrons.
 - ENDF NFY data should all be in a subdirectory labeled "nfy"
 - ENDF NFY files should be named "nfy-<ZZZ>_<ID>_<AAA>.csv", so 235U would be `nfy-092_U_235.csv`.
+- IAEA beta-delayed neutron emission data should be called `eval.csv` (default when downloading data).
 
 Data can be collected from different sources:
 - [OpenMC depletion chains](https://openmc.org/depletion-chains/): these give half-lives and independent fission yields (linearly interpolated energy dependence)
