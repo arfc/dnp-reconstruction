@@ -1,6 +1,7 @@
 from mosden.utils.input_handler import InputHandler
 from pathlib import Path
 from mosden.utils.csv_handler import CSVHandler
+import os
 
 class BaseClass:
     def __init__(self, input_path: str) -> None:
@@ -9,9 +10,33 @@ class BaseClass:
         self.input_data: dict = self.input_handler.read_input()
         
         self.data_types: list[str] = ['fission_yield', 'half_life', 'cross_section', 'emission_probability']
+
+        self.processed_data_paths: dict[str: str] = self._get_data_paths(processed=True)
+        self.unprocessed_data_paths: dict[str: str] = self._get_data_paths(processed=False)
         return None
     
-    def _get_data_pathing(self, data_type: str) -> str:
+    def _get_data_paths(self, processed=True) -> dict[str: str]:
+        """
+        Gets the data paths for unprocessed or processed data
+
+        Returns
+        -------
+        
+            _description_
+        """
+        if processed:
+            data_dir: str = self.input_data['file_options']['processed_data_dir']
+        else:
+            data_dir: str = self.input_data['file_options']['unprocessed_data_dir']
+        data_paths: dict[str: str] = {}
+        for data_type in self.data_types:
+            use_path, use_name = self._get_subdata_pathing(data_type)
+            data_paths[data_type] = os.path.join(data_dir, use_path)
+        return data_paths
+        
+
+    
+    def _get_subdata_pathing(self, data_type: str) -> str:
         """
         Get the path for the specific type of data of interest
 
@@ -53,7 +78,7 @@ class BaseClass:
         dict
             The processed data for the fissile nuclide.
         """
-        use_path, use_name = self._get_data_pathing(data_type)
+        use_path, use_name = self._get_subdata_pathing(data_type)
 
         data_path = Path(self.data_path) / use_path / fissile / f"{self.energy}MeV" / use_name
         csv_handler = CSVHandler(data_path, create=False)

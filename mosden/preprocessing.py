@@ -69,9 +69,10 @@ class Preprocess(BaseClass):
         fissile : str
             Name of the fissile target to process, not needed here but kept for pathing.
         """
-        path, name = self._get_data_pathing('cross_sections')
+        path, name = self._get_subdata_pathing('emission_probability')
         data_file: str = os.path.join(self.data_dir, path, name)
         out_file: str = os.path.join(self.out_dir, path, fissile, f'{self.energy_MeV}MeV', name)
+
         data = CSVHandler(data_file).read_csv(raw_iaea=True) 
         csv_path: str = os.path.join(out_file)
         CSVHandler(csv_path, self.overwrite).write_csv(data)
@@ -86,7 +87,7 @@ class Preprocess(BaseClass):
         fissile : str
             Name of the fissile target to process.
         """
-        path, _ = self._get_data_pathing('half_life')
+        path, _ = self._get_subdata_pathing('half_life')
         data_dir: str = os.path.join(self.data_dir, path, 'omcchain')
         out_dir: str = os.path.join(self.out_dir, path, fissile, f'{self.energy_MeV}MeV')
         for file in os.listdir(data_dir):
@@ -105,8 +106,8 @@ class Preprocess(BaseClass):
         fissile : str
             Name of the fissile target to process.
         """
-        path, name = self._get_data_pathing('fission_yield')
-        data_dir: str = os.path.join(self.data_dir, path, name)
+        path, name = self._get_subdata_pathing('fission_yield')
+        data_dir: str = os.path.join(self.data_dir, path, 'nfy')
         out_dir: str = os.path.join(self.out_dir, path, fissile, f'{self.energy_MeV}MeV')
         for file in os.listdir(data_dir):
             adjusted_fissile: str = self._endf_fissile_name(fissile)

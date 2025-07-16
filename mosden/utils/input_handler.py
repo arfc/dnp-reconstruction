@@ -61,8 +61,8 @@ class InputHandler:
             raise ValueError("Parent feeding option requires depletion method for concentration handling")
         
         possible_data_options = ['test-data', 'endfb71']
-        if data['data_options']['decay_constant']['data'] not in possible_data_options:
-            raise ValueError(f"Decay data option '{data['data_options']['decay_constant']['data']}' is not supported. "
+        if data['data_options']['half_life']['data'] not in possible_data_options:
+            raise ValueError(f"Decay data option '{data['data_options']['half_life']['data']}' is not supported. "
                              f"Supported options are: {possible_data_options}")
         if data['data_options']['cross_section']['data'] not in possible_data_options:
             raise ValueError(f"Cross section option '{data['data_options']['cross_section']['data']}' is not supported. "
@@ -86,7 +86,7 @@ class InputHandler:
             raise ValueError(f"Emission name '{data['data_options']['emission_probability']['name']}' is not supported. "
                              f"Supported options are: {possible_emission_names}")
 
-        possible_xs_names = []
+        possible_xs_names = ['notyetavailable']
         if data['data_options']['cross_section']['name'] not in possible_xs_names:
             raise ValueError(f"Cross section name '{data['data_options']['cross_section']['name']}' is not supported. "
                              f"Supported options are: {possible_xs_names}")
@@ -141,6 +141,10 @@ class InputHandler:
             data['data_options']['fission_yield']['name'] = 'nfy.csv'
         elif data['data_options']['fission_yield']['name'] == 'chain':
             data['data_options']['fission_yield']['name'] = 'chain_' + chain_middle + '_' + chain_suffix + '.csv'
+        
+        if data['data_options']['emission_probability']['name'] == 'eval':
+            data['data_options']['emission_probability']['name'] = 'eval.csv'
+
     
 
 if __name__ == "__main__":
