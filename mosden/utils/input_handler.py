@@ -136,14 +136,27 @@ class InputHandler:
         elif energy > 1e-3:
             chain_suffix = 'sfr'
         chain_middle = data['data_options']['fission_yield']['data']
-            
-        if data['data_options']['fission_yield']['name'] == 'nfy':
-            data['data_options']['fission_yield']['name'] = 'nfy.csv'
-        elif data['data_options']['fission_yield']['name'] == 'chain':
-            data['data_options']['fission_yield']['name'] = 'chain_' + chain_middle + '_' + chain_suffix + '.csv'
         
-        if data['data_options']['emission_probability']['name'] == 'eval':
-            data['data_options']['emission_probability']['name'] = 'eval.csv'
+        data_selection = data['data_options']
+        data_type = 'fission_yield'
+        cur_data = data_selection[data_type]
+        if cur_data['name'] == 'nfy':
+            cur_data['name'] = 'nfy.csv'
+        elif cur_data['name'] == 'chain':
+            cur_data['name'] = 'chain_' + chain_middle + '_' + chain_suffix + '.csv'
+
+        data_type = 'emission_probability'
+        cur_data = data_selection[data_type]
+        if cur_data['name'] == 'eval':
+            cur_data['name'] = 'eval.csv'
+        
+        data_type = 'half_life'
+        cur_data = data_selection[data_type]
+        if cur_data['name'] == 'nfy':
+            cur_data['name'] = 'nfy.csv'
+        elif cur_data['name'] == 'chain':
+            cur_data['name'] = 'chain_' + chain_middle + '_' + chain_suffix + '.csv'
+
 
     
 
