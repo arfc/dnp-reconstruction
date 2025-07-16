@@ -13,7 +13,7 @@
         "log_file": "./tests/unit/output/log.log"
     },
     "data_options": {
-        "decay_constant": {
+        "half_life": {
             "data": "endfb71",
             "name": "chain"
         },
