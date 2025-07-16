@@ -15,7 +15,7 @@ def test_openmc_preprocess(input_path, reference_output_path):
     preproc.openmc_preprocess()
 
     # Check if the output directory exists
-    output_dir = Path(preproc.processed_data_paths['half_life'])
+    output_dir = Path(preproc.processed_data_dirs['half_life'])
     assert output_dir.exists(), f"Output directory {output_dir} does not exist."
     
     # Check if the expected files are created
@@ -57,7 +57,7 @@ def test_endf_preprocess(input_path, reference_output_path):
     preproc.endf_preprocess()
 
     # Check if the output directory exists
-    output_dir = Path(preproc.processed_data_paths['fission_yield'])
+    output_dir = Path(preproc.processed_data_dirs['fission_yield'])
     assert output_dir.exists(), f"Output directory {output_dir} does not exist."
 
     # Check if the expected files are created
@@ -102,7 +102,7 @@ def test_iaea_preprocess(input_path, reference_output_path):
     # Check if the output directory exists
     for fissile in preproc.fissile_targets:
         path_nuc_energy = f"{fissile}/{preproc.energy_MeV}MeV"
-        output_dir = Path(preproc.processed_data_paths['emission_probability']) / path_nuc_energy
+        output_dir = Path(preproc.processed_data_dirs['emission_probability']) / path_nuc_energy
         assert output_dir.exists(), f"Output directory {output_dir} does not exist."
 
         # Check if the expected files are created

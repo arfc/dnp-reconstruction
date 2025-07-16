@@ -23,10 +23,17 @@ class CountRate(BaseClass):
         Calculate the delayed neutron count rate from
         concentrations using various methods
         """
-        # Get data (conc.csv and emission probability processed data)
+        emission_prob_data = CSVHandler(self.processed_data_paths['emission_probability'], create=False).read_csv()
+        concentration_data = CSVHandler(self.concentration_path, create=False).read_csv()
+        half_life_data = CSVHandler(self.processed_data_paths['half_life'], create=False).read_csv()
+
+
         # Calculate count rate (method (depletion linear interp parent feeding or not), decay time, decay time steps, depletion time steps)
         # Generate CSV with count rate over time
-        emission_prob_path: str = self.processed_data_paths['emission_probability']
-        emission_prob_data = CSVHandler(emission_prob_path, create=False)
 
         return
+    
+
+if __name__ == '__main__':
+    delayed_neutrons = CountRate('../examples/keepin_1957/input.json')
+    delayed_neutrons.calculate_count_rate()

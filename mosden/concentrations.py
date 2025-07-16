@@ -16,7 +16,6 @@ class Concentrations(BaseClass):
         self.model_method: str = self.input_data['modeling_options']['concentration_handling']
         self.fissiles: dict[str, float] = self.input_data['data_options']['fissile_fractions']
         self.data_path: str = self.input_data['file_options']['processed_data_dir']
-        self.energy: float = self.input_data['data_options']['energy_MeV']
         self.overwrite: bool = self.input_data['file_options']['overwrite']
 
         self.reprocessing: dict[str: float] = self.input_data['modeling_options']['reprocessing']
@@ -34,17 +33,19 @@ class Concentrations(BaseClass):
         Generate the concentrations of each nuclide from based on
         irradiation of the sample for the irradiation times.
         """
+        data: dict[str: dict[str: float]] = dict()
         if self.model_method == 'CFY':
             if self.t_ex > 0.0:
                 raise NotImplementedError('Excore residence not available for CFY')
             if self.reprocess:
                 raise NotImplementedError('Reprocessing not available for CFY')
-            self.CFY_concentrations()
+            data = self.CFY_concentrations()
         else:
             raise NotImplementedError(
                 f"Concentration handling method '{self.model_method}' is not implemented"
             )
 
+        CSVHandler(self.concentration_path, self.overwrite).write_csv(data)
         return
 
     def CFY_concentrations(self) -> None:
@@ -67,9 +68,7 @@ class Concentrations(BaseClass):
             data[nuc]['Concentration'] = concentrations[nuc].n
             data[nuc]['sigma Concentration'] = concentrations[nuc].s
             
-        output_path = Path(self.output_dir) / f"concentrations.csv"
-        CSVHandler(output_path, self.overwrite).write_csv(data)
-        return
+        return data
 
 
 
