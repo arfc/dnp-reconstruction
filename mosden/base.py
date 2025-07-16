@@ -9,25 +9,34 @@ class BaseClass:
         self.input_handler: InputHandler = InputHandler(input_path)
         self.input_data: dict = self.input_handler.read_input()
         self.energy_MeV: float = self.input_data['data_options']['energy_MeV']
+        self.fissiles: dict[str, float] = self.input_data['data_options']['fissile_fractions']
         
         self.data_types: list[str] = ['fission_yield', 'half_life', 'cross_section', 'emission_probability']
 
         self.processed_data_dirs: dict[str: str] = self._get_data_paths(processed=True, directory=True)
         self.unprocessed_data_dirs: dict[str: str] = self._get_data_paths(processed=False, directory=True)
 
-        self.processed_data_paths: dict[str: str] = self._get_data_paths(processed=True, directory=False)
-        self.unprocessed_data_paths: dict[str: str] = self._get_data_paths(processed=False, directory=False) 
         self.concentration_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'concentrations.csv')
         return None
     
-    def _get_data_paths(self, processed: bool=True, directory: bool=False, fissile: str='') -> dict[str: str]:
+    def _get_data_paths(self, processed: bool=True, directory: bool=False, fissile: str = '') -> dict[str: str]:
         """
         Gets the data paths for unprocessed or processed data
 
+        Parameters
+        ----------
+        fissile : str
+            Name of fissile nuclide
+        processed : bool
+            Whether to get path to processed or unprocessed data
+        directory : bool
+            Whether to return directory or full path to file
+
         Returns
         -------
+        data_paths : dict[str: str]
+            Type of data and its associated path
         
-            _description_
         """
         if processed:
             data_dir: str = self.input_data['file_options']['processed_data_dir']
