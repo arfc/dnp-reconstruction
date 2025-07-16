@@ -36,6 +36,7 @@
         "reprocessing": {
             "Xe": 0.0
         },
+        "irrad_type": "saturation",
         "incore_s": 10,
         "excore_s": 0,
         "net_irrad_s": 420,

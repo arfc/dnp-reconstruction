@@ -21,13 +21,13 @@ class Concentrations:
         self.overwrite: bool = self.input_data['file_options']['overwrite']
         self.FY_file_name: str = self.input_data['data_options']['fission_yield']['type']
 
-        self.parent_feed: bool = self.input_data['modeling_options']['parent_feeding']
         self.reprocessing: dict[str: float] = self.input_data['modeling_options']['reprocessing']
         self.reprocess: bool = (sum(self.reprocessing.values()) > 0)
         self.reprocess_locations: list[str] = self.input_data['modeling_options']['reprocessing_locations']
         self.t_in: float = self.input_data['modeling_options']['incore_s']
         self.t_ex: float = self.input_data['modeling_options']['excore_s']
         self.t_net: float = self.input_data['modeling_options']['net_irrad_s']
+        self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
         
         self.half_life_dir: str = self.input_data['data_options']['decay_constant']
         self.cross_section_dir: str = self.input_data['data_options']['cross_section']
@@ -41,8 +41,6 @@ class Concentrations:
         irradiation of the sample for the irradiation times.
         """
         if self.model_method == 'CFY':
-            if self.parent_feed:
-                raise NotImplementedError('Parent feeding not available for CFY')
             if self.t_ex > 0.0:
                 raise NotImplementedError('Excore residence not available for CFY')
             if self.reprocess:
