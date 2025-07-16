@@ -13,7 +13,7 @@
         "log_file": "./tests/integration/output/log.log"
     },
     "data_options": {
-        "decay_constant": {
+        "half_life": {
             "data": "test-data",
             "name": "chain"
         },
