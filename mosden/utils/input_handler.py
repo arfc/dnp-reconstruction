@@ -60,10 +60,11 @@ class InputHandler:
         if data['modeling_options']['parent_feeding'] and not data['modeling_options']['concentration_handling'] == 'depletion':
             raise ValueError("Parent feeding option requires depletion method for concentration handling")
         
-        possible_data_options = ['test-data', 'endfb71']
-        if data['data_options']['half_life']['data'] not in possible_data_options:
+        possible_half_life_options = ['test-data', 'endfb71', 'iaea']
+        if data['data_options']['half_life']['data'] not in possible_half_life_options:
             raise ValueError(f"Decay data option '{data['data_options']['half_life']['data']}' is not supported. "
-                             f"Supported options are: {possible_data_options}")
+                             f"Supported options are: {possible_half_life_options}")
+        possible_data_options = ['test-data', 'endfb71']
         if data['data_options']['cross_section']['data'] not in possible_data_options:
             raise ValueError(f"Cross section option '{data['data_options']['cross_section']['data']}' is not supported. "
                              f"Supported options are: {possible_data_options}")
@@ -156,6 +157,8 @@ class InputHandler:
             cur_data['name'] = 'nfy.csv'
         elif cur_data['name'] == 'chain':
             cur_data['name'] = 'chain_' + chain_middle + '_' + chain_suffix + '.csv'
+        elif cur_data['name'] == 'eval':
+            cur_data['name'] = 'eval.csv'
 
 
     
