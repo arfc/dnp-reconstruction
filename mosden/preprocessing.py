@@ -1,12 +1,13 @@
 from mosden.utils.input_handler import InputHandler
 from mosden.utils.csv_handler import CSVHandler
+from mosden.base import BaseClass
 import os
 import numpy as np
 import re
 from uncertainties import ufloat
 import pandas as pd
 
-class Preprocess:
+class Preprocess(BaseClass):
     def __init__(self, input_path: str) -> None:
         """
         This class handles preprocessing of files into a common format.
@@ -16,9 +17,7 @@ class Preprocess:
         input_path : str
             Path to the input file.
         """
-        self.input_path: str = input_path
-        self.input_handler: InputHandler = InputHandler(input_path)
-        self.input_data: dict = self.input_handler.read_input()
+        super().__init__(input_path)
 
         self.data_dir: str = self.input_data['file_options']['unprocessed_data_dir']
         self.overwrite: bool = self.input_data['file_options']['overwrite']['preprocessing']
@@ -26,10 +25,6 @@ class Preprocess:
         self.fissile_targets: list = list(self.input_data['data_options']['fissile_fractions'].keys())
         self.energy_MeV: float = self.input_data['data_options']['energy_MeV']
 
-        self.half_life_dir: str = self.input_data['data_options']['decay_constant']
-        self.cross_section_dir: str = self.input_data['data_options']['cross_section']
-        self.emission_probability_dir: str = self.input_data['data_options']['emission_probability']
-        self.fission_yield_dir: str = self.input_data['data_options']['fission_yield']['data']
         return None
     
     def run(self) -> None:
@@ -74,8 +69,9 @@ class Preprocess:
         fissile : str
             Name of the fissile target to process, not needed here but kept for pathing.
         """
-        data_file: str = os.path.join(self.data_dir, self.emission_probability_dir, 'eval.csv')
-        out_file: str = os.path.join(self.out_dir, self.emission_probability_dir, fissile, f'{self.energy_MeV}MeV', 'eval.csv')
+        path, name = self._get_data_pathing('cross_sections')
+        data_file: str = os.path.join(self.data_dir, path, name)
+        out_file: str = os.path.join(self.out_dir, path, fissile, f'{self.energy_MeV}MeV', name)
         data = CSVHandler(data_file).read_csv(raw_iaea=True) 
         csv_path: str = os.path.join(out_file)
         CSVHandler(csv_path, self.overwrite).write_csv(data)
@@ -90,8 +86,9 @@ class Preprocess:
         fissile : str
             Name of the fissile target to process.
         """
-        data_dir: str = os.path.join(self.data_dir, self.half_life_dir, 'omcchain')
-        out_dir: str = os.path.join(self.out_dir, self.half_life_dir, fissile, f'{self.energy_MeV}MeV')
+        path, _ = self._get_data_pathing('half_life')
+        data_dir: str = os.path.join(self.data_dir, path, 'omcchain')
+        out_dir: str = os.path.join(self.out_dir, path, fissile, f'{self.energy_MeV}MeV')
         for file in os.listdir(data_dir):
             full_path: str = os.path.join(data_dir, file)
             file_data: dict[str: dict[str: float]] = self._process_chain_file(full_path, fissile)
@@ -108,8 +105,9 @@ class Preprocess:
         fissile : str
             Name of the fissile target to process.
         """
-        data_dir: str = os.path.join(self.data_dir, self.fission_yield_dir, 'nfy')
-        out_dir: str = os.path.join(self.out_dir, self.fission_yield_dir, fissile, f'{self.energy_MeV}MeV')
+        path, name = self._get_data_pathing('fission_yield')
+        data_dir: str = os.path.join(self.data_dir, path, name)
+        out_dir: str = os.path.join(self.out_dir, path, fissile, f'{self.energy_MeV}MeV')
         for file in os.listdir(data_dir):
             adjusted_fissile: str = self._endf_fissile_name(fissile)
             if not file.startswith(f'nfy-{adjusted_fissile}'):
@@ -324,5 +322,5 @@ class Preprocess:
 if __name__ == "__main__":
     preproc = Preprocess('../examples/keepin_1957/input.json')
     preproc.iaea_preprocess()
-    #preproc.openmc_preprocess()
-    #preproc.endf_preprocess()
+    preproc.openmc_preprocess()
+    preproc.endf_preprocess()

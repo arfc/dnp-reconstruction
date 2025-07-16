@@ -13,12 +13,21 @@
         "log_file": "./results/log.log"
     },
     "data_options": {
-        "decay_constant": "endfb71",
-        "cross_section": "endfb71",
-        "emission_probability": "iaea",
+        "decay_constant": {
+            "data": "endfb71",
+            "name": "chain"
+        },
+        "cross_section": {
+            "data": "endfb71",
+            "name": "notyetavailable"
+        },
+        "emission_probability": {
+            "data": "iaea",
+            "name": "eval"
+        },
         "fission_yield": {
             "data": "endfb71",
-            "type": "nfy"
+            "name": "nfy"
         },
         "decay_time_spacing": "linear",
         "temperature_K": 920,

@@ -13,12 +13,21 @@
         "log_file": "./tests/integration/output/log.log"
     },
     "data_options": {
-        "decay_constant": "test-data",
-        "cross_section": "test-data",
-        "emission_probability": "test-data",
+        "decay_constant": {
+            "data": "test-data",
+            "name": "chain"
+        },
+        "cross_section": {
+            "data": "test-data",
+            "name": "notyetavailable"
+        },
+        "emission_probability": {
+            "data": "test-data",
+            "name": "eval"
+        },
         "fission_yield": {
             "data": "test-data",
-            "type": "nfy"
+            "name": "nfy"
         },
         "decay_time_spacing": "linear",
         "temperature_K": 920,
