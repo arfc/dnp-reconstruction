@@ -61,25 +61,41 @@ class InputHandler:
             raise ValueError("Parent feeding option requires depletion method for concentration handling")
         
         possible_data_options = ['test-data', 'endfb71']
-        if data['data_options']['decay_constant'] not in possible_data_options:
-            raise ValueError(f"Decay data option '{data['data_options']['decay_constant']}' is not supported. "
+        if data['data_options']['decay_constant']['data'] not in possible_data_options:
+            raise ValueError(f"Decay data option '{data['data_options']['decay_constant']['data']}' is not supported. "
                              f"Supported options are: {possible_data_options}")
-        if data['data_options']['cross_section'] not in possible_data_options:
-            raise ValueError(f"Cross section option '{data['data_options']['cross_section']}' is not supported. "
+        if data['data_options']['cross_section']['data'] not in possible_data_options:
+            raise ValueError(f"Cross section option '{data['data_options']['cross_section']['data']}' is not supported. "
                              f"Supported options are: {possible_data_options}")
         if data['data_options']['fission_yield']['data'] not in possible_data_options:
             raise ValueError(f"Fission yield option '{data['data_options']['fission_yield']['data']}' is not supported. "
                              f"Supported options are: {possible_data_options}")
 
         possible_emission_probabilities = ['test-data', 'iaea']
-        if data['data_options']['emission_probability'] not in possible_emission_probabilities:
-            raise ValueError(f"Emission probability option '{data['data_options']['emission_probability']}' is not supported. "
+        if data['data_options']['emission_probability']['data'] not in possible_emission_probabilities:
+            raise ValueError(f"Emission probability option '{data['data_options']['emission_probability']['data']}' is not supported. "
                              f"Supported options are: {possible_emission_probabilities}")
 
-        possible_fy_types = ['test-data', 'nfy', 'chain']
-        if data['data_options']['fission_yield']['type'] not in possible_fy_types:
-            raise ValueError(f"Fission yield type '{data['data_options']['fission_yield']['type']}' is not supported. "
-                             f"Supported options are: {possible_fy_types}")
+        possible_fy_names = ['nfy', 'chain']
+        if data['data_options']['fission_yield']['name'] not in possible_fy_names:
+            raise ValueError(f"Fission yield name '{data['data_options']['fission_yield']['name']}' is not supported. "
+                             f"Supported options are: {possible_fy_names}")
+        
+        possible_emission_names = ['eval']
+        if data['data_options']['emission_probability']['name'] not in possible_emission_names:
+            raise ValueError(f"Emission name '{data['data_options']['emission_probability']['name']}' is not supported. "
+                             f"Supported options are: {possible_emission_names}")
+
+        possible_xs_names = []
+        if data['data_options']['cross_section']['name'] not in possible_xs_names:
+            raise ValueError(f"Cross section name '{data['data_options']['cross_section']['name']}' is not supported. "
+                             f"Supported options are: {possible_xs_names}")
+        
+        possible_decay_names = ['chain', 'eval']
+        if data['data_options']['half_life']['name'] not in possible_decay_names:
+            raise ValueError(f"Half life name '{data['data_options']['half_life']['name']}' is not supported. "
+                             f"Supported options are: {possible_decay_names}")
+
 
         
         possible_decay_spacings = ['linear']
@@ -121,10 +137,10 @@ class InputHandler:
             chain_suffix = 'sfr'
         chain_middle = data['data_options']['fission_yield']['data']
             
-        if data['data_options']['fission_yield']['type'] == 'nfy':
-            data['data_options']['fission_yield']['type'] = 'nfy.csv'
-        elif data['data_options']['fission_yield']['type'] == 'chain':
-            data['data_options']['fission_yield']['type'] = 'chain_' + chain_middle + '_' + chain_suffix + '.csv'
+        if data['data_options']['fission_yield']['name'] == 'nfy':
+            data['data_options']['fission_yield']['name'] = 'nfy.csv'
+        elif data['data_options']['fission_yield']['name'] == 'chain':
+            data['data_options']['fission_yield']['name'] = 'chain_' + chain_middle + '_' + chain_suffix + '.csv'
     
 
 if __name__ == "__main__":
