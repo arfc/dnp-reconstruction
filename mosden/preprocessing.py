@@ -87,7 +87,7 @@ class Preprocess(BaseClass):
         fissile : str
             Name of the fissile target to process.
         """
-        path, _ = self._get_subdata_pathing('half_life')
+        path, _ = self._get_subdata_pathing('cross_section')
         data_dir: str = os.path.join(self.data_dir, path, 'omcchain')
         out_dir: str = os.path.join(self.out_dir, path, fissile, f'{self.energy_MeV}MeV')
         for file in os.listdir(data_dir):

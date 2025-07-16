@@ -14,8 +14,8 @@
     },
     "data_options": {
         "half_life": {
-            "data": "endfb71",
-            "name": "chain"
+            "data": "iaea",
+            "name": "eval"
         },
         "cross_section": {
             "data": "endfb71",

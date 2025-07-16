@@ -17,6 +17,7 @@ class BaseClass:
         self.unprocessed_data_dirs: dict[str: str] = self._get_data_paths(processed=False, directory=True)
 
         self.concentration_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'concentrations.csv')
+        self.countrate_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'count_rate.csv')
         return None
     
     def _get_data_paths(self, processed: bool=True, directory: bool=False, fissile: str = '') -> dict[str: str]:
