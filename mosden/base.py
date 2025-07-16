@@ -8,14 +8,19 @@ class BaseClass:
         self.input_path: str = input_path
         self.input_handler: InputHandler = InputHandler(input_path)
         self.input_data: dict = self.input_handler.read_input()
+        self.energy_MeV: float = self.input_data['data_options']['energy_MeV']
         
         self.data_types: list[str] = ['fission_yield', 'half_life', 'cross_section', 'emission_probability']
 
-        self.processed_data_paths: dict[str: str] = self._get_data_paths(processed=True)
-        self.unprocessed_data_paths: dict[str: str] = self._get_data_paths(processed=False)
+        self.processed_data_dirs: dict[str: str] = self._get_data_paths(processed=True, directory=True)
+        self.unprocessed_data_dirs: dict[str: str] = self._get_data_paths(processed=False, directory=True)
+
+        self.processed_data_paths: dict[str: str] = self._get_data_paths(processed=True, directory=False)
+        self.unprocessed_data_paths: dict[str: str] = self._get_data_paths(processed=False, directory=False) 
+        self.concentration_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'concentrations.csv')
         return None
     
-    def _get_data_paths(self, processed=True) -> dict[str: str]:
+    def _get_data_paths(self, processed: bool=True, directory: bool=False, fissile: str='') -> dict[str: str]:
         """
         Gets the data paths for unprocessed or processed data
 
@@ -31,7 +36,10 @@ class BaseClass:
         data_paths: dict[str: str] = {}
         for data_type in self.data_types:
             use_path, use_name = self._get_subdata_pathing(data_type)
-            data_paths[data_type] = os.path.join(data_dir, use_path)
+            if directory:
+                data_paths[data_type] = os.path.join(data_dir, use_path)
+            else:
+                data_paths[data_type] = os.path.join(data_dir, use_path, fissile, f"{self.energy_MeV}MeV", use_name)
         return data_paths
         
 
@@ -80,7 +88,7 @@ class BaseClass:
         """
         use_path, use_name = self._get_subdata_pathing(data_type)
 
-        data_path = Path(self.data_path) / use_path / fissile / f"{self.energy}MeV" / use_name
+        data_path = Path(self.data_path) / use_path / fissile / f"{self.energy_MeV}MeV" / use_name
         csv_handler = CSVHandler(data_path, create=False)
         if not csv_handler._file_exists():
             raise FileNotFoundError(f"Processed data file {data_path} does not exist.") 
