@@ -51,6 +51,11 @@ class InputHandler:
         ValueError
             If the behaviour is not supported.
         """
+        def _check_if_in_options(item, options):
+            if item not in options:
+                raise ValueError(f'Option {item} not supported in {options}')
+            return None
+
         if data['file_options']['unprocessed_data_dir'] == data['file_options']['processed_data_dir']:
             raise ValueError("Unprocessed and processed data directories cannot be the same.")
         if data['file_options']['unprocessed_data_dir'] == data['file_options']['output_dir']:
@@ -61,63 +66,31 @@ class InputHandler:
             raise ValueError("Parent feeding option requires depletion method for concentration handling")
         
         possible_half_life_options = ['test-data', 'endfb71', 'iaea']
-        if data['data_options']['half_life']['data'] not in possible_half_life_options:
-            raise ValueError(f"Decay data option '{data['data_options']['half_life']['data']}' is not supported. "
-                             f"Supported options are: {possible_half_life_options}")
-        possible_data_options = ['test-data', 'endfb71']
-        if data['data_options']['cross_section']['data'] not in possible_data_options:
-            raise ValueError(f"Cross section option '{data['data_options']['cross_section']['data']}' is not supported. "
-                             f"Supported options are: {possible_data_options}")
-        if data['data_options']['fission_yield']['data'] not in possible_data_options:
-            raise ValueError(f"Fission yield option '{data['data_options']['fission_yield']['data']}' is not supported. "
-                             f"Supported options are: {possible_data_options}")
-
+        _check_if_in_options(data['data_options']['half_life']['data'], possible_half_life_options)
+        possible_cross_sections_options = ['test-data', 'endfb71']
+        _check_if_in_options(data['data_options']['cross_sections']['data'], possible_cross_sections_options)
+        possible_fission_yields_options = ['test-data', 'endfb71']
+        _check_if_in_options(data['data_options']['fission_yield']['data'], possible_fission_yields_options)
         possible_emission_probabilities = ['test-data', 'iaea']
-        if data['data_options']['emission_probability']['data'] not in possible_emission_probabilities:
-            raise ValueError(f"Emission probability option '{data['data_options']['emission_probability']['data']}' is not supported. "
-                             f"Supported options are: {possible_emission_probabilities}")
-
+        _check_if_in_options(data['data_options']['emission_probability']['data'], possible_emission_probabilities)
         possible_fy_names = ['nfy', 'chain']
-        if data['data_options']['fission_yield']['name'] not in possible_fy_names:
-            raise ValueError(f"Fission yield name '{data['data_options']['fission_yield']['name']}' is not supported. "
-                             f"Supported options are: {possible_fy_names}")
-        
+        _check_if_in_options(data['data_options']['fission_yield']['name'], possible_fy_names)        
         possible_emission_names = ['eval']
-        if data['data_options']['emission_probability']['name'] not in possible_emission_names:
-            raise ValueError(f"Emission name '{data['data_options']['emission_probability']['name']}' is not supported. "
-                             f"Supported options are: {possible_emission_names}")
-
+        _check_if_in_options(data['data_options']['emission_probability']['name'], possible_emission_names)
         possible_xs_names = ['notyetavailable']
-        if data['data_options']['cross_section']['name'] not in possible_xs_names:
-            raise ValueError(f"Cross section name '{data['data_options']['cross_section']['name']}' is not supported. "
-                             f"Supported options are: {possible_xs_names}")
-        
+        _check_if_in_options(data['data_options']['cross_section']['name'], possible_xs_names) 
         possible_decay_names = ['chain', 'eval']
-        if data['data_options']['half_life']['name'] not in possible_decay_names:
-            raise ValueError(f"Half life name '{data['data_options']['half_life']['name']}' is not supported. "
-                             f"Supported options are: {possible_decay_names}")
-
-
-        
+        _check_if_in_options(data['data_options']['half_life']['name'], possible_decay_names)
         possible_decay_spacings = ['linear']
-        if data['data_options']['decay_time_spacing'] not in possible_decay_spacings:
-            raise ValueError(f"Decay spacing option '{data['data_options']['decay_time_spacing']}' is not supported. "
-                             f"Supported options are: {possible_decay_spacings}")
-        
+        _check_if_in_options(data['data_options']['decay_time_spacing'], possible_decay_spacings)
+        possible_concentration_options = ['CFY']
+        _check_if_in_options(data['modeling_options']['concentration_handling'], possible_concentration_options)
+        possible_irradiation_options = ['saturation', 'pulse']
+        _check_if_in_options(data['modeling_options']['irrad_type'], possible_irradiation_options)
+
         if sum(data['data_options']['fissile_fractions'].values()) != 1.0:
             raise ValueError("Fissile fractions must sum to 1.0. Current sum: "
                              f"{sum(data['data_options']['fissile_fractions'].values())}")
-        
-
-        possible_concentration_options = ['CFY']
-        if data['modeling_options']['concentration_handling'] not in possible_concentration_options:
-            raise ValueError(f"Concentration handling option '{data['modeling_options']['concentration_handling']}' is not supported. "
-                             f"Supported options are: {possible_concentration_options}")
-        
-        possible_irradiation_options = ['saturation', 'pulse']
-        if data['modeling_options']['irrad_type'] not in possible_irradiation_options:
-            raise ValueError(f"Irradiation type '{data['modeling_options']['irrad_type']}' is not supported. "
-                             f"Supported options are: {possible_irradiation_options}")
         return
     
     def _adjust_data(self, data: dict) -> None:
