@@ -68,7 +68,7 @@ class InputHandler:
         possible_half_life_options = ['test-data', 'endfb71', 'iaea']
         _check_if_in_options(data['data_options']['half_life']['data'], possible_half_life_options)
         possible_cross_sections_options = ['test-data', 'endfb71']
-        _check_if_in_options(data['data_options']['cross_sections']['data'], possible_cross_sections_options)
+        _check_if_in_options(data['data_options']['cross_section']['data'], possible_cross_sections_options)
         possible_fission_yields_options = ['test-data', 'endfb71']
         _check_if_in_options(data['data_options']['fission_yield']['data'], possible_fission_yields_options)
         possible_emission_probabilities = ['test-data', 'iaea']
