@@ -13,22 +13,10 @@
         "log_file": "./tests/unit/output/log.log"
     },
     "data_options": {
-        "half_life": {
-            "data": "endfb71",
-            "name": "chain"
-        },
-        "cross_section": {
-            "data": "endfb71",
-            "name": "notyetavailable"
-        },
-        "emission_probability": {
-            "data": "iaea",
-            "name": "eval"
-        },
-        "fission_yield": {
-            "data": "endfb71",
-            "name": "nfy"
-        },
+        "half_life": "endfb71/omcchain/chain_casl_pwr.xml",
+        "cross_section": "",
+        "emission_probability": "iaea/eval.csv",
+        "fission_yield": "endfb71/nfy/",
         "decay_time_spacing": "linear",
         "temperature_K": 920,
         "density_g_cm3": 2.3275,
