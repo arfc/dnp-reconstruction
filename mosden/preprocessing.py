@@ -56,11 +56,11 @@ class Preprocess(BaseClass):
             self.iaea_preprocess
         ]
         
-        func_selector: zip = zip(datasource_list,
-                                 func_list)
+        func_selector: list[zip] = list(zip(datasource_list,
+                                 func_list))
         for data_val, path in self.data_to_proc.items():
             for ids, func in func_selector:
-                if np.any(word in path for word in ids):
+                if any(word in path for word in ids):
                     func(data_val, path)
         return None
     
@@ -375,6 +375,7 @@ class Preprocess(BaseClass):
 
 if __name__ == "__main__":
     preproc = Preprocess('../examples/keepin_1957/input.json')
-    preproc.iaea_preprocess('emission_probability', 'iaea/eval.csv')
-    preproc.openmc_preprocess('half_life', 'endfb71/omcchain/chain_casl_pwr.xml')
-    preproc.endf_preprocess('fission_yield', 'endfb71/nfy')
+    preproc.run()
+    #preproc.iaea_preprocess('emission_probability', 'iaea/eval.csv')
+    #preproc.openmc_preprocess('half_life', 'endfb71/omcchain/chain_casl_pwr.xml')
+    #preproc.endf_preprocess('fission_yield', 'endfb71/nfy')
