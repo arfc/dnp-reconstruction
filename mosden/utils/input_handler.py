@@ -11,6 +11,7 @@ class InputHandler:
             Path to the input file.
         """
         self.input_path = input_path
+        self.preproc_choices: dict = dict()
         return None
     
     def read_input(self, check=True, adjust_data=True) -> dict:
@@ -65,22 +66,6 @@ class InputHandler:
         if data['modeling_options']['parent_feeding'] and not data['modeling_options']['concentration_handling'] == 'depletion':
             raise ValueError("Parent feeding option requires depletion method for concentration handling")
         
-        possible_half_life_options = ['test-data', 'endfb71', 'iaea']
-        _check_if_in_options(data['data_options']['half_life']['data'], possible_half_life_options)
-        possible_cross_sections_options = ['test-data', 'endfb71']
-        _check_if_in_options(data['data_options']['cross_section']['data'], possible_cross_sections_options)
-        possible_fission_yields_options = ['test-data', 'endfb71']
-        _check_if_in_options(data['data_options']['fission_yield']['data'], possible_fission_yields_options)
-        possible_emission_probabilities = ['test-data', 'iaea']
-        _check_if_in_options(data['data_options']['emission_probability']['data'], possible_emission_probabilities)
-        possible_fy_names = ['nfy', 'chain']
-        _check_if_in_options(data['data_options']['fission_yield']['name'], possible_fy_names)        
-        possible_emission_names = ['eval']
-        _check_if_in_options(data['data_options']['emission_probability']['name'], possible_emission_names)
-        possible_xs_names = ['notyetavailable']
-        _check_if_in_options(data['data_options']['cross_section']['name'], possible_xs_names) 
-        possible_decay_names = ['chain', 'eval']
-        _check_if_in_options(data['data_options']['half_life']['name'], possible_decay_names)
         possible_decay_spacings = ['linear']
         _check_if_in_options(data['data_options']['decay_time_spacing'], possible_decay_spacings)
         possible_concentration_options = ['CFY']
@@ -101,37 +86,10 @@ class InputHandler:
         ----------
         data : dict
             Dictionary containing settings and data selections.
-        """
-        # Adjust fission yield type and chain file suffix based on energy
-        energy = data['data_options']['energy_MeV']
-        # Two energy group division for selection of chain file
-        if energy <= 1e-3:
-            chain_suffix = 'pwr'
-        elif energy > 1e-3:
-            chain_suffix = 'sfr'
-        chain_middle = data['data_options']['fission_yield']['data']
-        
-        data_selection = data['data_options']
-        data_type = 'fission_yield'
-        cur_data = data_selection[data_type]
-        if cur_data['name'] == 'nfy':
-            cur_data['name'] = 'nfy.csv'
-        elif cur_data['name'] == 'chain':
-            cur_data['name'] = 'chain_' + chain_middle + '_' + chain_suffix + '.csv'
+        """ 
+        return None
 
-        data_type = 'emission_probability'
-        cur_data = data_selection[data_type]
-        if cur_data['name'] == 'eval':
-            cur_data['name'] = 'eval.csv'
-        
-        data_type = 'half_life'
-        cur_data = data_selection[data_type]
-        if cur_data['name'] == 'nfy':
-            cur_data['name'] = 'nfy.csv'
-        elif cur_data['name'] == 'chain':
-            cur_data['name'] = 'chain_' + chain_middle + '_' + chain_suffix + '.csv'
-        elif cur_data['name'] == 'eval':
-            cur_data['name'] = 'eval.csv'
+
 
 
     
