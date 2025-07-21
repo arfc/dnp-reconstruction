@@ -25,100 +25,149 @@ class Preprocess(BaseClass):
         self.fissile_targets: list = list(self.input_data['data_options']['fissile_fractions'].keys())
         self.energy_MeV: float = self.input_data['data_options']['energy_MeV']
 
+        data_keys: list[str] = [
+            'half_life',
+            'cross_section',
+            'emission_probability',
+            'fission_yield'
+        ]
+        self.data_to_proc: dict[str: str] = {
+            key: self.input_data['data_options'][key] for key in data_keys
+        }
+
+        self.omc_data_words: list[str] = ['omcchain']
+        self.endf_data_words: list[str] = ['nfy']
+        self.iaea_data_words: list[str] = ['iaea']
+
         return None
     
     def run(self) -> None:
         """
-        Run the preprocessing steps.
+        Run the preprocessing.
         """
-        self.openmc_preprocess()
-        self.endf_preprocess()
-        self.iaea_preprocess()
+        datasource_list: list[list[str]] = [
+            self.omc_data_words,
+            self.endf_data_words,
+            self.iaea_data_words
+        ]
+        func_list: list = [
+            self.openmc_preprocess,
+            self.endf_preprocess,
+            self.iaea_preprocess
+        ]
+        
+        func_selector: zip = zip(datasource_list,
+                                 func_list)
+        for data_val, path in self.data_to_proc.items():
+            for ids, func in func_selector:
+                if np.any(word in path for word in ids):
+                    func(data_val, path)
         return None
     
-    def openmc_preprocess(self) -> None:
+    def openmc_preprocess(self, data_val:str, unprocessed_path:str) -> None:
         """
-        Processes OpenMC all chain_* files and cross section data using OpenMC
+        Processes OpenMC data
         """
-        for fissile in self.fissile_targets:
-            self._openmc_chain_preprocess(fissile)
+        self._openmc_chain_preprocess(data_val, unprocessed_path)
         return None
     
-    def endf_preprocess(self) -> None:
+    def endf_preprocess(self, data_val: str, unprocessed_path:str) -> None:
         """
         Processes ENDF data
         """
-        for fissile in self.fissile_targets:
-            self._endf_nfy_preprocess(fissile)
+        self._endf_nfy_preprocess(data_val, unprocessed_path)
         return None
     
-    def iaea_preprocess(self) -> None:
+    def iaea_preprocess(self, data_val: str, unprocessed_path: str) -> None:
         """
-        Processes IAEA data for emission probabilities and half-lives.
+        Processes IAEA data
         """
-        for fissile in self.fissile_targets:
-            self._iaea_dn_preprocess(fissile)
+        self._iaea_dn_preprocess(data_val, unprocessed_path)
         return None
 
-    def _iaea_dn_preprocess(self, fissile: str) -> None:
+    def _iaea_dn_preprocess(self, data_val: str, path: str) -> None:
         """
         Processes IAEA data for emission probabilities and half-lives.
 
         Parameters
         ----------
-        fissile : str
-            Name of the fissile target to process, not needed here but kept for pathing.
+        data_val : str
+            Type of data to process
+        path : str
+            Path to the unprocessed data
         """
-        path, name = self._get_subdata_pathing('emission_probability')
-        data_file: str = os.path.join(self.data_dir, path, name)
-        out_file: str = os.path.join(self.out_dir, path, fissile, f'{self.energy_MeV}MeV', name)
+        data_file: str = os.path.join(self.data_dir, path)
+        out_file: str = os.path.join(self.out_dir, f'{data_val}.csv')
 
         data = CSVHandler(data_file).read_csv(raw_iaea=True) 
         csv_path: str = os.path.join(out_file)
         CSVHandler(csv_path, self.overwrite).write_csv(data)
         return None
     
-    def _openmc_chain_preprocess(self, fissile: str) -> None:
+    def _openmc_chain_preprocess(self, data_val:str, path: str) -> None:
         """
         Processes OpenMC all chain_* files
 
         Parameters
         ----------
-        fissile : str
-            Name of the fissile target to process.
+        data_val : str
+            Type of data to process
+        path : str
+            Path to the unprocessed data
         """
-        path, _ = self._get_subdata_pathing('cross_section')
-        data_dir: str = os.path.join(self.data_dir, path, 'omcchain')
-        out_dir: str = os.path.join(self.out_dir, path, fissile, f'{self.energy_MeV}MeV')
-        for file in os.listdir(data_dir):
-            full_path: str = os.path.join(data_dir, file)
-            file_data: dict[str: dict[str: float]] = self._process_chain_file(full_path, fissile)
-            csv_path: str = os.path.join(out_dir, file.split('.')[0] + '.csv')
-            CSVHandler(csv_path, self.overwrite).write_csv(file_data)
+        data_path: str = os.path.join(self.data_dir, path)
+        out_path: str = os.path.join(self.out_dir, f'{data_val}.csv')
+        file_data: dict[str: dict[str: float]] = self._process_chain_file(data_path)
+        CSVHandler(out_path, self.overwrite).write_csv(file_data)
         return None
     
-    def _endf_nfy_preprocess(self, fissile: str) -> None:
+    def _endf_nfy_preprocess(self, data_val:str, path: str) -> None:
         """
         Processes ENDF data for the specified fissile target.
 
         Parameters
         ----------
-        fissile : str
-            Name of the fissile target to process.
+        data_val : str
+            Type of data to process
+        path : str
+            Path to the unprocessed data
         """
-        path, name = self._get_subdata_pathing('fission_yield')
-        data_dir: str = os.path.join(self.data_dir, path, 'nfy')
-        out_dir: str = os.path.join(self.out_dir, path, fissile, f'{self.energy_MeV}MeV')
-        for file in os.listdir(data_dir):
-            adjusted_fissile: str = self._endf_fissile_name(fissile)
-            if not file.startswith(f'nfy-{adjusted_fissile}'):
-                continue
-            full_path: str = os.path.join(data_dir, file)
-            file_data : dict[str: dict[str: float]] = self._process_endf_nfy_file(full_path)
-            csv_path: str = os.path.join(out_dir, 'nfy.csv')
-            CSVHandler(csv_path, self.overwrite).write_csv(file_data) 
+        data_dir: str = os.path.join(self.data_dir, path)
+        out_path: str = os.path.join(self.out_dir, f'{data_val}.csv')
+        pre_treated_data: dict[str: dict[str: dict[str: float]]] = dict()
+        for fissile in self.fissile_targets:
+            for file in os.listdir(data_dir):
+                adjusted_fissile: str = self._endf_fissile_name(fissile)
+                if not file.startswith(f'nfy-{adjusted_fissile}'):
+                    continue
+                full_path: str = os.path.join(data_dir, file)
+                file_data : dict[str: dict[str: float]] = self._process_endf_nfy_file(full_path)
+            pre_treated_data[fissile] = file_data
+        treated_data: dict[str: dict[str: float]] = self._treat_endf_data(pre_treated_data)
+        csv_path: str = os.path.join(out_path)
+        CSVHandler(csv_path, self.overwrite).write_csv(treated_data) 
         return None
     
+    def _treat_endf_data(self, pre_treated_data: dict[str: dict[str: dict[str: float]]]) -> dict[str: dict[str: float]]:
+        """
+        Take endf data for each nuclide and scale it by fissile fraction for each nuclide
+        """
+        treated_data: dict[str: dict[str: float]] = dict()
+        for fissile in pre_treated_data.keys():
+            frac = self.fissiles[fissile]
+            for nuc in pre_treated_data[fissile].keys():
+                try:
+                    cur_dict = treated_data[nuc]
+                except KeyError:
+                    treated_data[nuc] = dict()
+                cur_dict = treated_data[nuc]
+                CFY_vals = ufloat(pre_treated_data[fissile][nuc]['CFY'],
+                                  pre_treated_data[fissile][nuc]['sigma CFY'])
+                treated_val = frac * CFY_vals
+                cur_dict['CFY'] = cur_dict.get('CFY', 0) + treated_val.n
+                cur_dict['sigma CFY'] = cur_dict.get('sigma CFY', 0) + treated_val.s
+        return treated_data
+ 
     def _endf_fissile_name(self, fissile: str) -> str:
         """
         Adjusts the fissile target name for ENDF processing.
@@ -197,7 +246,7 @@ class Preprocess(BaseClass):
         return data
         
     
-    def _process_chain_file(self, file: str, fissile: str) -> dict[str, dict[str: float]]:
+    def _process_chain_file(self, file: str) -> dict[str, dict[str: float]]:
         """
         Processes a single OpenMC chain file and returns the data as a dictionary.
 
@@ -205,8 +254,6 @@ class Preprocess(BaseClass):
         ----------
         file : str
             Name of the chain file to process.
-        fissile : str
-            Name of the fissile target to process.
 
         Returns
         -------
@@ -217,16 +264,22 @@ class Preprocess(BaseClass):
         chain: openmc.deplete.chain = openmc.deplete.Chain.from_xml(file)
         nuclides: list[openmc.deplete.Nuclide] = chain.nuclides
         nuc_dict: dict[str, int] = chain.nuclide_dict
-        target_index: int = nuc_dict[fissile]
-        target_nuc: openmc.deplete.Nuclide = nuclides[target_index]
-        FY_data: openmc.deplete.FissionYieldDistribution = target_nuc.yield_data
-        energies = FY_data.energies
-        products = FY_data.products
         FY_chain: dict[str: dict[float: float]] = {}
-        for product in products:
-            FY_chain[product] = {}
-            for energy in energies:
-                FY_chain[product][energy] = FY_data[energy][product]
+
+        for fissile, frac in self.fissiles.items():
+            target_index: int = nuc_dict[fissile]
+            target_nuc: openmc.deplete.Nuclide = nuclides[target_index]
+            FY_data: openmc.deplete.FissionYieldDistribution = target_nuc.yield_data
+            energies = FY_data.energies
+            products = FY_data.products
+            for product in products:
+                try:
+                    FY_chain[product]
+                except KeyError:
+                    FY_chain[product] = {}
+                for energy in energies:
+                    cur_dict = FY_chain[product]
+                    cur_dict[energy] = cur_dict.get(energy, 0) + FY_data[energy][product]*frac
 
         fit_FY_chain: dict[str: float] = self._fit_fy_chain(FY_chain, order=1)
         chain_nucs: list[str] = list(fit_FY_chain.keys())
@@ -322,6 +375,6 @@ class Preprocess(BaseClass):
 
 if __name__ == "__main__":
     preproc = Preprocess('../examples/keepin_1957/input.json')
-    preproc.iaea_preprocess()
-    preproc.openmc_preprocess()
-    preproc.endf_preprocess()
+    preproc.iaea_preprocess('emission_probability', 'iaea/eval.csv')
+    preproc.openmc_preprocess('half_life', 'endfb71/omcchain/chain_casl_pwr.xml')
+    preproc.endf_preprocess('fission_yield', 'endfb71/nfy')
