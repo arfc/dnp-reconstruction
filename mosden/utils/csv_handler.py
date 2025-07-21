@@ -106,3 +106,8 @@ class CSVHandler:
         df = pd.DataFrame(data)
         df.to_csv(self.file_path, index=False)
         return None
+    
+    def read_countrate_csv(self) -> dict[str: list[float]]:
+        df = pd.read_csv(self.file_path)
+        data = {col: df[col].astype(float).tolist() for col in df.columns}
+        return data
