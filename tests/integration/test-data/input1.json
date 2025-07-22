@@ -28,6 +28,7 @@
     "modeling_options": {
         "parent_feeding": false,
         "concentration_handling": "IFY",
+        "count_rate_handling": "data",
         "reprocessing_locations": ["excore"],
         "reprocessing": {
             "Xe": 0.0
