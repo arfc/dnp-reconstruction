@@ -39,5 +39,9 @@
         "net_irrad_s": 420,
         "decay_time": 600,
         "num_decay_times": 100
+    },
+    "group_options": {
+        "num_groups": 6,
+        "method": "nlls"
     }
 }
