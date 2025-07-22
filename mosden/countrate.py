@@ -19,6 +19,7 @@ class CountRate(BaseClass):
         self.num_times: int = self.input_data['modeling_options']['num_decay_times']
         self.decay_time: float = self.input_data['modeling_options']['decay_time']
         self.decay_times: np.ndarray = np.linspace(0, self.decay_time, self.num_times)
+        self.method = self.input_data['modeling_options']['count_rate_handling']
         return None
     
     def calculate_count_rate(self) -> None:
@@ -27,11 +28,10 @@ class CountRate(BaseClass):
         concentrations using various methods
         """
         data: dict[str: list[float]] = dict()
-
-        if self.input_data['modeling_options']['parent_feeding']:
-            raise NotImplementedError('Requires OpenMC depletion')
-        else:
+        if self.method == 'data':
             data = self._count_rate_from_data()
+        else:
+            raise NotImplementedError(f'{self.method} not available in countrate')
 
         CSVHandler(self.countrate_path, self.overwrite).write_count_rate_csv(data)
         return
@@ -44,10 +44,8 @@ class CountRate(BaseClass):
         count_rate: np.ndarray = np.zeros(len(self.decay_times))
         sigma_count_rate: np.ndarray = np.zeros(len(self.decay_times))
 
-        any_fissile: str = list(self.fissiles.keys())[0]
-        processed_data_paths= self._get_data_paths(processed=True, directory=False, fissile=any_fissile)
-        emission_prob_data = CSVHandler(processed_data_paths['emission_probability'], create=False).read_csv()
-        half_life_data = CSVHandler(processed_data_paths['half_life'], create=False).read_csv()
+        emission_prob_data = CSVHandler(os.path.join(self.data_dir, 'emission_probability.csv'), create=False).read_csv()
+        half_life_data = CSVHandler(os.path.join(self.data_dir, 'half_life.csv'), create=False).read_csv()
         concentration_data = CSVHandler(self.concentration_path, create=False).read_csv()
 
         emission_nucs = list(emission_prob_data.keys())
@@ -55,6 +53,9 @@ class CountRate(BaseClass):
         conc_nucs = list(concentration_data.keys())
         net_unique_nucs = list(set(emission_nucs+half_life_nucs+conc_nucs))
         net_similar_nucs = list(set(emission_nucs) & set(half_life_nucs) & set(conc_nucs))
+
+        if len(net_similar_nucs) == 0:
+            raise Exception('Error: no data exists for given emission, half life, and concentration data')
 
         for nuc in net_similar_nucs:
             Pn_data = emission_prob_data[nuc]
