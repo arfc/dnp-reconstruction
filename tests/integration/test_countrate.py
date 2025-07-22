@@ -3,17 +3,20 @@ from pathlib import Path
 from mosden.utils.csv_handler import CSVHandler
 import numpy as np
 import pytest
+import os
 
 @pytest.mark.parametrize("input_path, reference_output_path", [
-    ("tests/integration/test-data/input1.json", "tests/integration/test-data/reference/test1")
+    ("tests/integration/test-data/input1.json", "tests/integration/test-data/reference/test1"),
+    ("tests/integration/test-data/input2.json", "tests/integration/test-data/reference/test2")
 ] )
 def test_calculate_count_rate(input_path, reference_output_path):
     """
     Test the count rate calculation.
     """
     countrate = CountRate(input_path)
-    countrate.data_dir = reference_output_path
-    
+    countrate.processed_data_dir = reference_output_path
+    countrate.concentration_path = os.path.join(countrate.input_data['file_options']['output_dir'], 'concentrations.csv')
+
     # Generate count rate
     countrate.calculate_count_rate()
     

@@ -14,7 +14,6 @@ class Concentrations(BaseClass):
         self.output_dir: str = self.input_data['file_options']['output_dir']
 
         self.model_method: str = self.input_data['modeling_options']['concentration_handling']
-        self.data_path: str = self.input_data['file_options']['processed_data_dir']
         self.overwrite: bool = self.input_data['file_options']['overwrite']['concentrations']
 
         self.reprocessing: dict[str: float] = self.input_data['modeling_options']['reprocessing']
