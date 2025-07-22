@@ -15,7 +15,7 @@
     "data_options": {
         "half_life": "omcchain/chain_test.xml",
         "cross_section": "",
-        "emission_probability": "iaea/eval.csv",
+        "emission_probability": "iaea/eval_test.csv",
         "fission_yield": "omcchain/chain_test.xml",
         "decay_time_spacing": "linear",
         "temperature_K": 920,
