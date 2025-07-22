@@ -6,7 +6,8 @@ import numpy as np
 import os
 
 @pytest.mark.parametrize("input_path, reference_output_path", [
-    ("tests/integration/test-data/input1.json", "tests/integration/test-data/reference/test1/")
+    ("tests/integration/test-data/input1.json", "tests/integration/test-data/reference/test1/"),
+    ("tests/integration/test-data/input2.json", "tests/integration/test-data/reference/test2")
 ] )
 def test_preprocess(input_path, reference_output_path):
     """
