@@ -16,7 +16,7 @@
         "half_life": "omcchain/chain_test.xml",
         "cross_section": "",
         "emission_probability": "iaea/eval.csv",
-        "fission_yield": "nfy/",
+        "fission_yield": "omcchain/chain_test.xml",
         "decay_time_spacing": "linear",
         "temperature_K": 920,
         "density_g_cm3": 2.3275,
@@ -27,7 +27,7 @@
     },
     "modeling_options": {
         "parent_feeding": false,
-        "concentration_handling": "CFY",
+        "concentration_handling": "IFY",
         "reprocessing_locations": ["excore"],
         "reprocessing": {
             "Xe": 0.0

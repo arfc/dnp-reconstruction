@@ -38,7 +38,7 @@ def test_preprocess(input_path, reference_output_path):
     assert file.exists(), f'Output file {file} does not exist.'
     data = CSVHandler(file).read_csv() 
     assert data, "Output CSV file is empty."
-    reference_file = Path(reference_output_path) / 'eval.csv'
+    reference_file = Path(reference_output_path) / 'emission_probability.csv'
     assert reference_file.exists(), f"Reference file {reference_file} does not exist."
     reference_data = CSVHandler(reference_file).read_csv()
     

@@ -39,6 +39,12 @@ class Concentrations(BaseClass):
             if self.reprocess:
                 raise NotImplementedError('Reprocessing not available for CFY')
             data = self.CFY_concentrations()
+        elif self.model_method == 'IFY':
+            if self.t_ex > 0.0:
+                raise NotImplementedError('Excore residence not available for IFY')
+            if self.reprocess:
+                raise NotImplementedError('Reprocessing not available for IFY')
+            data = self.IFY_concentrations()
         else:
             raise NotImplementedError(
                 f"Concentration handling method '{self.model_method}' is not implemented"
@@ -53,12 +59,11 @@ class Concentrations(BaseClass):
         """
         concentrations: dict[str: dict[str: ufloat]] = dict()
         all_nucs: set[str] = set()
-        for fissile, fraction in self.fissiles.items():
-            CFY_data = self._read_processed_data(fissile, 'fission_yield')
-            for nuclide in CFY_data.keys():
-                concs = ufloat(CFY_data[nuclide]['CFY'], CFY_data[nuclide]['sigma CFY'])
-                concentrations[nuclide] = concentrations.get(nuclide, 0) + concs * fraction
-                all_nucs.add(nuclide)
+        CFY_data = self._read_processed_data('fission_yield')
+        for nuclide in CFY_data.keys():
+            concs = ufloat(CFY_data[nuclide]['CFY'], CFY_data[nuclide]['sigma CFY'])
+            concentrations[nuclide] = concs
+            all_nucs.add(nuclide)
 
 
         data: dict[str: dict[str: float]] = dict()
@@ -66,6 +71,27 @@ class Concentrations(BaseClass):
             data[nuc] = {}
             data[nuc]['Concentration'] = concentrations[nuc].n
             data[nuc]['sigma Concentration'] = concentrations[nuc].s
+            
+        return data
+
+    def IFY_concentrations(self) -> None:
+        """
+        Generate the concentrations of each nuclide using the IFY method.
+        """
+        concentrations: dict[str: dict[str: ufloat]] = dict()
+        all_nucs: set[str] = set()
+        CFY_data = self._read_processed_data('fission_yield')
+        for nuclide in CFY_data.keys():
+            concs = CFY_data[nuclide]['IFY']
+            concentrations[nuclide] = concs
+            all_nucs.add(nuclide)
+
+
+        data: dict[str: dict[str: float]] = dict()
+        for nuc in all_nucs:
+            data[nuc] = {}
+            data[nuc]['Concentration'] = concentrations[nuc]
+            data[nuc]['sigma Concentration'] = 0.0
             
         return data
 

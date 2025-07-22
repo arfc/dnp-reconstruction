@@ -18,7 +18,7 @@ class BaseClass:
         return None
     
 
-    def _read_processed_data(self, data_type: str) -> dict[str, dict[str, float]]:
+    def _read_processed_data(self, data_type: str) -> dict[str: dict[str: float]]:
         """
         Read the processed data for a given fissile nuclide.
 
@@ -29,7 +29,7 @@ class BaseClass:
 
         Returns
         -------
-        dict
+        data : dict[str: dict[str: float]]
             The processed data for the fissile nuclide.
         """
         data_path = os.path.join(self.input_data['file_options']['processed_data_dir'], f'{data_type}.csv')
