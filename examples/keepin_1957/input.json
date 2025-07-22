@@ -8,7 +8,7 @@
         },
         "unprocessed_data_dir": "./data/unprocessed/",
         "processed_data_dir": "./results_keepin_1957",
-        "output_dir": "./result_keepin_1957",
+        "output_dir": "./results_keepin_1957",
         "log_level": 1,
         "log_file": "./results/log.log"
     },
