@@ -13,6 +13,7 @@ class BaseClass:
         
         self.data_types: list[str] = ['fission_yield', 'half_life', 'cross_section', 'emission_probability']
 
+        self.processed_data_dir: str = self.input_data['file_options']['processed_data_dir']
         self.concentration_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'concentrations.csv')
         self.countrate_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'count_rate.csv')
         return None
@@ -32,7 +33,7 @@ class BaseClass:
         data : dict[str: dict[str: float]]
             The processed data for the fissile nuclide.
         """
-        data_path = os.path.join(self.input_data['file_options']['processed_data_dir'], f'{data_type}.csv')
+        data_path = os.path.join(self.processed_data_dir, f'{data_type}.csv')
         csv_handler = CSVHandler(data_path, create=False)
         if not csv_handler._file_exists():
             raise FileNotFoundError(f"Processed data file {data_path} does not exist.") 

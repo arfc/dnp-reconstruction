@@ -11,7 +11,7 @@ class CountRate(BaseClass):
     """
     def __init__(self, input_path: str) -> None:
         super().__init__(input_path)
-        self.data_dir: str = self.input_data['file_options']['processed_data_dir']
+        self.processed_data_dir: str = self.input_data['file_options']['processed_data_dir']
         self.output_dir: str = self.input_data['file_options']['output_dir']
         self.overwrite: bool = self.input_data['file_options']['overwrite']['count_rate']
 
@@ -44,8 +44,8 @@ class CountRate(BaseClass):
         count_rate: np.ndarray = np.zeros(len(self.decay_times))
         sigma_count_rate: np.ndarray = np.zeros(len(self.decay_times))
 
-        emission_prob_data = CSVHandler(os.path.join(self.data_dir, 'emission_probability.csv'), create=False).read_csv()
-        half_life_data = CSVHandler(os.path.join(self.data_dir, 'half_life.csv'), create=False).read_csv()
+        emission_prob_data = CSVHandler(os.path.join(self.processed_data_dir, 'emission_probability.csv'), create=False).read_csv()
+        half_life_data = CSVHandler(os.path.join(self.processed_data_dir, 'half_life.csv'), create=False).read_csv()
         concentration_data = CSVHandler(self.concentration_path, create=False).read_csv()
 
         emission_nucs = list(emission_prob_data.keys())
