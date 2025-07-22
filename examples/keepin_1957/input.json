@@ -13,7 +13,7 @@
         "log_file": "./results/log.log"
     },
     "data_options": {
-        "half_life": "endfb71/omcchain/chain_casl_pwr.xml",
+        "half_life": "iaea/eval.csv",
         "cross_section": "",
         "emission_probability": "iaea/eval.csv",
         "fission_yield": "endfb71/nfy/",
@@ -29,6 +29,7 @@
     "modeling_options": {
         "parent_feeding": false,
         "concentration_handling": "CFY",
+        "count_rate_handling": "data",
         "reprocessing_locations": ["excore"],
         "reprocessing": {
             "Xe": 0.0
