@@ -16,6 +16,7 @@ class BaseClass:
         self.processed_data_dir: str = self.input_data['file_options']['processed_data_dir']
         self.concentration_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'concentrations.csv')
         self.countrate_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'count_rate.csv')
+        self.group_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'group_parameters.csv')
         return None
     
 

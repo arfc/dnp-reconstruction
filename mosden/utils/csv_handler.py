@@ -100,6 +100,15 @@ class CSVHandler:
         df.to_csv(self.file_path, index=True)
         return None
     
+    def write_groups_csv(self, data: dict[str: list[float]], sortby: str = 'half_life') -> None:
+        if not self.overwrite and self._file_exists():
+            raise FileExistsError(f"File {self.file_path} already exists. Set overwrite=True to overwrite.")
+        df = pd.DataFrame.from_dict(data, orient='index')
+        df = df.sort_values(by=sortby, ascending=False)
+        df.to_csv(self.file_path, index=False)
+        return None
+
+    
     def write_count_rate_csv(self, data: dict[str: list[float]]) -> None:
         if not self.overwrite and self._file_exists():
             raise FileExistsError(f"File {self.file_path} already exists. Set overwrite=True to overwrite.")
