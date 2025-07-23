@@ -35,10 +35,6 @@ class Preprocess(BaseClass):
             key: self.input_data['data_options'][key] for key in data_keys
         }
 
-        self.omc_data_words: list[str] = ['omcchain']
-        self.endf_data_words: list[str] = ['nfy']
-        self.iaea_data_words: list[str] = ['iaea']
-
         return None
     
     def run(self) -> None:
