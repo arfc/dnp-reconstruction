@@ -110,12 +110,35 @@ class Grouper(BaseClass):
                                verbose=1,
                                max_nfev=1e5,
                                args=(times, counts, fit_function))
-        # Add uncertainty calculation
+
+        sampled_params: list[float] = list()
+        sampled_params.append(result.x)
+        for _ in range(self.MC_samples):
+            if self.MC_samples == 1:
+                break
+            count_sample = np.random.normal(counts, count_err)
+            result = least_squares(self._residual_function,
+                                result.x,
+                                bounds=(0, 1000),
+                                method='trf',
+                                ftol=2.23e-16,
+                                gtol=None,
+                                xtol=None,
+                                verbose=1,
+                                max_nfev=1e3,
+                                args=(times, count_sample, fit_function))
+            sampled_params.append(result.x)
+        sampled_params: np.ndarray[float] = np.asarray(sampled_params)
+        param_means: np.ndarray[float] = np.mean(sampled_params, axis=0)
+        param_stds: np.ndarray[float] = np.std(sampled_params, axis=0)
+
         data: dict[str: dict[str: float]] = dict()
         for group in range(self.num_groups):
             data[group] = dict()
-            data[group]['yield'] = result.x[group]
-            data[group]['half_life'] = result.x[self.num_groups+group]
+            data[group]['yield'] = param_means[group]
+            data[group]['sigma yield'] = param_stds[group]
+            data[group]['half_life'] = param_means[self.num_groups+group]
+            data[group]['sigma half_life'] = param_stds[self.num_groups+group]
         return data
 
 if __name__ == "__main__":

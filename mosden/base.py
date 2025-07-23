@@ -8,6 +8,7 @@ class BaseClass:
         self.input_path: str = input_path
         self.input_handler: InputHandler = InputHandler(input_path)
         self.input_data: dict = self.input_handler.read_input()
+        self.name: str = self.input_data['name']
         self.energy_MeV: float = self.input_data['data_options']['energy_MeV']
         self.fissiles: dict[str, float] = self.input_data['data_options']['fissile_fractions']
         
