@@ -81,14 +81,15 @@ class Grouper(BaseClass):
             a = yields[group]
             counts += (a * np.exp(-lam * times))
         return counts
- 
-    def _nonlinear_least_squares(self) -> dict[str: dict[str: float]]:
+    
+    def _nonlinear_least_squares(self, count_data: dict[str: np.ndarray[float]] = None) -> dict[str: dict[str: float]]:
         """
         Run nonlinear least squares fit on the delayed neutron count rate curve
         to generate group half-lives and yields
         """
         initial_parameter_guess = np.ones(self.num_groups*2)
-        count_data = CSVHandler(self.countrate_path).read_countrate_csv()
+        if count_data == None:
+            count_data = CSVHandler(self.countrate_path).read_countrate_csv()
         times = np.asarray(count_data['times'])
         counts = np.asarray(count_data['counts'])
         count_err = np.asarray(count_data['sigma counts'])
@@ -103,13 +104,14 @@ class Grouper(BaseClass):
                                initial_parameter_guess,
                                bounds=(0, 1000),
                                method='trf',
-                               gtol=1e-8,
+                               ftol=2.23e-16,
+                               gtol=None,
+                               xtol=None,
                                verbose=1,
+                               max_nfev=1e5,
                                args=(times, counts, fit_function))
         # Add uncertainty calculation
         data: dict[str: dict[str: float]] = dict()
-        group_params = result.x
-        print(group_params)
         for group in range(self.num_groups):
             data[group] = dict()
             data[group]['yield'] = result.x[group]
