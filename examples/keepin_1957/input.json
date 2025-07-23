@@ -1,4 +1,5 @@
 {
+    "name": "keepin_1957",
     "file_options": {
         "overwrite": {
             "preprocessing": true,
@@ -7,9 +8,9 @@
             "group_fitting": true,
             "postprocessing": true
         },
-        "unprocessed_data_dir": "../../mosden/data/unprocessed/",
-        "processed_data_dir": "./",
-        "output_dir": "./",
+        "unprocessed_data_dir": "/home/luke/github/mosden/mosden/data/unprocessed/",
+        "processed_data_dir": "/home/luke/github/mosden/examples/keepin_1957/",
+        "output_dir": "/home/luke/github/mosden/examples/keepin_1957/",
         "log_level": 1,
         "log_file": "./results/log.log"
     },
@@ -35,7 +36,7 @@
         "reprocessing": {
             "Xe": 0.0
         },
-        "irrad_type": "saturation",
+        "irrad_type": "pulse",
         "incore_s": 10,
         "excore_s": 0,
         "net_irrad_s": 420,
@@ -45,6 +46,6 @@
     "group_options": {
         "num_groups": 6,
         "method": "nlls",
-        "samples": 1000
+        "samples": 1
     }
 }

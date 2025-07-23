@@ -35,7 +35,7 @@ class InputHandler:
         if check:
             self._check_behaviour(output)
         if adjust_data:
-            self._adjust_data(output)
+            output = self._adjust_data(output)
         return output
     
     def _check_behaviour(self, data: dict) -> None:
@@ -80,7 +80,7 @@ class InputHandler:
                              f"{sum(data['data_options']['fissile_fractions'].values())}")
         return
     
-    def _adjust_data(self, data: dict) -> None:
+    def _adjust_data(self, data: dict) -> dict:
         """
         Adjust the input data to fit desired formatting.
 
@@ -88,8 +88,12 @@ class InputHandler:
         ----------
         data : dict
             Dictionary containing settings and data selections.
-        """ 
-        return None
+        """
+        try:
+            data['name']
+        except KeyError:
+            data['name'] = 'default'
+        return data
 
 
 
