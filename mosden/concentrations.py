@@ -38,6 +38,8 @@ class Concentrations(BaseClass):
                 raise NotImplementedError('Excore residence not available for CFY')
             if self.reprocess:
                 raise NotImplementedError('Reprocessing not available for CFY')
+            if self.irrad_type != 'saturation':
+                warn('CFY is intended to only be used for a saturation irradiation')
             data = self.CFY_concentrations()
         elif self.model_method == 'IFY':
             if self.t_ex > 0.0:
