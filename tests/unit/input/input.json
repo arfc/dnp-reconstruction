@@ -4,6 +4,7 @@
             "preprocessing": true,
             "concentrations": true,
             "count_rate": true,
+            "group_fitting": true,
             "postprocessing": true
         },
         "unprocessed_data_dir": "./data/unprocessed/",
