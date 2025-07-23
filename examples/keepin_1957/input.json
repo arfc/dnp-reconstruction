@@ -4,11 +4,12 @@
             "preprocessing": true,
             "concentrations": true,
             "count_rate": true,
+            "group_fitting": true,
             "postprocessing": true
         },
-        "unprocessed_data_dir": "./data/unprocessed/",
-        "processed_data_dir": "./results_keepin_1957",
-        "output_dir": "./results_keepin_1957",
+        "unprocessed_data_dir": "../../mosden/data/unprocessed/",
+        "processed_data_dir": "./",
+        "output_dir": "./",
         "log_level": 1,
         "log_file": "./results/log.log"
     },
@@ -43,6 +44,7 @@
     },
     "group_options": {
         "num_groups": 6,
-        "method": "nlls"
+        "method": "nlls",
+        "samples": 1000
     }
 }
