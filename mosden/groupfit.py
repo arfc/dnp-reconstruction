@@ -4,7 +4,7 @@ from mosden.utils.csv_handler import CSVHandler
 from pathlib import Path
 from uncertainties import ufloat
 from mosden.base import BaseClass
-from scipy.optimize import least_squares
+from scipy.optimize import least_squares, curve_fit
 from typing import Callable
 
 class Grouper(BaseClass):
@@ -20,6 +20,9 @@ class Grouper(BaseClass):
         self.overwrite: bool = self.input_data['file_options']['overwrite']['group_fitting']
         self.MC_samples: int = self.input_data['group_options']['samples']
 
+        self.t_in: float = self.input_data['modeling_options']['incore_s']
+        self.t_ex: float = self.input_data['modeling_options']['excore_s']
+        self.t_net: float = self.input_data['modeling_options']['net_irrad_s']
         self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
         return None
     
@@ -32,7 +35,6 @@ class Grouper(BaseClass):
             data = self._nonlinear_least_squares()
         else:
             raise NotImplementedError(f'{self.model_method} is not implemented')
-        print(data)
         CSVHandler(self.group_path, self.overwrite).write_groups_csv(data, sortby='half_life')
         return None
     
@@ -69,6 +71,16 @@ class Grouper(BaseClass):
             a = yields[group]
             counts += (a * lam * np.exp(-lam * times))
         return counts
+
+    def _saturation_fit_function(self, times: np.ndarray[float], parameters: np.ndarray[float]) -> np.ndarray[float]:
+        yields = parameters[:self.num_groups]
+        half_lives = parameters[self.num_groups:]
+        counts: np.ndarray[float] = np.zeros(len(times))
+        for group in range(self.num_groups):
+            lam = np.log(2) / half_lives[group]
+            a = yields[group]
+            counts += (a * np.exp(-lam * times))
+        return counts
  
     def _nonlinear_least_squares(self) -> dict[str: dict[str: float]]:
         """
@@ -82,14 +94,17 @@ class Grouper(BaseClass):
         count_err = np.asarray(count_data['sigma counts'])
         if self.irrad_type == 'pulse':
             fit_function = self._pulse_fit_function
+        elif self.irrad_type == 'saturation':
+            fit_function = self._saturation_fit_function
         else:
             raise NotImplementedError(f'{self.irrad_type} not supported in nonlinear least squares solver')
+        
         result = least_squares(self._residual_function,
                                initial_parameter_guess,
                                bounds=(0, 1000),
                                method='trf',
                                gtol=1e-8,
-                               verbose=2,
+                               verbose=1,
                                args=(times, counts, fit_function))
         # Add uncertainty calculation
         data: dict[str: dict[str: float]] = dict()

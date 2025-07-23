@@ -99,7 +99,7 @@ class Preprocess(BaseClass):
         data_file: str = os.path.join(self.data_dir, path)
         out_file: str = os.path.join(self.out_dir, f'{data_val}.csv')
 
-        data = CSVHandler(data_file).read_csv(raw_iaea=True) 
+        data = CSVHandler(data_file, create=False).read_csv(raw_iaea=True) 
         csv_path: str = os.path.join(out_file)
         CSVHandler(csv_path, self.overwrite).write_csv(data)
         return None

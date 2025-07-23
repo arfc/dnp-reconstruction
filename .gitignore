@@ -167,3 +167,4 @@ cython_debug/
 /tests/integration/data_output
 /tests/unit/data_output
 /mosden/results*
+/examples/keepin_1957/*.csv
