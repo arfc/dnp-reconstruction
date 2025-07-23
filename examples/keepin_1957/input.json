@@ -18,7 +18,7 @@
         "half_life": "iaea/eval.csv",
         "cross_section": "",
         "emission_probability": "iaea/eval.csv",
-        "fission_yield": "endfb71/nfy/",
+        "fission_yield": "endfb71/omcchain/chain_endfb71_pwr.xml",
         "decay_time_spacing": "linear",
         "temperature_K": 920,
         "density_g_cm3": 2.3275,
@@ -30,16 +30,16 @@
     },
     "modeling_options": {
         "parent_feeding": false,
-        "concentration_handling": "CFY",
+        "concentration_handling": "IFY",
         "count_rate_handling": "data",
         "reprocessing_locations": ["excore"],
         "reprocessing": {
             "Xe": 0.0
         },
         "irrad_type": "pulse",
-        "incore_s": 10,
+        "incore_s": 0.25e-3,
         "excore_s": 0,
-        "net_irrad_s": 420,
+        "net_irrad_s": 0.25e-3,
         "decay_time": 600,
         "num_decay_times": 100
     },

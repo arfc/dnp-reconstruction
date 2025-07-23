@@ -46,7 +46,9 @@ class Concentrations(BaseClass):
                 raise NotImplementedError('Excore residence not available for IFY')
             if self.reprocess:
                 raise NotImplementedError('Reprocessing not available for IFY')
-            warn('IFY method is not implemented in an accurate manner; avoid using unless for testing')
+            if self.irrad_type != 'pulse':
+                warn('IFY method is (potentially) a way to model pulse irradiation only')
+            warn('IFY method has not been verified. Use with caution')
             data = self.IFY_concentrations()
         else:
             raise NotImplementedError(
@@ -83,9 +85,9 @@ class Concentrations(BaseClass):
         """
         concentrations: dict[str: dict[str: ufloat]] = dict()
         all_nucs: set[str] = set()
-        CFY_data = self._read_processed_data('fission_yield')
-        for nuclide in CFY_data.keys():
-            concs = CFY_data[nuclide]['IFY']
+        IFY_data = self._read_processed_data('fission_yield')
+        for nuclide in IFY_data.keys():
+            concs = IFY_data[nuclide]['IFY']
             concentrations[nuclide] = concs
             all_nucs.add(nuclide)
 

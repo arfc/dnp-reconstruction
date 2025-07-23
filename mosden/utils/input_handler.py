@@ -12,6 +12,9 @@ class InputHandler:
         """
         self.input_path = input_path
         self.preproc_choices: dict = dict()
+        
+        self.independent_fission_yields = ['omcchain']
+        self.cumulative_fission_yields = ['nfy']
         return None
     
     def read_input(self, check=True, adjust_data=True) -> dict:
@@ -63,6 +66,14 @@ class InputHandler:
             raise ValueError("Unprocessed data directory cannot be the same as the output directory.")
         if data['modeling_options']['parent_feeding'] and not data['modeling_options']['concentration_handling'] == 'depletion':
             raise ValueError("Parent feeding option requires depletion method for concentration handling")
+        if data['modeling_options']['concentration_handling'] == 'IFY':
+            ify_in_yields = any(val in data['data_options']['fission_yield'] for val in self.independent_fission_yields)
+            if not ify_in_yields:
+                raise ValueError(f"IFY requires independent fission yield data {self.independent_fission_yields} (not in {data["data_options"]["fission_yield"]})")
+        if data['modeling_options']['concentration_handling'] == 'CFY':
+            cfy_in_yields = any(val in data['data_options']['fission_yield'] for val in self.cumulative_fission_yields)
+            if not cfy_in_yields:
+                raise ValueError(f"CFY requires cumulative fission yield data {self.cumulative_fission_yields} (not in {data["data_options"]["fission_yield"]})")
         
         possible_decay_spacings = ['linear']
         _check_if_in_options(data['data_options']['decay_time_spacing'], possible_decay_spacings)
