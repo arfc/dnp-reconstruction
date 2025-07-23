@@ -43,6 +43,7 @@
     },
     "group_options": {
         "num_groups": 6,
-        "method": "nlls"
+        "method": "nlls",
+        "samples": 1000
     }
 }
