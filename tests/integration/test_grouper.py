@@ -27,6 +27,6 @@ def test_fit_groups(input_path, reference_output_path):
     reference_path = Path(reference_output_path) / "group_parameters.csv"
     reference_data = CSVHandler(reference_path).read_vector_csv()
 
-    assert data == reference_data, "Output data does not match reference data."
+    assert data == reference_data, f"Output {output_path} does not match reference {reference_path}."
 
     return
