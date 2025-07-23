@@ -89,7 +89,7 @@ class Grouper(BaseClass):
         """
         initial_parameter_guess = np.ones(self.num_groups*2)
         if count_data == None:
-            count_data = CSVHandler(self.countrate_path).read_countrate_csv()
+            count_data = CSVHandler(self.countrate_path).read_vector_csv()
         times = np.asarray(count_data['times'])
         counts = np.asarray(count_data['counts'])
         count_err = np.asarray(count_data['sigma counts'])
@@ -122,3 +122,5 @@ if __name__ == "__main__":
     input_path = "../examples/keepin_1957/input.json"
     groupcalc = Grouper(input_path)
     groupcalc.generate_groups()
+    data = CSVHandler(groupcalc.group_path).read_vector_csv()
+    print(data)
