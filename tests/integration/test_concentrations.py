@@ -16,25 +16,20 @@ def test_generate_concentrations(input_path, reference_output_path):
     concentrations = Concentrations(input_path)
     concentrations.processed_data_dir = reference_output_path
     
-    # Generate concentrations
     concentrations.generate_concentrations()
     
-    # Check if output file is created
     output_path = Path(concentrations.output_dir) / "concentrations.csv"
     assert output_path.exists(), f"Output file {output_path} does not exist."
 
-    # Check if the output file has the expected content
     data = CSVHandler(output_path).read_csv()
     assert data, "Output file is empty."
     assert "Concentration" in data['Xe135'], "Concentration data is missing."
     assert "sigma Concentration" in data['Xe135'], "Sigma Concentration data is missing."
     
-    # Check if the concentrations are calculated correctly
     for nuclide, values in data.items():
         assert isinstance(values['Concentration'], float), f"Concentration for {nuclide} is not a float."
         assert isinstance(values['sigma Concentration'], float), f"Sigma Concentration for {nuclide} is not a float."
 
-    # Check all concentrations
     reference_path = Path(reference_output_path) / "concentrations.csv"
     reference_data = CSVHandler(reference_path).read_csv()
 
