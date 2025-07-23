@@ -4,6 +4,7 @@ from mosden.utils.csv_handler import CSVHandler
 from pathlib import Path
 from uncertainties import ufloat
 from mosden.base import BaseClass
+from warnings import warn
 
 class Concentrations(BaseClass):
     """
@@ -43,6 +44,7 @@ class Concentrations(BaseClass):
                 raise NotImplementedError('Excore residence not available for IFY')
             if self.reprocess:
                 raise NotImplementedError('Reprocessing not available for IFY')
+            warn('IFY method is not implemented in an accurate manner; avoid using unless for testing')
             data = self.IFY_concentrations()
         else:
             raise NotImplementedError(
