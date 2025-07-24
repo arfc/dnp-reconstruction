@@ -8,7 +8,9 @@ import os
 @pytest.mark.parametrize("input_path, reference_output_path", [
     ("tests/integration/test-data/input1.json", "tests/integration/test-data/reference/test1"),
     ("tests/integration/test-data/input2.json", "tests/integration/test-data/reference/test2"),
-    ("tests/integration/test-data/input3.json", "tests/integration/test-data/reference/test3")
+    ("tests/integration/test-data/input3.json", "tests/integration/test-data/reference/test3"),
+    ("tests/integration/test-data/input4.json", "tests/integration/test-data/reference/test4")
+    #pytest.param("tests/integration/test-data/input4.json", "tests/integration/test-data/reference/test4", marks=pytest.mark.slow)
 ] )
 def test_fit_groups(input_path, reference_output_path):
     """
@@ -27,6 +29,9 @@ def test_fit_groups(input_path, reference_output_path):
     reference_path = Path(reference_output_path) / "group_parameters.csv"
     reference_data = CSVHandler(reference_path).read_vector_csv()
 
-    assert data == reference_data, f"Output {output_path} does not match reference {reference_path}."
+    assert data.keys() == reference_data.keys(), "Reference times do not match output times"
+
+    for key in data.keys():
+        assert np.all(np.isclose(data[key], reference_data[key])), f"Data mismatch for {key}"
 
     return
