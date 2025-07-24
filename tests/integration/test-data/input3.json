@@ -1,4 +1,5 @@
 {
+    "name": "cumulative fission yield test",
     "file_options": {
         "overwrite": {
             "preprocessing": true,

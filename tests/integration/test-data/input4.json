@@ -1,5 +1,5 @@
 {
-    "name": "basic_test",
+    "name": "real data test",
     "file_options": {
         "overwrite": {
             "preprocessing": true,
@@ -8,28 +8,29 @@
             "group_fitting": true,
             "postprocessing": true
         },
-        "unprocessed_data_dir": "./tests/integration/test-data",
-        "processed_data_dir": "./tests/integration/output1",
-        "output_dir": "./tests/integration/output1",
+        "unprocessed_data_dir": "./mosden/data/unprocessed",
+        "processed_data_dir": "./tests/integration/output4",
+        "output_dir": "./tests/integration/output4",
         "log_level": 1,
         "log_file": "./tests/integration/output/log.log"
     },
     "data_options": {
-        "half_life": "omcchain/chain_test.xml",
+        "half_life": "iaea/eval.csv",
         "cross_section": "",
-        "emission_probability": "iaea/eval_test.csv",
-        "fission_yield": "omcchain/chain_test.xml",
+        "emission_probability": "iaea/eval.csv",
+        "fission_yield": "endfb71/nfy/",
         "decay_time_spacing": "linear",
         "temperature_K": 920,
         "density_g_cm3": 2.3275,
         "energy_MeV": 0.0253e-6,
         "fissile_fractions": {
-            "U235": 1.0
+            "U235": 0.95,
+            "U238": 0.05
         }
     },
     "modeling_options": {
         "parent_feeding": false,
-        "concentration_handling": "IFY",
+        "concentration_handling": "CFY",
         "count_rate_handling": "data",
         "reprocessing_locations": ["excore"],
         "reprocessing": {
