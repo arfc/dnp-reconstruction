@@ -100,14 +100,21 @@ class Grouper(BaseClass):
         else:
             raise NotImplementedError(f'{self.irrad_type} not supported in nonlinear least squares solver')
         
+        min_half_life = 1e-3
+        max_half_life = 1e3
+        max_yield = 1.0
+        lower_bounds = np.concatenate((np.zeros(self.num_groups), np.ones(self.num_groups) * min_half_life))
+        upper_bounds = np.concatenate((np.ones(self.num_groups) * max_yield, np.ones(self.num_groups) * max_half_life))
+
+        bounds = (lower_bounds, upper_bounds) 
         result = least_squares(self._residual_function,
                                initial_parameter_guess,
-                               bounds=(0, 1000),
+                               bounds=bounds,
                                method='trf',
-                               ftol=2.23e-16,
-                               gtol=None,
-                               xtol=None,
-                               verbose=1,
+                               ftol=1e-12,
+                               gtol=1e-12,
+                               xtol=1e-12,
+                               verbose=0,
                                max_nfev=1e5,
                                args=(times, counts, fit_function))
 
