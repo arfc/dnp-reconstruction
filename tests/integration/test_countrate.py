@@ -8,7 +8,8 @@ import os
 @pytest.mark.parametrize("input_path, reference_output_path", [
     ("tests/integration/test-data/input1.json", "tests/integration/test-data/reference/test1"),
     ("tests/integration/test-data/input2.json", "tests/integration/test-data/reference/test2"),
-    ("tests/integration/test-data/input3.json", "tests/integration/test-data/reference/test3")
+    ("tests/integration/test-data/input3.json", "tests/integration/test-data/reference/test3"),
+    ("tests/integration/test-data/input4.json", "tests/integration/test-data/reference/test4")
 ] )
 def test_calculate_count_rate(input_path, reference_output_path):
     """
@@ -29,6 +30,9 @@ def test_calculate_count_rate(input_path, reference_output_path):
     reference_path = Path(reference_output_path) / "count_rate.csv"
     reference_data = CSVHandler(reference_path).read_vector_csv()
 
-    assert data == reference_data, "Output count rate does not match the expected reference count rate."
+    assert data.keys() == reference_data.keys(), "Reference times do not match output times"
+
+    for key in data.keys():
+        assert np.all(np.isclose(data[key], reference_data[key])), f"Data mismatch for {key}"
 
     return

@@ -1,4 +1,5 @@
 {
+    "name": "split_fission_test",
     "file_options": {
         "overwrite": {
             "preprocessing": true,
