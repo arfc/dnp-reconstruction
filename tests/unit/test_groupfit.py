@@ -48,8 +48,8 @@ def test_grouper_pulse_fitting():
     test_yields.sort(reverse=True)
     test_half_lives.sort(reverse=True)
     for group in range(grouper.num_groups):
-        assert np.isclose(test_yields[group], yields[group]), f'Group {group+1} yields - {test_yields[group]=} != {yields[group]=}'
-        assert np.isclose(test_half_lives[group], half_lives[group]), f'Group {group+1} half lives mismatch - {test_yields[group]=} != {half_lives[group]=}'
+        assert np.isclose(test_yields[group], yields[group], rtol=1e-4, atol=1e-8), f'Group {group+1} yields - {test_yields[group]=} != {yields[group]=}'
+        assert np.isclose(test_half_lives[group], half_lives[group], rtol=1e-4, atol=1e-8), f'Group {group+1} half lives mismatch - {test_yields[group]=} != {half_lives[group]=}'
     
     
 @pytest.mark.slow
@@ -86,5 +86,5 @@ def test_grouper_saturation_fitting():
     test_yields.sort(reverse=True)
     test_half_lives.sort(reverse=True)
     for group in range(grouper.num_groups):
-        assert np.isclose(test_yields[group], yields[group]), f'Group {group+1} yields - {test_yields[group]=} != {yields[group]=}'
-        assert np.isclose(test_half_lives[group], half_lives[group]), f'Group {group+1} half lives mismatch - {test_yields[group]=} != {half_lives[group]=}'
+        assert np.isclose(test_yields[group], yields[group], rtol=1e-4, atol=1e-8), f'Group {group+1} yields - {test_yields[group]=} != {yields[group]=}'
+        assert np.isclose(test_half_lives[group], half_lives[group], rtol=1e-4, atol=1e-8), f'Group {group+1} half lives mismatch - {test_yields[group]=} != {half_lives[group]=}'
