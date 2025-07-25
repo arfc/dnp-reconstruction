@@ -2,6 +2,7 @@ from mosden.utils.input_handler import InputHandler
 from pathlib import Path
 from mosden.utils.csv_handler import CSVHandler
 import os
+import logging
 
 class BaseClass:
     def __init__(self, input_path: str) -> None:
@@ -12,6 +13,20 @@ class BaseClass:
         self.input_path: str = input_path
         self.input_handler: InputHandler = InputHandler(input_path)
         self.input_data: dict = self.input_handler.read_input()
+
+        self.log_file: str = self.input_data.get('file_options', {}).get('log_file', 'log.log')
+        self.log_level: int = self.input_data.get('file_options', {}).get('log_level', 1)
+        logger_overwrite: bool = self.input_data.get('file_options', {}).get('overwrite', {}).get('logger', False)
+
+        self.logger: logging.Logger = logging.getLogger(__name__)
+        if logger_overwrite:
+            log_mode = 'w'
+        else:
+            log_mode = 'a'
+        logging.basicConfig(filename=self.log_file,
+                            level=self.log_level,
+                            filemode=log_mode)
+        
         self.name: str = self.input_data['name']
         self.energy_MeV: float = self.input_data['data_options']['energy_MeV']
         self.fissiles: dict[str, float] = self.input_data['data_options']['fissile_fractions']
@@ -22,6 +37,7 @@ class BaseClass:
         self.concentration_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'concentrations.csv')
         self.countrate_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'count_rate.csv')
         self.group_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'group_parameters.csv')
+        self.postproc_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'postproc.csv')
         return None
     
 
