@@ -6,6 +6,7 @@ from uncertainties import ufloat
 from mosden.base import BaseClass
 from scipy.optimize import least_squares, curve_fit
 from typing import Callable
+from math import ceil
 
 class Grouper(BaseClass):
     """
@@ -76,10 +77,14 @@ class Grouper(BaseClass):
         yields = parameters[:self.num_groups]
         half_lives = parameters[self.num_groups:]
         counts: np.ndarray[float] = np.zeros(len(times))
+        tot_cycles: int = ceil(self.t_net / (self.t_in + self.t_ex))
         for group in range(self.num_groups):
             lam = np.log(2) / half_lives[group]
             a = yields[group]
-            counts += (a * np.exp(-lam * times))
+            cycle_sum = 0
+            for j in range(tot_cycles):
+                cycle_sum += np.exp(-lam * (self.t_net - j*self.t_net - (j-1)*self.t_ex))
+            counts += a * np.exp(-lam * times) * (1 - np.exp(-lam * self.t_net + (1 - np.exp(lam * self.t_ex) * cycle_sum)))
         return counts
     
     def _nonlinear_least_squares(self, count_data: dict[str: np.ndarray[float]] = None) -> dict[str: dict[str: float]]:

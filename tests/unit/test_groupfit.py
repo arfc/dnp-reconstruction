@@ -1,6 +1,7 @@
 from mosden.groupfit import Grouper
 import numpy as np
 import pytest
+from math import ceil
 
 def test_grouper_init():
     """
@@ -15,76 +16,74 @@ def test_grouper_init():
 
     return
 
+def run_grouper_fit_test(irrad_type: str, fit_function_name: str, grouper: Grouper):
+    half_lives = [60, 50, 40, 30, 20, 10]
+    yields = [0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
+    times = np.linspace(0, 600, 100)
+    counts = np.zeros(len(times))
+    for a, hl in zip(yields, half_lives):
+        lam = np.log(2) / hl
+        if irrad_type == 'pulse':
+            counts += a * lam * np.exp(-lam * times)
+        elif irrad_type == 'saturation':
+            counts += a * np.exp(-lam * times)
+        elif irrad_type == 'saturation_ex':
+            tot_cycles: int = ceil(grouper.t_net / (grouper.t_in + grouper.t_ex))
+            cycle_sum = 0
+            for j in range(tot_cycles):
+                cycle_sum += np.exp(-lam * (grouper.t_net - j*grouper.t_net - (j-1)*grouper.t_ex))
+            counts += a * np.exp(-lam * times) * (1 - np.exp(-lam * grouper.t_net + (1 - np.exp(lam * grouper.t_ex) * cycle_sum)))
+        else:
+            raise ValueError(f'Unknown irrad_type: {irrad_type}')
+    if irrad_type == 'saturation_ex':
+        irrad_type = 'saturation'
+
+    grouper.irrad_type = irrad_type
+    grouper.num_groups = 6
+
+
+    parameters = yields + half_lives
+    fit_function = getattr(grouper, fit_function_name)
+    func_counts = fit_function(times, parameters)
+    assert np.isclose(func_counts, counts).all(), f'{irrad_type.capitalize()} counts mismatch between hand calculation and function evaluation'
+
+    count_data = {
+        'times': times,
+        'counts': counts,
+        'sigma counts': np.zeros(len(counts))
+    }
+    data = grouper._nonlinear_least_squares(count_data=count_data)
+    test_yields = sorted([data[key]['yield'] for key in data], reverse=True)
+    test_half_lives = sorted([data[key]['half_life'] for key in data], reverse=True)
+
+    for group in range(grouper.num_groups):
+        assert np.isclose(test_yields[group], yields[group], rtol=1e-4, atol=1e-8), \
+            f'Group {group+1} yields mismatch - {test_yields[group]=} != {yields[group]=}'
+        assert np.isclose(test_half_lives[group], half_lives[group], rtol=1e-4, atol=1e-8), \
+            f'Group {group+1} half lives mismatch - {test_half_lives[group]=} != {half_lives[group]=}'
+    return None
+
 @pytest.mark.slow
 def test_grouper_pulse_fitting():
-    """
-    Test the nonlinear least squares fitting for a pulse case
-    """
     input_path = './tests/unit/input/input.json'
     grouper = Grouper(input_path)
-    count_data: dict[str: np.ndarray[float]] = dict()
+    
+    run_grouper_fit_test('pulse', '_pulse_fit_function', grouper)
 
-    half_lives = [60, 50, 40, 30, 20, 10]
-    yields = [0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
-    times = np.linspace(0, 600, 100)
-    counts = np.zeros(len(times))
-    for group in range(len(half_lives)):
-        lam = np.log(2) / half_lives[group]
-        a = yields[group]
-        counts += a * lam * np.exp(-lam * times)
-    
-    parameters = yields + half_lives
-    func_counts = grouper._pulse_fit_function(times, parameters)
-    assert np.isclose(func_counts, counts).all(), 'Pulse counts mismatch between hand calculation and function evaluation'
 
-    grouper.irrad_type = 'pulse'
-    grouper.num_groups = 6
-    count_data['times'] = times
-    count_data['counts'] = counts
-    count_data['sigma counts'] = np.zeros(len(counts))
-    data = grouper._nonlinear_least_squares(count_data=count_data)
-    test_yields = [data[key]['yield'] for key in data.keys()]
-    test_half_lives = [data[key]['half_life'] for key in data.keys()]
-    test_yields.sort(reverse=True)
-    test_half_lives.sort(reverse=True)
-    for group in range(grouper.num_groups):
-        assert np.isclose(test_yields[group], yields[group], rtol=1e-4, atol=1e-8), f'Group {group+1} yields - {test_yields[group]=} != {yields[group]=}'
-        assert np.isclose(test_half_lives[group], half_lives[group], rtol=1e-4, atol=1e-8), f'Group {group+1} half lives mismatch - {test_yields[group]=} != {half_lives[group]=}'
-    
-    
 @pytest.mark.slow
-def test_grouper_saturation_fitting():
-    """
-    Test the nonlinear least squares fitting for a saturation case
-    """
+def test_grouper_saturation_noex_fitting():
     input_path = './tests/unit/input/input.json'
     grouper = Grouper(input_path)
-    count_data: dict[str: np.ndarray[float]] = dict()
     grouper.t_ex = 0
 
-    half_lives = [60, 50, 40, 30, 20, 10]
-    yields = [0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
-    times = np.linspace(0, 600, 100)
-    counts = np.zeros(len(times))
-    for group in range(len(half_lives)):
-        lam = np.log(2) / half_lives[group]
-        a = yields[group]
-        counts += a * np.exp(-lam * times)
-    
-    parameters = yields + half_lives
-    func_counts = grouper._saturation_fit_function(times, parameters)
-    assert np.isclose(func_counts, counts).all(), 'Pulse counts mismatch between hand calculation and function evaluation'
+    run_grouper_fit_test('saturation', '_saturation_fit_function', grouper)
 
-    grouper.irrad_type = 'saturation'
-    grouper.num_groups = 6
-    count_data['times'] = times
-    count_data['counts'] = counts
-    count_data['sigma counts'] = np.zeros(len(counts))
-    data = grouper._nonlinear_least_squares(count_data=count_data)
-    test_yields = [data[key]['yield'] for key in data.keys()]
-    test_half_lives = [data[key]['half_life'] for key in data.keys()]
-    test_yields.sort(reverse=True)
-    test_half_lives.sort(reverse=True)
-    for group in range(grouper.num_groups):
-        assert np.isclose(test_yields[group], yields[group], rtol=1e-4, atol=1e-8), f'Group {group+1} yields - {test_yields[group]=} != {yields[group]=}'
-        assert np.isclose(test_half_lives[group], half_lives[group], rtol=1e-4, atol=1e-8), f'Group {group+1} half lives mismatch - {test_yields[group]=} != {half_lives[group]=}'
+
+@pytest.mark.slow
+def test_grouper_saturation_ex_fitting():
+    input_path = './tests/unit/input/input.json'
+    grouper = Grouper(input_path)
+    grouper.t_ex = 10
+
+    run_grouper_fit_test('saturation_ex', '_saturation_fit_function', grouper)
