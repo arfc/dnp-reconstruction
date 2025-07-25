@@ -4,7 +4,6 @@ from mosden.utils.csv_handler import CSVHandler
 from pathlib import Path
 from uncertainties import ufloat
 from mosden.base import BaseClass
-from warnings import warn
 
 class Concentrations(BaseClass):
     """
@@ -39,7 +38,7 @@ class Concentrations(BaseClass):
             if self.reprocess:
                 raise NotImplementedError('Reprocessing not available for CFY')
             if self.irrad_type != 'saturation':
-                warn('CFY is intended to only be used for a saturation irradiation')
+                self.logger.warning('CFY is intended to only be used for a saturation irradiation')
             data = self.CFY_concentrations()
         elif self.model_method == 'IFY':
             if self.t_ex > 0.0:
@@ -47,8 +46,8 @@ class Concentrations(BaseClass):
             if self.reprocess:
                 raise NotImplementedError('Reprocessing not available for IFY')
             if self.irrad_type != 'pulse':
-                warn('IFY method is (potentially) a way to model pulse irradiation only')
-            warn('IFY method has not been verified. Use with caution')
+                self.logger.warning('IFY method does not use cumulative fission yields')
+            self.logger.warning('IFY method has not been verified. Use with caution')
             data = self.IFY_concentrations()
         else:
             raise NotImplementedError(
