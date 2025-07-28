@@ -5,6 +5,7 @@ import os
 import numpy as np
 from uncertainties import ufloat, unumpy
 from time import time
+from typing import Callable
 
 class CountRate(BaseClass):
     """
@@ -23,7 +24,7 @@ class CountRate(BaseClass):
         self.method = self.input_data['modeling_options']['count_rate_handling']
         return None
     
-    def calculate_count_rate(self) -> None:
+    def calculate_count_rate(self, MC_run: bool=False, sampler_func: str=None) -> dict[str: list[float]]:
         """
         Calculate the delayed neutron count rate from
         concentrations using various methods
@@ -31,16 +32,17 @@ class CountRate(BaseClass):
         start = time()
         data: dict[str: list[float]] = dict()
         if self.method == 'data':
-            data = self._count_rate_from_data()
+            data = self._count_rate_from_data(MC_run, sampler_func)
         else:
             raise NotImplementedError(f'{self.method} not available in countrate')
 
-        CSVHandler(self.countrate_path, self.overwrite).write_count_rate_csv(data)
-        self.save_postproc()
-        self.time_track(start, 'Countrate')
-        return
+        if not MC_run:
+            CSVHandler(self.countrate_path, self.overwrite).write_count_rate_csv(data)
+            self.save_postproc()
+            self.time_track(start, 'Countrate')
+        return data
     
-    def _count_rate_from_data(self) -> dict[str: list[float]]:
+    def _count_rate_from_data(self, MC_run: bool=False, sampler_func: str=None) -> dict[str: list[float]]:
         """
         Calculate the delayed neutron count rate from existing data
         """
@@ -80,11 +82,31 @@ class CountRate(BaseClass):
                 halflife = ufloat(hl_data['half_life'], hl_data['sigma half_life'])
             except KeyError:
                 self.logger.warning('Half-life does not have uncertainties')
-                halflife = hl_data['half_life']
+                halflife = ufloat(hl_data['half_life'], 0.0)
             decay_const = np.log(2) / halflife
 
             conc_data = concentration_data[nuc]
             conc = ufloat(conc_data['Concentration'], conc_data['sigma Concentration'])
+
+            if MC_run and sampler_func:
+                if sampler_func == 'normal':
+                    Pn = np.random.normal(Pn.n, Pn.s)
+                    decay_const  = np.random.normal(decay_const.n, decay_const.s)
+                    conc = np.random.normal(conc.n, conc.s)
+                elif sampler_func == 'uniform':
+                    Pn = np.random.uniform(Pn.n-Pn.s, Pn.n+Pn.s)
+                    decay_const = np.random.uniform(decay_const.n-decay_const.s,
+                                                    decay_const.n+decay_const.s)
+                    conc = np.random.uniform(conc.n-conc.s,
+                                             conc.n+conc.s)
+                else:
+                    raise NotImplementedError(f'{sampler_func} not available')
+                if conc < 0.0:
+                    conc = 0.0
+                if decay_const < 0.0:
+                    decay_const = 0.0
+                if Pn < 0.0:
+                    Pn = 0.0
 
             counts = Pn * decay_const * conc * unumpy.exp(-decay_const * self.decay_times)
             count_rate += unumpy.nominal_values(counts)

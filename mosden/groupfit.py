@@ -1,6 +1,7 @@
 import numpy as np
 from mosden.utils.input_handler import InputHandler
 from mosden.utils.csv_handler import CSVHandler
+from mosden.countrate import CountRate
 from pathlib import Path
 from uncertainties import ufloat
 from mosden.base import BaseClass
@@ -26,6 +27,7 @@ class Grouper(BaseClass):
         self.t_ex: float = self.input_data['modeling_options']['excore_s']
         self.t_net: float = self.input_data['modeling_options']['net_irrad_s']
         self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
+        self.sample_func: str = self.input_data['group_options']['sample_func']
         return None
     
     def generate_groups(self) -> None:
@@ -129,10 +131,13 @@ class Grouper(BaseClass):
 
         sampled_params: list[float] = list()
         sampled_params.append(result.x)
+        countrate = CountRate(self.input_path)
+        self.logger.info(f'Currently using {self.sample_func} sampling')
         for _ in range(self.MC_samples):
             if self.MC_samples == 1:
                 break
-            count_sample = np.random.normal(counts, count_err)
+            data = countrate.calculate_count_rate(MC_run=True, sampler_func=self.sample_func)
+            count_sample = data['counts']
             result = least_squares(self._residual_function,
                                 result.x,
                                 bounds=(0, 1000),
@@ -140,7 +145,7 @@ class Grouper(BaseClass):
                                 ftol=2.23e-16,
                                 gtol=None,
                                 xtol=None,
-                                verbose=1,
+                                verbose=0,
                                 max_nfev=1e3,
                                 args=(times, count_sample, fit_function))
             sampled_params.append(result.x)
