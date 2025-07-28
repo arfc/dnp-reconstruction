@@ -70,8 +70,6 @@ class CountRate(BaseClass):
             "net_similar_nucs": net_similar_nucs
         }
 
-        self.post_data.append(nuc_data)
-
         if len(net_similar_nucs) == 0:
             raise Exception('Error: no data exists for given emission, half life, and concentration data')
 

@@ -10,6 +10,7 @@ from typing import Callable
 from math import ceil
 from time import time
 import warnings
+from logging import INFO
 
 class Grouper(BaseClass):
     """
@@ -143,11 +144,11 @@ class Grouper(BaseClass):
                 warnings.simplefilter('ignore')
                 result = least_squares(self._residual_function,
                                     result.x,
-                                    bounds=(0, 1000),
+                                    bounds=bounds,
                                     method='trf',
-                                    ftol=2.23e-16,
-                                    gtol=None,
-                                    xtol=None,
+                                    ftol=1e-12,
+                                    gtol=1e-12,
+                                    xtol=1e-12,
                                     verbose=0,
                                     max_nfev=1e3,
                                     args=(times, count_sample, fit_function))
@@ -155,6 +156,12 @@ class Grouper(BaseClass):
         sampled_params: np.ndarray[float] = np.asarray(sampled_params)
         param_means: np.ndarray[float] = np.mean(sampled_params, axis=0)
         param_stds: np.ndarray[float] = np.std(sampled_params, axis=0)
+
+        param_data = dict()
+        param_data['groupfitMC'] = list()
+        for iterval in range(self.MC_samples):
+            param_data['groupfitMC'].append([i for i in sampled_params[iterval]])
+        self.post_data['groupfitMC'] = param_data
 
         data: dict[str: dict[str: float]] = dict()
         for group in range(self.num_groups):

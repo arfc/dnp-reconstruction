@@ -42,12 +42,12 @@ class BaseClass:
         self.group_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'group_parameters.csv')
         self.postproc_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'postproc.json')
 
-        self.post_data: list[dict[str: float|str|list]] = list()
+        self.post_data: dict[str: float|str|list] = dict()
         if Path(self.postproc_path).exists():
             with open(self.postproc_path, 'r') as f:
                 self.post_data = json.load(f)
         else:
-            self.post_data = list()
+            self.post_data = dict()
         return None
     
     def time_track(self, starttime: float, modulename: str ='') -> None:
