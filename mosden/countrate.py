@@ -34,6 +34,7 @@ class CountRate(BaseClass):
             raise NotImplementedError(f'{self.method} not available in countrate')
 
         CSVHandler(self.countrate_path, self.overwrite).write_count_rate_csv(data)
+        self.save_postproc()
         return
     
     def _count_rate_from_data(self) -> dict[str: list[float]]:
@@ -54,6 +55,16 @@ class CountRate(BaseClass):
         net_unique_nucs = list(set(emission_nucs+half_life_nucs+conc_nucs))
         net_similar_nucs = list(set(emission_nucs) & set(half_life_nucs) & set(conc_nucs))
 
+        nuc_data: dict[dict[str: list[str]]] = {
+            "emission_nucs": emission_nucs,
+            "half_life_nucs": half_life_nucs,
+            "conc_nucs": conc_nucs,
+            "net_unique_nucs": net_unique_nucs,
+            "net_similar_nucs": net_similar_nucs
+        }
+
+        self.post_data.append(nuc_data)
+
         if len(net_similar_nucs) == 0:
             raise Exception('Error: no data exists for given emission, half life, and concentration data')
 
@@ -65,6 +76,7 @@ class CountRate(BaseClass):
             try:
                 halflife = ufloat(hl_data['half_life'], hl_data['sigma half_life'])
             except KeyError:
+                self.logger.warning('Half-life does not have uncertainties')
                 halflife = hl_data['half_life']
             decay_const = np.log(2) / halflife
 

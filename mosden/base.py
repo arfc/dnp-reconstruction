@@ -3,6 +3,8 @@ from pathlib import Path
 from mosden.utils.csv_handler import CSVHandler
 import os
 import logging
+import json
+from typing import Any
 
 class BaseClass:
     def __init__(self, input_path: str) -> None:
@@ -37,7 +39,19 @@ class BaseClass:
         self.concentration_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'concentrations.csv')
         self.countrate_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'count_rate.csv')
         self.group_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'group_parameters.csv')
-        self.postproc_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'postproc.csv')
+        self.postproc_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'postproc.json')
+
+        self.post_data: list[dict[str: float|str|list]] = list()
+        if Path(self.postproc_path).exists():
+            with open(self.postproc_path, 'r') as f:
+                self.post_data = json.load(f)
+        else:
+            self.post_data = list()
+        return None
+    
+    def save_postproc(self) -> None:
+        with open(self.postproc_path, 'w') as f:
+            json.dump(self.post_data, f, indent=4)
         return None
     
 
