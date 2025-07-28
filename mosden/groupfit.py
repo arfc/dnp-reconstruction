@@ -66,7 +66,7 @@ class Grouper(BaseClass):
         residual : float
             Value of the residual
         """
-        residual = (counts - fit_func(times, parameters)) / counts
+        residual = (counts - fit_func(times, parameters)) / (counts + 1e-12)
         return residual
     
     def _pulse_fit_function(self, times: np.ndarray[float], parameters: np.ndarray[float]) -> np.ndarray[float]:
