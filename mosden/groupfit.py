@@ -7,6 +7,7 @@ from mosden.base import BaseClass
 from scipy.optimize import least_squares, curve_fit
 from typing import Callable
 from math import ceil
+from time import time
 
 class Grouper(BaseClass):
     """
@@ -31,6 +32,7 @@ class Grouper(BaseClass):
         """
         Generate some number of groups based on the selected method
         """
+        start = time()
         data: dict[str: dict[str: float]] = dict()
         if self.model_method == 'nlls':
             data = self._nonlinear_least_squares()
@@ -38,6 +40,7 @@ class Grouper(BaseClass):
             raise NotImplementedError(f'{self.model_method} is not implemented')
         CSVHandler(self.group_path, self.overwrite).write_groups_csv(data, sortby='half_life')
         self.save_postproc()
+        self.time_track(start, 'Groupfit')
         return None
     
     def _residual_function(self, parameters: np.ndarray[float], times: np.ndarray[float], counts: np.ndarray[float],
