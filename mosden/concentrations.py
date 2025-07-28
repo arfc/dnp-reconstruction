@@ -55,6 +55,7 @@ class Concentrations(BaseClass):
             )
 
         CSVHandler(self.concentration_path, self.overwrite).write_csv(data)
+        self.save_postproc()
         return
 
     def CFY_concentrations(self) -> None:

@@ -13,7 +13,7 @@
         "processed_data_dir": "/home/luke/github/mosden/examples/keepin_1957/",
         "output_dir": "/home/luke/github/mosden/examples/keepin_1957/",
         "log_level": 1,
-        "log_file": "keepin_1957.log"
+        "log_file": "/home/luke/github/mosden/examples/keepin_1957.log"
     },
     "data_options": {
         "half_life": "iaea/eval.csv",

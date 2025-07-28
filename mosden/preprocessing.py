@@ -58,6 +58,7 @@ class Preprocess(BaseClass):
             for ids, func in func_selector:
                 if any(word in path for word in ids):
                     func(data_val, path)
+        self.save_postproc()
         return None
     
     def openmc_preprocess(self, data_val:str, unprocessed_path:str) -> None:
