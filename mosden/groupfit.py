@@ -9,6 +9,7 @@ from scipy.optimize import least_squares, curve_fit
 from typing import Callable
 from math import ceil
 from time import time
+import warnings
 
 class Grouper(BaseClass):
     """
@@ -138,16 +139,18 @@ class Grouper(BaseClass):
                 break
             data = countrate.calculate_count_rate(MC_run=True, sampler_func=self.sample_func)
             count_sample = data['counts']
-            result = least_squares(self._residual_function,
-                                result.x,
-                                bounds=(0, 1000),
-                                method='trf',
-                                ftol=2.23e-16,
-                                gtol=None,
-                                xtol=None,
-                                verbose=0,
-                                max_nfev=1e3,
-                                args=(times, count_sample, fit_function))
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                result = least_squares(self._residual_function,
+                                    result.x,
+                                    bounds=(0, 1000),
+                                    method='trf',
+                                    ftol=2.23e-16,
+                                    gtol=None,
+                                    xtol=None,
+                                    verbose=0,
+                                    max_nfev=1e3,
+                                    args=(times, count_sample, fit_function))
             sampled_params.append(result.x)
         sampled_params: np.ndarray[float] = np.asarray(sampled_params)
         param_means: np.ndarray[float] = np.mean(sampled_params, axis=0)

@@ -163,9 +163,7 @@ cython_debug/
 
 /mosden/data/processed
 /tests/integration/output*
-/tests/unit/output*
 /tests/integration/data_output
-/tests/unit/data_output
 /mosden/results*
 /examples/keepin_1957/*.csv
 /examples/huynh_2014/*.csv

@@ -22,6 +22,12 @@ class CountRate(BaseClass):
         self.decay_time: float = self.input_data['modeling_options']['decay_time']
         self.decay_times: np.ndarray = np.linspace(0, self.decay_time, self.num_times)
         self.method = self.input_data['modeling_options']['count_rate_handling']
+
+        if self.method == 'data':
+            self.emission_prob_data = CSVHandler(os.path.join(self.processed_data_dir, 'emission_probability.csv'), create=False).read_csv()
+            self.half_life_data = CSVHandler(os.path.join(self.processed_data_dir, 'half_life.csv'), create=False).read_csv()
+            self.concentration_data = CSVHandler(self.concentration_path, create=False).read_csv()
+
         return None
     
     def calculate_count_rate(self, MC_run: bool=False, sampler_func: str=None) -> dict[str: list[float]]:
@@ -50,13 +56,9 @@ class CountRate(BaseClass):
         count_rate: np.ndarray = np.zeros(len(self.decay_times))
         sigma_count_rate: np.ndarray = np.zeros(len(self.decay_times))
 
-        emission_prob_data = CSVHandler(os.path.join(self.processed_data_dir, 'emission_probability.csv'), create=False).read_csv()
-        half_life_data = CSVHandler(os.path.join(self.processed_data_dir, 'half_life.csv'), create=False).read_csv()
-        concentration_data = CSVHandler(self.concentration_path, create=False).read_csv()
-
-        emission_nucs = list(emission_prob_data.keys())
-        half_life_nucs = list(half_life_data.keys())
-        conc_nucs = list(concentration_data.keys())
+        emission_nucs = list(self.emission_prob_data.keys())
+        half_life_nucs = list(self.half_life_data.keys())
+        conc_nucs = list(self.concentration_data.keys())
         net_unique_nucs = list(set(emission_nucs+half_life_nucs+conc_nucs))
         net_similar_nucs = list(set(emission_nucs) & set(half_life_nucs) & set(conc_nucs))
 
@@ -74,18 +76,18 @@ class CountRate(BaseClass):
             raise Exception('Error: no data exists for given emission, half life, and concentration data')
 
         for nuc in net_similar_nucs:
-            Pn_data = emission_prob_data[nuc]
+            Pn_data = self.emission_prob_data[nuc]
             Pn = ufloat(Pn_data['emission probability'], Pn_data['sigma emission probability'])
 
-            hl_data = half_life_data[nuc]
+            hl_data = self.half_life_data[nuc]
             try:
                 halflife = ufloat(hl_data['half_life'], hl_data['sigma half_life'])
             except KeyError:
                 self.logger.warning('Half-life does not have uncertainties')
-                halflife = ufloat(hl_data['half_life'], 0.0)
+                halflife = hl_data['half_life']
             decay_const = np.log(2) / halflife
 
-            conc_data = concentration_data[nuc]
+            conc_data = self.concentration_data[nuc]
             conc = ufloat(conc_data['Concentration'], conc_data['sigma Concentration'])
 
             if MC_run and sampler_func:
