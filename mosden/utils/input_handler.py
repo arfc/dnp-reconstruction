@@ -85,6 +85,8 @@ class InputHandler:
         _check_if_in_options(data['modeling_options']['count_rate_handling'], possible_count_rate_options)
         possible_group_method_options = ['nlls']
         _check_if_in_options(data['group_options']['method'], possible_group_method_options)
+        possible_sampler_funcs = ['normal', 'uniform']
+        _check_if_in_options(data['group_options']['sample_func'], possible_sampler_funcs)
 
         if sum(data['data_options']['fissile_fractions'].values()) != 1.0:
             raise ValueError("Fissile fractions must sum to 1.0. Current sum: "
