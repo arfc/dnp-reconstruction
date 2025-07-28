@@ -37,6 +37,7 @@ class Grouper(BaseClass):
         else:
             raise NotImplementedError(f'{self.model_method} is not implemented')
         CSVHandler(self.group_path, self.overwrite).write_groups_csv(data, sortby='half_life')
+        self.save_postproc()
         return None
     
     def _residual_function(self, parameters: np.ndarray[float], times: np.ndarray[float], counts: np.ndarray[float],

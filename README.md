@@ -34,3 +34,12 @@ Postprocessing handles plotting and data analysis from the processed results, in
 `pip install .` or `pip install -e .` can be used to make the package available to use on the command line as `mosden` (or in an editable version for development purposes).
 Use `mosden -i <input.json>` to do a normal run, `mosden -pre <input.json>` for preprocessing, or `mosden -post <input.json>` for post-processing.
 Alternatively, `mosden --all <input.json>` can be used to run preprocessing, calculations, and post-processing.
+
+### Input file
+
+#### Log level
+- [1-10] is the highest level, with all postprocessing and outputs
+- [10-20] is the debug level
+- [20-30] is the info level
+- [30-40] is the error level
+- [40-50] is the critical level
