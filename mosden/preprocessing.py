@@ -6,6 +6,7 @@ import numpy as np
 import re
 from uncertainties import ufloat
 import pandas as pd
+from time import time
 
 class Preprocess(BaseClass):
     def __init__(self, input_path: str) -> None:
@@ -41,6 +42,7 @@ class Preprocess(BaseClass):
         """
         Run the preprocessing.
         """
+        start = time()
         datasource_list: list[list[str]] = [
             self.omc_data_words,
             self.endf_data_words,
@@ -59,6 +61,7 @@ class Preprocess(BaseClass):
                 if any(word in path for word in ids):
                     func(data_val, path)
         self.save_postproc()
+        self.time_track(start, 'Preprocessing')
         return None
     
     def openmc_preprocess(self, data_val:str, unprocessed_path:str) -> None:

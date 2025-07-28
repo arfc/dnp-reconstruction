@@ -5,6 +5,7 @@ import os
 import logging
 import json
 from typing import Any
+from time import time
 
 class BaseClass:
     def __init__(self, input_path: str) -> None:
@@ -48,6 +49,11 @@ class BaseClass:
         else:
             self.post_data = list()
         return None
+    
+    def time_track(self, starttime: float, modulename: str ='') -> None:
+        self.logger.info(f'{modulename} took {round(time()-starttime, 3)}s')
+        return None
+
     
     def save_postproc(self) -> None:
         with open(self.postproc_path, 'w') as f:

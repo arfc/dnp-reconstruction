@@ -4,6 +4,7 @@ from mosden.base import BaseClass
 import os
 import numpy as np
 from uncertainties import ufloat, unumpy
+from time import time
 
 class CountRate(BaseClass):
     """
@@ -27,6 +28,7 @@ class CountRate(BaseClass):
         Calculate the delayed neutron count rate from
         concentrations using various methods
         """
+        start = time()
         data: dict[str: list[float]] = dict()
         if self.method == 'data':
             data = self._count_rate_from_data()
@@ -35,6 +37,7 @@ class CountRate(BaseClass):
 
         CSVHandler(self.countrate_path, self.overwrite).write_count_rate_csv(data)
         self.save_postproc()
+        self.time_track(start, 'Countrate')
         return
     
     def _count_rate_from_data(self) -> dict[str: list[float]]:
