@@ -4,6 +4,7 @@ from mosden.utils.csv_handler import CSVHandler
 from pathlib import Path
 from uncertainties import ufloat
 from mosden.base import BaseClass
+from time import time
 
 class Concentrations(BaseClass):
     """
@@ -31,6 +32,7 @@ class Concentrations(BaseClass):
         Generate the concentrations of each nuclide from based on
         irradiation of the sample for the irradiation times.
         """
+        start = time()
         data: dict[str: dict[str: float]] = dict()
         if self.model_method == 'CFY':
             if self.t_ex > 0.0:
@@ -56,6 +58,7 @@ class Concentrations(BaseClass):
 
         CSVHandler(self.concentration_path, self.overwrite).write_csv(data)
         self.save_postproc()
+        self.time_track(start, 'Concentrations')
         return
 
     def CFY_concentrations(self) -> None:
