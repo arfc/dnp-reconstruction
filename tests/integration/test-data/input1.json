@@ -12,7 +12,7 @@
         "processed_data_dir": "./tests/integration/output1",
         "output_dir": "./tests/integration/output1",
         "log_level": 1,
-        "log_file": "./tests/integration/output/log.log"
+        "log_file": "./tests/integration/output1/log.log"
     },
     "data_options": {
         "half_life": "omcchain/chain_test.xml",

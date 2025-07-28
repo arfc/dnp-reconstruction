@@ -38,8 +38,8 @@ Alternatively, `mosden --all <input.json>` can be used to run preprocessing, cal
 ### Input file
 
 #### Log level
-- [1-10] is the highest level, with all postprocessing and outputs
-- [10-20] is the debug level
-- [20-30] is the info level
-- [30-40] is the error level
-- [40-50] is the critical level
+- [<10] is the debug level
+- [<20] is the info level (This is the suggested level)
+- [<30] is the warning level
+- [<40] is the error level
+- [<50] is the critical level

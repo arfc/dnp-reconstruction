@@ -171,3 +171,5 @@ cython_debug/
 /examples/huynh_2014/*.csv
 /examples/keepin_1957/postproc.json
 /examples/huynh_2014/postproc.json
+/examples/keepin_1957/*.png
+/examples/huynh_2014/*.png

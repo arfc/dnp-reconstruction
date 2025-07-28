@@ -3,6 +3,7 @@ from mosden.preprocessing import Preprocess
 from mosden.concentrations import Concentrations
 from mosden.countrate import CountRate
 from mosden.groupfit import Grouper
+from mosden.postprocessing import PostProcess
 from . import __version__
 
 def main():
@@ -29,7 +30,8 @@ def main():
         preprocess = Preprocess(args.preprocess)
         preprocess.run()
     elif args.postprocess:
-        raise NotImplementedError("Postprocessing is not yet implemented")
+        postprocess = PostProcess(args.postprocess)
+        postprocess.run()
     elif args.all:
         preprocess = Preprocess(args.all)
         preprocess.run()
@@ -39,7 +41,8 @@ def main():
         countrate.calculate_count_rate()
         grouper = Grouper(args.all)
         grouper.generate_groups()
-        print('Need postprocessing')
+        postprocess = PostProcess(args.all)
+        postprocess.run()
     else:
         print("No valid option provided. Use -h for help.")
 
