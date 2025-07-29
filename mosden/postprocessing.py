@@ -1,5 +1,6 @@
-from mosden.base import BaseClass
 import matplotlib.pyplot as plt
+plt.style.use('mosden.plotting')
+from mosden.base import BaseClass
 from mosden.utils.csv_handler import CSVHandler
 from mosden.countrate import CountRate
 import os
