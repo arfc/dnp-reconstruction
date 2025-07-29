@@ -30,8 +30,8 @@ def run_grouper_fit_test(irrad_type: str, fit_function_name: str, grouper: Group
         elif irrad_type == 'saturation_ex':
             tot_cycles: int = ceil(grouper.t_net / (grouper.t_in + grouper.t_ex))
             cycle_sum = 0
-            for j in range(tot_cycles):
-                cycle_sum += np.exp(-lam * (grouper.t_net - j*grouper.t_net - (j-1)*grouper.t_ex))
+            for j in range(1, tot_cycles+1):
+                cycle_sum += np.exp(-lam * (grouper.t_net - j*grouper.t_in - (j-1)*grouper.t_ex))
             counts += a * np.exp(-lam * times) * (1 - np.exp(-lam * grouper.t_net + (1 - np.exp(lam * grouper.t_ex) * cycle_sum)))
         else:
             raise ValueError(f'Unknown irrad_type: {irrad_type}')

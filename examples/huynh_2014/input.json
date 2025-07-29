@@ -46,7 +46,7 @@
     "group_options": {
         "num_groups": 6,
         "method": "nlls",
-        "samples": 100,
+        "samples": 10,
         "sample_func": "normal"
     }
 }

@@ -23,10 +23,7 @@ class CountRate(BaseClass):
         self.decay_times: np.ndarray = np.linspace(0, self.decay_time, self.num_times)
         self.method = self.input_data['modeling_options']['count_rate_handling']
 
-        if self.method == 'data':
-            self.emission_prob_data = CSVHandler(os.path.join(self.processed_data_dir, 'emission_probability.csv'), create=False).read_csv()
-            self.half_life_data = CSVHandler(os.path.join(self.processed_data_dir, 'half_life.csv'), create=False).read_csv()
-            self.concentration_data = CSVHandler(self.concentration_path, create=False).read_csv()
+        self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
 
         return None
     
@@ -38,14 +35,54 @@ class CountRate(BaseClass):
         start = time()
         data: dict[str: list[float]] = dict()
         if self.method == 'data':
+            self.emission_prob_data = CSVHandler(os.path.join(self.processed_data_dir, 'emission_probability.csv'), create=False).read_csv()
+            self.half_life_data = CSVHandler(os.path.join(self.processed_data_dir, 'half_life.csv'), create=False).read_csv()
+            self.concentration_data = CSVHandler(self.concentration_path, create=False).read_csv()
             data = self._count_rate_from_data(MC_run, sampler_func)
+        elif self.method == 'groupfit':
+            self.group_params = CSVHandler(self.group_path, create=False).read_vector_csv()
+            data = self._count_rate_from_groups()
         else:
-            raise NotImplementedError(f'{self.method} not available in countrate')
+            raise NotImplementedError(f'{self.method} not available')
 
         if not MC_run:
             CSVHandler(self.countrate_path, self.overwrite).write_count_rate_csv(data)
             self.save_postproc()
             self.time_track(start, 'Countrate')
+        return data
+    
+    def _count_rate_from_groups(self) -> dict[str: list[float]]:
+        """
+        Calculate the delayed neutron count rate from group parameters
+        """
+        from mosden.groupfit import Grouper
+        data: dict[str: list[float]] = dict()
+        count_rate: np.ndarray = np.zeros(len(self.decay_times))
+        sigma_count_rate: np.ndarray = np.zeros(len(self.decay_times))
+        grouper = Grouper(self.input_path)
+        if self.irrad_type == 'pulse':
+            fit_function = grouper._pulse_fit_function
+        elif self.irrad_type == 'saturation':
+            fit_function = grouper._saturation_fit_function
+        else:
+            raise NotImplementedError(f'{self.irrad_type} not supported in nonlinear least squares solver')
+
+        parameters = np.zeros(grouper.num_groups*2, dtype=object)
+        for i in range(grouper.num_groups):
+            yield_val = ufloat(self.group_params['yield'][i], self.group_params['sigma yield'][i])
+            half_life = ufloat(self.group_params['half_life'][i], self.group_params['sigma half_life'][i])
+            parameters[i] = yield_val
+            parameters[grouper.num_groups + i] = half_life
+
+        counts = fit_function(self.decay_times, parameters)
+        count_rate = np.asarray(unumpy.nominal_values(counts), dtype=float)
+        sigma_count_rate = np.asarray(unumpy.std_devs(counts), dtype=float)
+
+        data = {
+            'times': self.decay_times,
+            'counts': count_rate,
+            'sigma counts': sigma_count_rate
+        }
         return data
     
     def _count_rate_from_data(self, MC_run: bool=False, sampler_func: str=None) -> dict[str: list[float]]:
