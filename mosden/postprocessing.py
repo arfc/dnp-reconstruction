@@ -17,6 +17,8 @@ class PostProcess(BaseClass):
         self.processed_data_dir: str = self.input_data['file_options']['processed_data_dir']
         self.output_dir: str = self.input_data['file_options']['output_dir']
         self.overwrite: bool = self.input_data['file_options']['overwrite']['postprocessing']
+        self.num_groups: int = self.input_data['group_options']['num_groups']
+        self.MC_samples: int = self.input_data['group_options']['samples']
         return None
     
     def run(self) -> None:
@@ -41,6 +43,69 @@ class PostProcess(BaseClass):
         group_yield: float = self._get_group_yield()
         self.logger.info(f'Summed yield: {summed_yield}')
         self.logger.info(f'Group yield {group_yield}')
+        return None
+    
+    def _plot_MC_group_params(self) -> None:
+        """
+        Plot the group parameters from the Monte Carlo NLLS analysis
+        """
+        parameters = self.post_data[self.names['groupfitMC']]
+        group_data = CSVHandler(self.group_path, create=False).read_vector_csv()
+        group_yield = [ufloat(y, std) for y, std in zip(group_data['yield'], group_data['sigma yield'])]
+        group_half_life = [ufloat(y, std) for y, std in zip(group_data['half_life'], group_data['sigma half_life'])]
+
+        yields = np.zeros((self.num_groups, self.MC_samples))
+        half_lives = np.zeros((self.num_groups, self.MC_samples))
+        for MC_i, params in enumerate(parameters):
+            yield_val = params[:self.num_groups]
+            half_life_val = params[self.num_groups:]
+            sort_idx = np.argsort(half_life_val)[::-1]
+            yields[:, MC_i] = np.asarray(yield_val)[sort_idx]
+            half_lives[:, MC_i] = np.asarray(half_life_val)[sort_idx]
+        
+        for group, yield_val in enumerate(yields):
+            bins = np.linspace(min(yield_val), max(yield_val), 50)
+            counts, edges = np.histogram(yield_val, bins=bins)
+            normalized_counts = counts / counts.max()
+            bin_centers = 0.5 * (edges[:-1] + edges[1:])
+            plt.bar(bin_centers, normalized_counts, width=np.diff(edges), label=f'Sampled Yield', alpha=0.5, color='blue', edgecolor='black')
+
+            plt.axvline(group_yield[group].n, color='orange', linestyle='--', label=f'Group Yield ± $\sigma$')
+            plt.axvspan(group_yield[group].n-group_yield[group].s, group_yield[group].n+group_yield[group].s, color='orange', alpha=0.25)
+
+            std_MC = np.std(yield_val)
+            mean_MC = np.mean(yield_val)
+            plt.axvline(mean_MC, color='green', linestyle='-.',  label=f'MC Mean ± $\sigma$')
+            plt.axvspan(mean_MC-std_MC, mean_MC+std_MC, color='green', alpha=0.25)
+
+            plt.xlabel('Yield')
+            plt.ylabel('Relative Frequency')
+            plt.legend()
+            plt.tight_layout()
+            plt.savefig(f'{self.output_dir}MC_group{group+1}_yields.png')
+            plt.close()
+
+        for group, half_life_val in enumerate(half_lives):
+            bins = np.linspace(min(half_life_val), max(half_life_val), 50)
+            counts, edges = np.histogram(half_life_val, bins=bins)
+            normalized_counts = counts / counts.max()
+            bin_centers = 0.5 * (edges[:-1] + edges[1:])
+            plt.bar(bin_centers, normalized_counts, width=np.diff(edges), label=f'Sampled Half-Life', alpha=0.5, color='blue', edgecolor='black')
+
+            plt.axvline(group_half_life[group].n, color='orange', linestyle='--', label=f'Group Half-Life ± $\sigma$')
+            plt.axvspan(group_half_life[group].n-group_half_life[group].s, group_half_life[group].n+group_half_life[group].s, color='orange', alpha=0.25)
+
+            std_MC = np.std(half_life_val)
+            mean_MC = np.mean(half_life_val)
+            plt.axvline(mean_MC, color='green', linestyle='-.',  label=f'MC Mean ± $\sigma$')
+            plt.axvspan(mean_MC-std_MC, mean_MC+std_MC, color='green', alpha=0.25)
+
+            plt.xlabel('Half-life [s]')
+            plt.ylabel('Relative Frequency')
+            plt.legend()
+            plt.tight_layout()
+            plt.savefig(f'{self.output_dir}MC_group{group+1}_half_lives.png')
+            plt.close()
         return None
     
     def _plot_counts(self) -> None:
