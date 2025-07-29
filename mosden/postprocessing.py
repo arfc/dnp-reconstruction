@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 plt.style.use('mosden.plotting')
+import matplotlib.ticker as ticker
 from mosden.base import BaseClass
 from mosden.utils.csv_handler import CSVHandler
 from mosden.countrate import CountRate
@@ -19,6 +20,7 @@ class PostProcess(BaseClass):
         self.overwrite: bool = self.input_data['file_options']['overwrite']['postprocessing']
         self.num_groups: int = self.input_data['group_options']['num_groups']
         self.MC_samples: int = self.input_data['group_options']['samples']
+
         return None
     
     def run(self) -> None:
@@ -53,16 +55,21 @@ class PostProcess(BaseClass):
             if name == 'yield':
                 label_name = 'Yield'
                 xlabel = 'Yield'
+                scaler = 1
+                scale_label = ''
             elif name == 'half_life':
                 label_name = 'Half-life'
                 xlabel = 'Half-life [s]'
+                scaler = 1
+                scale_label = ''
             else:
                 raise NotImplementedError(f'{name} not defined')
 
 
-            group_item = [ufloat(y, std) for y, std in zip(group_data[name], group_data[f'sigma {name}'])]
+            group_item = [scaler*ufloat(y, std) for y, std in zip(group_data[name], group_data[f'sigma {name}'])]
             for group, item in enumerate(items):
-                bins = np.linspace(min(item), max(item), 50)
+                item = item * scaler
+                bins = np.linspace(min(item), max(item), int(np.sqrt(len(item))))
                 counts, edges = np.histogram(item, bins=bins)
                 normalized_counts = counts / counts.max()
                 bin_centers = 0.5 * (edges[:-1] + edges[1:])
@@ -76,12 +83,15 @@ class PostProcess(BaseClass):
                 plt.axvline(mean_MC, color='green', linestyle='-.',  label=f'Sampled Mean ± $\sigma$')
                 plt.axvspan(mean_MC-std_MC, mean_MC+std_MC, color='green', alpha=0.25)
 
-                plt.xlabel(xlabel)
+                plt.xlabel(xlabel+scale_label)
+                plt.gca().xaxis.set_major_formatter(ticker.ScalarFormatter(useMathText=True))
+                plt.ticklabel_format(style='sci', axis='x', scilimits=(-2, 2))
                 plt.ylabel('Relative Frequency')
                 plt.legend()
                 plt.tight_layout()
                 plt.savefig(f'{self.output_dir}MC_group{group+1}_{name}.png')
                 plt.close()
+            return None
 
         parameters = self.post_data[self.names['groupfitMC']]
         group_data = CSVHandler(self.group_path, create=False).read_vector_csv()
@@ -112,6 +122,30 @@ class PostProcess(BaseClass):
         countrate.method = 'groupfit'
         group_counts = countrate.calculate_count_rate()
         plt.plot(times, group_counts['counts'], color='blue', alpha=0.75, label='Group Fit', linestyle='--')
+        # Parish et al. 1999 - Keepin
+        net_yield = ufloat(0.0158, 0.0011)
+        yields = [a*net_yield for a in [ufloat(0.033, 0.003),
+                                        ufloat(0.219, 0.005),
+                                        ufloat(0.196, 0.022),
+                                        ufloat(0.395, 0.011),
+                                        ufloat(0.115, 0.009),
+                                        ufloat(0.042, 0.008)]]
+        decay_constants = [ufloat(0.0124, 0.0003),
+                           ufloat(0.0305, 0.0009),
+                           ufloat(0.111, 0.004),
+                           ufloat(0.301, 0.012),
+                           ufloat(1.14, 0.15),
+                           ufloat(3.01, 0.29)]
+        half_lives = [np.log(2)/lam for lam in decay_constants]
+        countrate.group_params = {
+            'yield': [a.n for a in yields],
+            'sigma yield': [a.s for a in yields],
+            'half_life': [hl.n for hl in half_lives],
+            'sigma half_life': [hl.s for hl in half_lives]
+        }
+        data = countrate._count_rate_from_groups()
+        plt.plot(times, data['counts'], label='Keepin 6-Group Fit')
+
         plt.xlabel('Time [s]')
         plt.ylabel(r'Count Rate $[n \cdot s^{-1}]$')
         plt.yscale('log')
