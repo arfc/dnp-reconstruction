@@ -1,6 +1,7 @@
 from mosden.base import BaseClass
 import matplotlib.pyplot as plt
 from mosden.utils.csv_handler import CSVHandler
+from mosden.countrate import CountRate
 import os
 import numpy as np
 from uncertainties import ufloat
@@ -19,7 +20,17 @@ class PostProcess(BaseClass):
     
     def run(self) -> None:
         self.compare_yields()
+        self.MC_NLLS_analysis()
         return None
+    
+    def MC_NLLS_analysis(self) -> None:
+        """
+        Analyze Monte Carlo Non-linear Least Squares results
+        """
+        self._plot_counts()
+        self._plot_MC_group_params()
+        return None
+
     
     def compare_yields(self) -> None:
         """
@@ -29,6 +40,27 @@ class PostProcess(BaseClass):
         group_yield: float = self._get_group_yield()
         self.logger.info(f'Summed yield: {summed_yield}')
         self.logger.info(f'Group yield {group_yield}')
+        return None
+    
+    def _plot_counts(self) -> None:
+        counts = self.post_data[self.names['countsMC']]
+        countrate = CountRate(self.input_path)
+        times = countrate.decay_times
+        for MC_iterm, count_val in enumerate(counts):
+            label = 'Sampled' if MC_iterm == 0 else None
+            plt.plot(times, count_val, alpha=0.1, color='r', label=label)
+        count_data = CSVHandler(self.countrate_path).read_vector_csv()['counts']
+        plt.plot(times, count_data, color='black', linestyle='', marker='x', label='Mean', markersize=5, markevery=5)
+        countrate.method = 'groupfit'
+        group_counts = countrate.calculate_count_rate()
+        plt.plot(times, group_counts['counts'], color='blue', alpha=0.75, label='Group Fit', linestyle='--')
+        plt.xlabel('Time [s]')
+        plt.ylabel(r'Count Rate $[n \cdot s^{-1}]$')
+        plt.yscale('log')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(f'{self.output_dir}MC_counts.png')
+        plt.close() 
         return None
     
     def _get_group_yield(self) -> float:
@@ -97,7 +129,7 @@ class PostProcess(BaseClass):
                 sizes.append(remainder)
             colors = [colormap(i) for i in np.linspace(0.15, 1, len(labels))]
             fig, ax = plt.subplots()
-            wedges, texts, autotexts = ax.pie(sizes, labels=labels, autopct='%1.1f%%',
+            _, _, _ = ax.pie(sizes, labels=labels, autopct='%1.1f%%',
                 pctdistance=0.7, labeldistance=1.1,
                 colors=colors, textprops={'fontsize': 12})
 

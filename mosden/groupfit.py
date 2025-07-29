@@ -1,9 +1,8 @@
 import numpy as np
 from mosden.utils.input_handler import InputHandler
 from mosden.utils.csv_handler import CSVHandler
-from mosden.countrate import CountRate
 from pathlib import Path
-from uncertainties import ufloat
+from uncertainties import ufloat, unumpy
 from mosden.base import BaseClass
 from scipy.optimize import least_squares, curve_fit
 from typing import Callable
@@ -71,17 +70,22 @@ class Grouper(BaseClass):
         residual = (counts - fit_func(times, parameters)) / (counts + 1e-12)
         return residual
     
-    def _pulse_fit_function(self, times: np.ndarray[float], parameters: np.ndarray[float]) -> np.ndarray[float]:
+    def _pulse_fit_function(self, times: np.ndarray[float], parameters: np.ndarray[float]) -> np.ndarray[float|object]:
         yields = parameters[:self.num_groups]
         half_lives = parameters[self.num_groups:]
         counts: np.ndarray[float] = np.zeros(len(times))
         for group in range(self.num_groups):
             lam = np.log(2) / half_lives[group]
             a = yields[group]
-            counts += (a * lam * np.exp(-lam * times))
+            try:
+                counts += (a * lam * np.exp(-lam * times))
+            except TypeError:
+                if group == 0:
+                    counts: np.ndarray[object] = np.zeros(len(times), dtype=object)
+                counts += (a * lam * unumpy.exp(-lam * times))
         return counts
 
-    def _saturation_fit_function(self, times: np.ndarray[float], parameters: np.ndarray[float]) -> np.ndarray[float]:
+    def _saturation_fit_function(self, times: np.ndarray[float], parameters: np.ndarray[float]) -> np.ndarray[float|object]:
         yields = parameters[:self.num_groups]
         half_lives = parameters[self.num_groups:]
         counts: np.ndarray[float] = np.zeros(len(times))
@@ -90,9 +94,17 @@ class Grouper(BaseClass):
             lam = np.log(2) / half_lives[group]
             a = yields[group]
             cycle_sum = 0
-            for j in range(tot_cycles):
-                cycle_sum += np.exp(-lam * (self.t_net - j*self.t_net - (j-1)*self.t_ex))
-            counts += a * np.exp(-lam * times) * (1 - np.exp(-lam * self.t_net + (1 - np.exp(lam * self.t_ex) * cycle_sum)))
+            for j in range(1, tot_cycles+1):
+                try:
+                    cycle_sum += np.exp(-lam * (self.t_net - j*self.t_in - (j-1)*self.t_ex))
+                except TypeError:
+                    cycle_sum += unumpy.exp(-lam * (self.t_net - j*self.t_in - (j-1)*self.t_ex))
+            try:
+                counts += a * np.exp(-lam * times) * (1 - np.exp(-lam * self.t_net + (1 - np.exp(lam * self.t_ex) * cycle_sum)))
+            except TypeError:
+                if group == 0:
+                    counts: np.ndarray[object] = np.zeros(len(times), dtype=object)
+                counts += a * unumpy.exp(-lam * times) * (1 - unumpy.exp(-lam * self.t_net + (1 - unumpy.exp(lam * self.t_ex) * cycle_sum)))
         return counts
     
     def _nonlinear_least_squares(self, count_data: dict[str: np.ndarray[float]] = None) -> dict[str: dict[str: float]]:
@@ -100,6 +112,7 @@ class Grouper(BaseClass):
         Run nonlinear least squares fit on the delayed neutron count rate curve
         to generate group half-lives and yields
         """
+        from mosden.countrate import CountRate
         initial_parameter_guess = np.ones(self.num_groups*2)
         if count_data == None:
             count_data = CSVHandler(self.countrate_path).read_vector_csv()
@@ -132,6 +145,7 @@ class Grouper(BaseClass):
                                args=(times, counts, fit_function))
 
         sampled_params: list[float] = list()
+        tracked_counts: list[float] = list()
         sampled_params.append(result.x)
         countrate = CountRate(self.input_path)
         self.logger.info(f'Currently using {self.sample_func} sampling')
@@ -152,6 +166,7 @@ class Grouper(BaseClass):
                                     verbose=0,
                                     max_nfev=1e3,
                                     args=(times, count_sample, fit_function))
+            tracked_counts.append([i for i in count_sample])
             sampled_params.append(result.x)
         sampled_params: np.ndarray[float] = np.asarray(sampled_params)
         param_means: np.ndarray[float] = np.mean(sampled_params, axis=0)
@@ -162,6 +177,7 @@ class Grouper(BaseClass):
         for iterval in range(self.MC_samples):
             param_data['groupfitMC'].append([i for i in sampled_params[iterval]])
         self.post_data['groupfitMC'] = param_data
+        self.post_data['countsMC'] = tracked_counts
 
         data: dict[str: dict[str: float]] = dict()
         for group in range(self.num_groups):
