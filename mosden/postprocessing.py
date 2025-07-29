@@ -49,10 +49,42 @@ class PostProcess(BaseClass):
         """
         Plot the group parameters from the Monte Carlo NLLS analysis
         """
+        def helper_func(name: str, items: np.ndarray[float], group_data: dict[str: object]):
+            if name == 'yield':
+                label_name = 'Yield'
+                xlabel = 'Yield'
+            elif name == 'half_life':
+                label_name = 'Half-life'
+                xlabel = 'Half-life [s]'
+            else:
+                raise NotImplementedError(f'{name} not defined')
+
+
+            group_item = [ufloat(y, std) for y, std in zip(group_data[name], group_data[f'sigma {name}'])]
+            for group, item in enumerate(items):
+                bins = np.linspace(min(item), max(item), 50)
+                counts, edges = np.histogram(item, bins=bins)
+                normalized_counts = counts / counts.max()
+                bin_centers = 0.5 * (edges[:-1] + edges[1:])
+                plt.bar(bin_centers, normalized_counts, width=np.diff(edges), label=f'Sampled {label_name}', alpha=0.5, color='blue', edgecolor='black')
+
+                plt.axvline(group_item[group].n, color='orange', linestyle='--', label=f'Group {label_name} ± $\sigma$')
+                plt.axvspan(group_item[group].n-group_item[group].s, group_item[group].n+group_item[group].s, color='orange', alpha=0.25)
+
+                std_MC = np.std(item)
+                mean_MC = np.mean(item)
+                plt.axvline(mean_MC, color='green', linestyle='-.',  label=f'Sampled Mean ± $\sigma$')
+                plt.axvspan(mean_MC-std_MC, mean_MC+std_MC, color='green', alpha=0.25)
+
+                plt.xlabel(xlabel)
+                plt.ylabel('Relative Frequency')
+                plt.legend()
+                plt.tight_layout()
+                plt.savefig(f'{self.output_dir}MC_group{group+1}_{name}.png')
+                plt.close()
+
         parameters = self.post_data[self.names['groupfitMC']]
         group_data = CSVHandler(self.group_path, create=False).read_vector_csv()
-        group_yield = [ufloat(y, std) for y, std in zip(group_data['yield'], group_data['sigma yield'])]
-        group_half_life = [ufloat(y, std) for y, std in zip(group_data['half_life'], group_data['sigma half_life'])]
 
         yields = np.zeros((self.num_groups, self.MC_samples))
         half_lives = np.zeros((self.num_groups, self.MC_samples))
@@ -63,49 +95,9 @@ class PostProcess(BaseClass):
             yields[:, MC_i] = np.asarray(yield_val)[sort_idx]
             half_lives[:, MC_i] = np.asarray(half_life_val)[sort_idx]
         
-        for group, yield_val in enumerate(yields):
-            bins = np.linspace(min(yield_val), max(yield_val), 50)
-            counts, edges = np.histogram(yield_val, bins=bins)
-            normalized_counts = counts / counts.max()
-            bin_centers = 0.5 * (edges[:-1] + edges[1:])
-            plt.bar(bin_centers, normalized_counts, width=np.diff(edges), label=f'Sampled Yield', alpha=0.5, color='blue', edgecolor='black')
-
-            plt.axvline(group_yield[group].n, color='orange', linestyle='--', label=f'Group Yield ± $\sigma$')
-            plt.axvspan(group_yield[group].n-group_yield[group].s, group_yield[group].n+group_yield[group].s, color='orange', alpha=0.25)
-
-            std_MC = np.std(yield_val)
-            mean_MC = np.mean(yield_val)
-            plt.axvline(mean_MC, color='green', linestyle='-.',  label=f'MC Mean ± $\sigma$')
-            plt.axvspan(mean_MC-std_MC, mean_MC+std_MC, color='green', alpha=0.25)
-
-            plt.xlabel('Yield')
-            plt.ylabel('Relative Frequency')
-            plt.legend()
-            plt.tight_layout()
-            plt.savefig(f'{self.output_dir}MC_group{group+1}_yields.png')
-            plt.close()
-
-        for group, half_life_val in enumerate(half_lives):
-            bins = np.linspace(min(half_life_val), max(half_life_val), 50)
-            counts, edges = np.histogram(half_life_val, bins=bins)
-            normalized_counts = counts / counts.max()
-            bin_centers = 0.5 * (edges[:-1] + edges[1:])
-            plt.bar(bin_centers, normalized_counts, width=np.diff(edges), label=f'Sampled Half-Life', alpha=0.5, color='blue', edgecolor='black')
-
-            plt.axvline(group_half_life[group].n, color='orange', linestyle='--', label=f'Group Half-Life ± $\sigma$')
-            plt.axvspan(group_half_life[group].n-group_half_life[group].s, group_half_life[group].n+group_half_life[group].s, color='orange', alpha=0.25)
-
-            std_MC = np.std(half_life_val)
-            mean_MC = np.mean(half_life_val)
-            plt.axvline(mean_MC, color='green', linestyle='-.',  label=f'MC Mean ± $\sigma$')
-            plt.axvspan(mean_MC-std_MC, mean_MC+std_MC, color='green', alpha=0.25)
-
-            plt.xlabel('Half-life [s]')
-            plt.ylabel('Relative Frequency')
-            plt.legend()
-            plt.tight_layout()
-            plt.savefig(f'{self.output_dir}MC_group{group+1}_half_lives.png')
-            plt.close()
+        helper_func('yield', yields, group_data)
+        helper_func('half_life', half_lives, group_data)
+        
         return None
     
     def _plot_counts(self) -> None:
