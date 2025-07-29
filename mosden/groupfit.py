@@ -172,11 +172,10 @@ class Grouper(BaseClass):
         param_means: np.ndarray[float] = np.mean(sampled_params, axis=0)
         param_stds: np.ndarray[float] = np.std(sampled_params, axis=0)
 
-        param_data = dict()
-        param_data['groupfitMC'] = list()
+        groupMCdata = list()
         for iterval in range(self.MC_samples):
-            param_data['groupfitMC'].append([i for i in sampled_params[iterval]])
-        self.post_data['groupfitMC'] = param_data
+            groupMCdata.append([i for i in sampled_params[iterval]])
+        self.post_data['groupfitMC'] = groupMCdata
         self.post_data['countsMC'] = tracked_counts
 
         data: dict[str: dict[str: float]] = dict()
