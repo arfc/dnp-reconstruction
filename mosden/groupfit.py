@@ -146,12 +146,11 @@ class Grouper(BaseClass):
 
         sampled_params: list[float] = list()
         tracked_counts: list[float] = list()
-        sampled_params.append(result.x)
+        sorted_params = self._sort_params_by_half_life(result.x)
+        sampled_params.append(sorted_params)
         countrate = CountRate(self.input_path)
         self.logger.info(f'Currently using {self.sample_func} sampling')
-        for _ in range(self.MC_samples):
-            if self.MC_samples == 1:
-                break
+        for _ in range(1, self.MC_samples):
             data = countrate.calculate_count_rate(MC_run=True, sampler_func=self.sample_func)
             count_sample = data['counts']
             with warnings.catch_warnings():
@@ -167,10 +166,19 @@ class Grouper(BaseClass):
                                     max_nfev=1e3,
                                     args=(times, count_sample, fit_function))
             tracked_counts.append([i for i in count_sample])
-            sampled_params.append(result.x)
+            sorted_params = self._sort_params_by_half_life(result.x)
+            sampled_params.append(sorted_params)
         sampled_params: np.ndarray[float] = np.asarray(sampled_params)
-        param_means: np.ndarray[float] = np.mean(sampled_params, axis=0)
-        param_stds: np.ndarray[float] = np.std(sampled_params, axis=0)
+
+        yields = np.zeros((self.num_groups, self.MC_samples))
+        half_lives = np.zeros((self.num_groups, self.MC_samples))
+
+        for MC_i, params in enumerate(sampled_params):
+            yield_val = params[:self.num_groups]
+            half_life_val = params[self.num_groups:]
+            sort_idx = np.argsort(half_life_val)[::-1]
+            yields[:, MC_i] = np.asarray(yield_val)[sort_idx]
+            half_lives[:, MC_i] = np.asarray(half_life_val)[sort_idx]
 
         groupMCdata = list()
         for iterval in range(self.MC_samples):
@@ -181,11 +189,24 @@ class Grouper(BaseClass):
         data: dict[str: dict[str: float]] = dict()
         for group in range(self.num_groups):
             data[group] = dict()
-            data[group]['yield'] = param_means[group]
-            data[group]['sigma yield'] = param_stds[group]
-            data[group]['half_life'] = param_means[self.num_groups+group]
-            data[group]['sigma half_life'] = param_stds[self.num_groups+group]
+            data[group]['yield'] = np.mean(yields[group])
+            data[group]['sigma yield'] = np.std(yields[group])
+            data[group]['half_life'] = np.mean(half_lives[group])
+            data[group]['sigma half_life'] = np.std(half_lives[group])
         return data
+    
+    def _sort_params_by_half_life(self, params: np.ndarray[float]) -> np.ndarray[float]:
+        """
+        Sorts yields and half-lives in params by half-life (descending).
+        Returns concatenated sorted yields and half-lives.
+        Only used for user experience in visualizing the postproc.json file.
+        """
+        yields = params[:self.num_groups]
+        half_lives = params[self.num_groups:]
+        sort_idx = np.argsort(half_lives)[::-1]
+        sorted_yields = np.asarray(yields)[sort_idx]
+        sorted_half_lives = np.asarray(half_lives)[sort_idx]
+        return np.concatenate([sorted_yields, sorted_half_lives])
 
 if __name__ == "__main__":
     input_path = "../examples/keepin_1957/input.json"
