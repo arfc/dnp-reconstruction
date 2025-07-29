@@ -48,6 +48,11 @@ class BaseClass:
                 self.post_data = json.load(f)
         else:
             self.post_data = dict()
+        
+        self.names: dict[str: str] = {
+            'countsMC': 'countsMC',
+            'groupfitMC': 'groupfitMC'
+        }
         return None
     
     def time_track(self, starttime: float, modulename: str ='') -> None:
