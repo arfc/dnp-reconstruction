@@ -10,7 +10,6 @@ import os
     ("tests/integration/test-data/input2.json", "tests/integration/test-data/reference/test2"),
     ("tests/integration/test-data/input3.json", "tests/integration/test-data/reference/test3"),
     ("tests/integration/test-data/input4.json", "tests/integration/test-data/reference/test4")
-    #pytest.param("tests/integration/test-data/input4.json", "tests/integration/test-data/reference/test4", marks=pytest.mark.slow)
 ] )
 def test_fit_groups(input_path, reference_output_path):
     """

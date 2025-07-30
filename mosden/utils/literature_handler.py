@@ -10,7 +10,7 @@ class Literature(BaseClass):
         super().__init__(input_path)
         return None
     
-    def get_group_data(self) -> dict[dict[str: list[float]]]:
+    def get_group_data(self, names:list[str]=['keepin']) -> dict[dict[str: list[float]]]:
         """
         Get countrate data from various sources and compile into a dictionary
         """
@@ -20,7 +20,7 @@ class Literature(BaseClass):
             energy = 'thermal'
         else:
             energy = 'fast'
-        names = ['keepin', 'charlton', 'endfb6', 'mills', 'saleh', 'synetos', 'tuttle', 'waldo']
+        #names = ['keepin', 'charlton', 'endfb6', 'mills', 'saleh', 'synetos', 'tuttle', 'waldo']
 
         for name in names:
             data_holder[name] = dict()

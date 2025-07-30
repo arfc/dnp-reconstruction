@@ -67,7 +67,7 @@ def test_literature_handler():
     lit_data.fissiles['U235'] = 0.5
     lit_data.fissiles['U238'] = 0.5
     lit_data.energy_MeV = 0.0253e-6
-    split_235_238_data = lit_data.get_group_data()
+    split_235_238_data = lit_data.get_group_data(names=['keepin'])
     for i in range(len(U235_data['yield'])):
         assert split_235_238_data['keepin']['yield'][i] == (0.5*U235_data['yield'][i] + 0.5*U238_data['yield'][i])
         assert split_235_238_data['keepin']['half_life'][i] == (0.5*U235_data['half_life'][i] + 0.5*U238_data['half_life'][i])
