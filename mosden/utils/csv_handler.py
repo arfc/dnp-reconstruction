@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 from uncertainties import ufloat
+import numpy as np
 
 class CSVHandler:
     def __init__(self, file_path: str, overwrite: bool=False, create=True) -> None:
@@ -59,11 +60,14 @@ class CSVHandler:
                 row['D pn2 '] = 0
             if row['D pn3'] < 0:
                 row['D pn3'] = 0
-            P1 = ufloat(row[' pn1 % ']/100, row['D pn1']/100)
-            P2 = ufloat(row[' pn2 % ']/100, row['D pn2 ']/100)
-            P3 = ufloat(row[' pn3 % ']/100, row['D pn3']/100)
-            prob_beta = ufloat(row['  beta- %']/100, row[' D beta-']/100)
+            mult_factor:int = 100
+            P1 = ufloat(row[' pn1 % ']/mult_factor, row['D pn1']/mult_factor)
+            P2 = ufloat(row[' pn2 % ']/mult_factor, row['D pn2 ']/mult_factor)
+            P3 = ufloat(row[' pn3 % ']/mult_factor, row['D pn3']/mult_factor)
+            prob_beta = ufloat(row['  beta- %']/mult_factor, row[' D beta-']/mult_factor)
             emission_prob = (1*P1 + 2*P2 + 3*P3) * prob_beta
+            if np.isclose(emission_prob, 0.0):
+                continue
             data[nuc] = {}
             data[nuc]['half_life'] = half_life
             data[nuc]['sigma half_life'] = half_life_uncertainty
