@@ -97,7 +97,9 @@ class CountRate(BaseClass):
         half_life_nucs = list(self.half_life_data.keys())
         conc_nucs = list(self.concentration_data.keys())
         net_unique_nucs = list(set(emission_nucs+half_life_nucs+conc_nucs))
+        self.logger.info(f'Data contains {len(net_unique_nucs)} unique nuclides')
         net_similar_nucs = list(set(emission_nucs) & set(half_life_nucs) & set(conc_nucs))
+        self.logger.info(f'Only {len(net_similar_nucs)} are in all datasets')
 
         if len(net_similar_nucs) == 0:
             raise Exception('Error: no data exists for given emission, half life, and concentration data')

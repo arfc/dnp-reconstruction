@@ -68,9 +68,16 @@ class Concentrations(BaseClass):
         concentrations: dict[str: dict[str: ufloat]] = dict()
         all_nucs: set[str] = set()
         CFY_data = self._read_processed_data('fission_yield')
+        half_life_data = self._read_processed_data('half_life')
         for nuclide in CFY_data.keys():
             concs = ufloat(CFY_data[nuclide]['CFY'], CFY_data[nuclide]['sigma CFY'])
-            concentrations[nuclide] = concs
+
+            try:
+                hl = ufloat(half_life_data[nuclide]['half_life'], half_life_data[nuclide]['sigma half_life'])
+            except KeyError:
+                continue
+            lam = np.log(2) / hl
+            concentrations[nuclide] = concs / lam
             all_nucs.add(nuclide)
 
 
