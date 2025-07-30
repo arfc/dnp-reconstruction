@@ -21,6 +21,8 @@ class PostProcess(BaseClass):
         self.overwrite: bool = self.input_data['file_options']['overwrite']['postprocessing']
         self.num_groups: int = self.input_data['group_options']['num_groups']
         self.MC_samples: int = self.input_data['group_options']['samples']
+        self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
+        self.use_data: list[str] = ['keepin']
 
         return None
     
@@ -115,21 +117,25 @@ class PostProcess(BaseClass):
         return None
     
     def _plot_counts(self) -> None:
+        sample_color = 'red'
+        mean_color = 'black'
+        group_color = 'blue'
+
         counts = self.post_data[self.names['countsMC']]
         countrate = CountRate(self.input_path)
         times = countrate.decay_times
         alpha_MC: float = 1/np.sqrt(self.MC_samples)
         for MC_iterm, count_val in enumerate(counts):
             label = 'Sampled' if MC_iterm == 0 else None
-            plt.plot(times, count_val, alpha=alpha_MC, color='r', label=label)
+            plt.plot(times, count_val, alpha=alpha_MC, color=sample_color, label=label)
         count_data = CSVHandler(self.countrate_path).read_vector_csv()
-        plt.errorbar(times, count_data['counts'], count_data['sigma counts'], color='black', linestyle='', marker='x', label='Mean', markersize=5, markevery=5)
+        plt.errorbar(times, count_data['counts'], count_data['sigma counts'], color=mean_color, linestyle='', marker='x', label='Mean', markersize=5, markevery=5)
         countrate.method = 'groupfit'
         group_counts = countrate.calculate_count_rate()
-        plt.plot(times, group_counts['counts'], color='blue', alpha=0.75, label='Group Fit', linestyle='--')
-        plt.fill_between(times, group_counts['counts']-group_counts['sigma counts'], group_counts['counts']+group_counts['sigma counts'], color='blue', alpha=0.3, zorder=2,
+        plt.plot(times, group_counts['counts'], color=group_color, alpha=0.75, label='Group Fit', linestyle='--', zorder=3)
+        plt.fill_between(times, group_counts['counts']-group_counts['sigma counts'], group_counts['counts']+group_counts['sigma counts'], color=group_color, alpha=0.3, zorder=2,
                          edgecolor='black')
-        literature_data = Literature(self.input_path).get_group_data(['keepin', 'charlton'])
+        literature_data = Literature(self.input_path).get_group_data(self.use_data)
         first: bool = True
         for name, lit_data in literature_data.items():
             if name == 'endfb6':
@@ -149,7 +155,10 @@ class PostProcess(BaseClass):
         plt.xlabel('Time [s]')
         plt.ylabel(r'Count Rate $[n \cdot s^{-1}]$')
         plt.yscale('log')
-        plt.legend()
+        leg = plt.legend()
+        for line in leg.legend_handles:
+            if line.get_label() == 'Sampled':
+                line.set_alpha(0.5)
         plt.tight_layout()
         plt.savefig(f'{self.output_dir}MC_counts.png')
         plt.close() 
@@ -157,10 +166,11 @@ class PostProcess(BaseClass):
 
         for MC_iterm, count_val in enumerate(counts):
             label = 'Sampled' if MC_iterm == 0 else None
-            plt.plot(times, count_val/base_counts, alpha=alpha_MC, color='r', label=label)
-        plt.errorbar(times, count_data['counts']/base_counts, count_data['sigma counts'], color='black', linestyle='', marker='x', label='Mean', markersize=5, markevery=5)
-        plt.plot(times, group_counts['counts']/base_counts, color='blue', alpha=0.75, label='Group Fit', linestyle='--')
-        plt.fill_between(times, (group_counts['counts']-group_counts['sigma counts'])/base_counts, (group_counts['counts']+group_counts['sigma counts'])/base_counts, color='blue', alpha=0.3, zorder=2,
+            plt.plot(times, count_val/base_counts, alpha=alpha_MC, color=sample_color, label=label)
+        plt.errorbar(times, count_data['counts']/base_counts, count_data['sigma counts'], color=mean_color, linestyle='', marker='x', label='Mean', markersize=5, markevery=5)
+
+        plt.plot(times, group_counts['counts']/base_counts, color=group_color, alpha=0.75, label='Group Fit', linestyle='--', zorder=3)
+        plt.fill_between(times, (group_counts['counts']-group_counts['sigma counts'])/base_counts, (group_counts['counts']+group_counts['sigma counts'])/base_counts, color=group_color, alpha=0.3, zorder=2,
                          edgecolor='black')
         for name, lit_data in literature_data.items():
             if name == 'endfb6':
@@ -174,7 +184,11 @@ class PostProcess(BaseClass):
                             edgecolor='black')
         plt.xlabel('Time [s]')
         plt.ylabel(fr'{base_name} Normalized Count Rate')
-        plt.legend()
+        leg = plt.legend()
+        for line in leg.legend_handles:
+            if line.get_label() == 'Sampled':
+                line.set_alpha(0.5)
+        plt.xscale('log')
         plt.tight_layout()
         plt.savefig(f'{self.output_dir}{base_name}_counts.png')
         plt.close() 
@@ -210,11 +224,15 @@ class PostProcess(BaseClass):
             conc_data = concentration_data[nuc]
             N = ufloat(conc_data['Concentration'],
                        conc_data['sigma Concentration'])
-            nuc_yield[nuc] = Pn * N
             hl_data = halflife_data[nuc]
             hl = ufloat(hl_data['half_life'], hl_data['sigma half_life'])
             # Equation based on Parish 1999 Status of Six-group DN data
             lam_val = np.log(2) / hl
+            # Huunh 2014 Calculation shows total yield is Pn*CFY (CFY = lam*N at saturation)
+            if self.irrad_type == 'saturation':
+                nuc_yield[nuc] = Pn * N * lam_val
+            else:
+                raise NotImplementedError(f'{self.irrad_type} yield has not been determined yet')
             halflife_times_yield[nuc] = nuc_yield[nuc] / lam_val
 
         
