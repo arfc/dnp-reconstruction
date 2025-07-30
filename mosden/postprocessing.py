@@ -122,14 +122,15 @@ class PostProcess(BaseClass):
         for MC_iterm, count_val in enumerate(counts):
             label = 'Sampled' if MC_iterm == 0 else None
             plt.plot(times, count_val, alpha=alpha_MC, color='r', label=label)
-        count_data = CSVHandler(self.countrate_path).read_vector_csv()['counts']
-        plt.plot(times, count_data, color='black', linestyle='', marker='x', label='Mean', markersize=5, markevery=5)
+        count_data = CSVHandler(self.countrate_path).read_vector_csv()
+        plt.errorbar(times, count_data['counts'], count_data['sigma counts'], color='black', linestyle='', marker='x', label='Mean', markersize=5, markevery=5)
         countrate.method = 'groupfit'
         group_counts = countrate.calculate_count_rate()
         plt.plot(times, group_counts['counts'], color='blue', alpha=0.75, label='Group Fit', linestyle='--')
         plt.fill_between(times, group_counts['counts']-group_counts['sigma counts'], group_counts['counts']+group_counts['sigma counts'], color='blue', alpha=0.3, zorder=2,
                          edgecolor='black')
-        literature_data = Literature(self.input_path).get_group_data()
+        literature_data = Literature(self.input_path).get_group_data(['keepin', 'charlton'])
+        first: bool = True
         for name, lit_data in literature_data.items():
             if name == 'endfb6':
                 name = 'ENDF/B-VI'
@@ -140,6 +141,10 @@ class PostProcess(BaseClass):
             plt.plot(times, data['counts'], label=f'{name} 6-Group Fit')
             plt.fill_between(times, data['counts']-data['sigma counts'], data['counts']+data['sigma counts'], alpha=0.3, zorder=2,
                             edgecolor='black')
+            if first:
+                base_name = name
+                base_counts = data['counts']
+                first = False
 
         plt.xlabel('Time [s]')
         plt.ylabel(r'Count Rate $[n \cdot s^{-1}]$')
@@ -148,6 +153,33 @@ class PostProcess(BaseClass):
         plt.tight_layout()
         plt.savefig(f'{self.output_dir}MC_counts.png')
         plt.close() 
+
+
+        for MC_iterm, count_val in enumerate(counts):
+            label = 'Sampled' if MC_iterm == 0 else None
+            plt.plot(times, count_val/base_counts, alpha=alpha_MC, color='r', label=label)
+        plt.errorbar(times, count_data['counts']/base_counts, count_data['sigma counts'], color='black', linestyle='', marker='x', label='Mean', markersize=5, markevery=5)
+        plt.plot(times, group_counts['counts']/base_counts, color='blue', alpha=0.75, label='Group Fit', linestyle='--')
+        plt.fill_between(times, (group_counts['counts']-group_counts['sigma counts'])/base_counts, (group_counts['counts']+group_counts['sigma counts'])/base_counts, color='blue', alpha=0.3, zorder=2,
+                         edgecolor='black')
+        for name, lit_data in literature_data.items():
+            if name == 'endfb6':
+                name = 'ENDF/B-VI'
+            else:
+                name = name.capitalize()
+            countrate.group_params = lit_data
+            data = countrate._count_rate_from_groups()
+            plt.plot(times, data['counts']/base_counts, label=f'{name} 6-Group Fit')
+            plt.fill_between(times, (data['counts']-data['sigma counts'])/base_counts, (data['counts']+data['sigma counts'])/base_counts, alpha=0.3, zorder=2,
+                            edgecolor='black')
+        plt.xlabel('Time [s]')
+        plt.ylabel(fr'{base_name} Normalized Count Rate')
+        plt.yscale('log')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(f'{self.output_dir}{base_name}_counts.png')
+        plt.close() 
+
         return None
 
     def _get_group_params(self) -> tuple[float, float]:
