@@ -4,6 +4,7 @@ import matplotlib.ticker as ticker
 from mosden.base import BaseClass
 from mosden.utils.csv_handler import CSVHandler
 from mosden.countrate import CountRate
+from mosden.utils.literature_handler import Literature
 import os
 import numpy as np
 from uncertainties import ufloat
@@ -127,27 +128,8 @@ class PostProcess(BaseClass):
         plt.plot(times, group_counts['counts'], color='blue', alpha=0.75, label='Group Fit', linestyle='--')
         plt.fill_between(times, group_counts['counts']-group_counts['sigma counts'], group_counts['counts']+group_counts['sigma counts'], color='blue', alpha=0.3, zorder=2,
                          edgecolor='black')
-        # Parish et al. 1999 - Keepin
-        net_yield = ufloat(0.0158, 0.0011)
-        yields = [a*net_yield for a in [ufloat(0.033, 0.003),
-                                        ufloat(0.219, 0.005),
-                                        ufloat(0.196, 0.022),
-                                        ufloat(0.395, 0.011),
-                                        ufloat(0.115, 0.009),
-                                        ufloat(0.042, 0.008)]]
-        decay_constants = [ufloat(0.0124, 0.0003),
-                           ufloat(0.0305, 0.0009),
-                           ufloat(0.111, 0.004),
-                           ufloat(0.301, 0.012),
-                           ufloat(1.14, 0.15),
-                           ufloat(3.01, 0.29)]
-        half_lives = [np.log(2)/lam for lam in decay_constants]
-        countrate.group_params = {
-            'yield': [a.n for a in yields],
-            'sigma yield': [a.s for a in yields],
-            'half_life': [hl.n for hl in half_lives],
-            'sigma half_life': [hl.s for hl in half_lives]
-        }
+        literature_data = Literature(self.input_path).get_group_data()
+        countrate.group_params = literature_data['keepin']
         data = countrate._count_rate_from_groups()
         plt.plot(times, data['counts'], label='Keepin 6-Group Fit')
         plt.fill_between(times, data['counts']-data['sigma counts'], data['counts']+data['sigma counts'], alpha=0.3, zorder=2,
