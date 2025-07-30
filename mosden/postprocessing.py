@@ -129,11 +129,12 @@ class PostProcess(BaseClass):
         plt.fill_between(times, group_counts['counts']-group_counts['sigma counts'], group_counts['counts']+group_counts['sigma counts'], color='blue', alpha=0.3, zorder=2,
                          edgecolor='black')
         literature_data = Literature(self.input_path).get_group_data()
-        countrate.group_params = literature_data['keepin']
-        data = countrate._count_rate_from_groups()
-        plt.plot(times, data['counts'], label='Keepin 6-Group Fit')
-        plt.fill_between(times, data['counts']-data['sigma counts'], data['counts']+data['sigma counts'], alpha=0.3, zorder=2,
-                         edgecolor='black')
+        for name, lit_data in literature_data.items():
+            countrate.group_params = lit_data
+            data = countrate._count_rate_from_groups()
+            plt.plot(times, data['counts'], label=f'{name.capitalize()} 6-Group Fit')
+            plt.fill_between(times, data['counts']-data['sigma counts'], data['counts']+data['sigma counts'], alpha=0.3, zorder=2,
+                            edgecolor='black')
 
         plt.xlabel('Time [s]')
         plt.ylabel(r'Count Rate $[n \cdot s^{-1}]$')
