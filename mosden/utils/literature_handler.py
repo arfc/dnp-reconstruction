@@ -8,6 +8,7 @@ class Literature(BaseClass):
         This class holds data from the literature for passing into MoSDeN post processing.
         """
         super().__init__(input_path)
+        self.available_names: list[str] = ['keepin', 'charlton', 'endfb6', 'mills', 'saleh', 'synetos', 'tuttle', 'waldo']
         return None
     
     def get_group_data(self, names:list[str]=['keepin']) -> dict[dict[str: list[float]]]:
@@ -20,7 +21,6 @@ class Literature(BaseClass):
             energy = 'thermal'
         else:
             energy = 'fast'
-        #names = ['keepin', 'charlton', 'endfb6', 'mills', 'saleh', 'synetos', 'tuttle', 'waldo']
 
         for name in names:
             data_holder[name] = dict()
