@@ -130,9 +130,13 @@ class PostProcess(BaseClass):
                          edgecolor='black')
         literature_data = Literature(self.input_path).get_group_data()
         for name, lit_data in literature_data.items():
+            if name == 'endfb6':
+                name = 'ENDF/B-VI'
+            else:
+                name = name.capitalize()
             countrate.group_params = lit_data
             data = countrate._count_rate_from_groups()
-            plt.plot(times, data['counts'], label=f'{name.capitalize()} 6-Group Fit')
+            plt.plot(times, data['counts'], label=f'{name} 6-Group Fit')
             plt.fill_between(times, data['counts']-data['sigma counts'], data['counts']+data['sigma counts'], alpha=0.3, zorder=2,
                             edgecolor='black')
 
