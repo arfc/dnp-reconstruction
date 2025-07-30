@@ -69,14 +69,47 @@ class Literature(BaseClass):
                                     ufloat(1.14, 0.15),
                                     ufloat(3.01, 0.29)]
                     half_lives = [np.log(2)/lam*frac for lam in decay_constants]
+                elif energy == 'fast':
+                    # Keepin et al. 1957
+                    net_yield = ufloat(0.0165, 0.0005)
+                    yields = [a*net_yield*frac for a in [ufloat(0.038, 0.003),
+                                                    ufloat(0.213, 0.005),
+                                                    ufloat(0.188, 0.016),
+                                                    ufloat(0.407, 0.007),
+                                                    ufloat(0.128, 0.008),
+                                                    ufloat(0.026, 0.003)]]
+                    half_lives = [frac*hl for hl in [ufloat(54.51, 0.94),
+                                    ufloat(21.84, 0.54),
+                                    ufloat(6.00, 0.17),
+                                    ufloat(2.23, 0.06),
+                                    ufloat(0.496, 0.029),
+                                    ufloat(0.179, 0.017)]]
+            elif fiss == 'U238':
+                if energy == 'thermal':
+                    # Keepin et al. 1957
+                    net_yield = ufloat(0.0412, 0.0017)
+                    yields = [a*net_yield*frac for a in [ufloat(0.013, 0.001),
+                                                    ufloat(0.137, 0.002),
+                                                    ufloat(0.162, 0.020),
+                                                    ufloat(0.388, 0.012),
+                                                    ufloat(0.225, 0.013),
+                                                    ufloat(0.075, 0.005)]]
+                    half_lives = [frac*hl for hl in [ufloat(52.38, 1.29),
+                                    ufloat(21.58, 0.39),
+                                    ufloat(4.53, 0.19),
+                                    ufloat(1.93, 0.07),
+                                    ufloat(0.490, 0.023),
+                                    ufloat(0.172, 0.009)]]
 
-
-        group_params = {
-            'yield': [a.n for a in yields],
-            'sigma yield': [a.s for a in yields],
-            'half_life': [hl.n for hl in half_lives],
-            'sigma half_life': [hl.s for hl in half_lives]
-        }
+        try:
+            group_params = {
+                'yield': [a.n for a in yields],
+                'sigma yield': [a.s for a in yields],
+                'half_life': [hl.n for hl in half_lives],
+                'sigma half_life': [hl.s for hl in half_lives]
+            }
+        except UnboundLocalError:
+            raise KeyError(f"Data for {fiss} in {name} at {energy} energy not found")
         return group_params
 
             
