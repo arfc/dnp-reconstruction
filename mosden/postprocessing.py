@@ -41,10 +41,12 @@ class PostProcess(BaseClass):
         """
         Compare the total DN yields from summing individuals and from group parameters
         """
-        summed_yield: float = self._get_summed_yield()
-        group_yield: float = self._get_group_yield()
+        summed_yield, summed_avg_halflife = self._get_summed_params()
+        group_yield, group_avg_halflife = self._get_group_params()
         self.logger.info(f'Summed yield: {summed_yield}')
+        self.logger.info(f'Summed average half-life: {summed_avg_halflife} s')
         self.logger.info(f'Group yield {group_yield}')
+        self.logger.info(f'Group average half-life: {group_avg_halflife} s')
         return None
     
     def _plot_MC_group_params(self) -> None:
@@ -114,14 +116,17 @@ class PostProcess(BaseClass):
         counts = self.post_data[self.names['countsMC']]
         countrate = CountRate(self.input_path)
         times = countrate.decay_times
+        alpha_MC: float = 1/np.sqrt(self.MC_samples)
         for MC_iterm, count_val in enumerate(counts):
             label = 'Sampled' if MC_iterm == 0 else None
-            plt.plot(times, count_val, alpha=0.1, color='r', label=label)
+            plt.plot(times, count_val, alpha=alpha_MC, color='r', label=label)
         count_data = CSVHandler(self.countrate_path).read_vector_csv()['counts']
         plt.plot(times, count_data, color='black', linestyle='', marker='x', label='Mean', markersize=5, markevery=5)
         countrate.method = 'groupfit'
         group_counts = countrate.calculate_count_rate()
         plt.plot(times, group_counts['counts'], color='blue', alpha=0.75, label='Group Fit', linestyle='--')
+        plt.fill_between(times, group_counts['counts']-group_counts['sigma counts'], group_counts['counts']+group_counts['sigma counts'], color='blue', alpha=0.3, zorder=2,
+                         edgecolor='black')
         # Parish et al. 1999 - Keepin
         net_yield = ufloat(0.0158, 0.0011)
         yields = [a*net_yield for a in [ufloat(0.033, 0.003),
@@ -145,6 +150,8 @@ class PostProcess(BaseClass):
         }
         data = countrate._count_rate_from_groups()
         plt.plot(times, data['counts'], label='Keepin 6-Group Fit')
+        plt.fill_between(times, data['counts']-data['sigma counts'], data['counts']+data['sigma counts'], alpha=0.3, zorder=2,
+                         edgecolor='black')
 
         plt.xlabel('Time [s]')
         plt.ylabel(r'Count Rate $[n \cdot s^{-1}]$')
@@ -154,22 +161,28 @@ class PostProcess(BaseClass):
         plt.savefig(f'{self.output_dir}MC_counts.png')
         plt.close() 
         return None
-    
-    def _get_group_yield(self) -> float:
+
+    def _get_group_params(self) -> tuple[float, float]:
         group_data = CSVHandler(self.group_path, create=False).read_vector_csv()
         yields = [ufloat(y, std) for y, std in zip(group_data['yield'], group_data['sigma yield'])]
+        halflives = [ufloat(hl, std) for hl, std in zip(group_data['half_life'], group_data['sigma half_life'])]
         net_yield = sum(yields)
         net_yield = ufloat(round(net_yield.n, 5), round(net_yield.s, 5))
-        return net_yield
+        lam_vals = np.log(2) / halflives
+        # Equation based on Parish 1999 Status of Six-group DN data
+        avg_halflife = sum(yields/(net_yield * lam_vals))
+        return net_yield, avg_halflife
 
     
-    def _get_summed_yield(self, num_top: int=10) -> float:
+    def _get_summed_params(self, num_top: int=10) -> tuple[float, float]:
         nuc_yield: dict[str: float] = dict()
         emission_prob_data = CSVHandler(os.path.join(self.processed_data_dir, 'emission_probability.csv'), create=False).read_csv()
+        halflife_data = CSVHandler(os.path.join(self.processed_data_dir, 'half_life.csv'), create=False).read_csv()
         concentration_data = CSVHandler(self.concentration_path, create=False).read_csv()
         emission_nucs = list(emission_prob_data.keys())
         conc_nucs = list(concentration_data.keys())
         net_nucs = list(set(emission_nucs) & set(conc_nucs))
+        halflife_times_yield: dict[str: float] = dict()
 
         for nuc in net_nucs:
             emission_data = emission_prob_data[nuc]
@@ -179,9 +192,17 @@ class PostProcess(BaseClass):
             N = ufloat(conc_data['Concentration'],
                        conc_data['sigma Concentration'])
             nuc_yield[nuc] = Pn * N
+            hl_data = halflife_data[nuc]
+            hl = ufloat(hl_data['half_life'], hl_data['sigma half_life'])
+            # Equation based on Parish 1999 Status of Six-group DN data
+            lam_val = np.log(2) / hl
+            halflife_times_yield[nuc] = nuc_yield[nuc] / lam_val
+
         
         sorted_yields = dict(sorted(nuc_yield.items(), key=lambda item: item[1].n, reverse=True))
         net_yield = sum([i for i in sorted_yields.values()])
+        # Parish 1999 uses relative alpha_i values, not yields
+        avg_halflife = sum([i/net_yield for i in halflife_times_yield.values()])
         extracted_vals = dict()
         running_sum = 0
         sizes = list()
@@ -231,7 +252,7 @@ class PostProcess(BaseClass):
             fig.savefig(f'{self.output_dir}fission_fraction.png')
             plt.close()
             
-        return net_yield
+        return net_yield, avg_halflife
 
 
 
