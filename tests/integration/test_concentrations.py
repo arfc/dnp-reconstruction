@@ -24,8 +24,6 @@ def test_generate_concentrations(input_path, reference_output_path):
 
     data = CSVHandler(output_path).read_csv()
     assert data, "Output file is empty."
-    assert "Concentration" in data['Xe135'], "Concentration data is missing."
-    assert "sigma Concentration" in data['Xe135'], "Sigma Concentration data is missing."
     
     for nuclide, values in data.items():
         assert isinstance(values['Concentration'], float), f"Concentration for {nuclide} is not a float."

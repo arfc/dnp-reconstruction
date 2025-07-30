@@ -174,7 +174,6 @@ class PostProcess(BaseClass):
                             edgecolor='black')
         plt.xlabel('Time [s]')
         plt.ylabel(fr'{base_name} Normalized Count Rate')
-        plt.yscale('log')
         plt.legend()
         plt.tight_layout()
         plt.savefig(f'{self.output_dir}{base_name}_counts.png')
