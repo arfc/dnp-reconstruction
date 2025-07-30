@@ -34,7 +34,8 @@ class PostProcess(BaseClass):
         Analyze Monte Carlo Non-linear Least Squares results
         """
         self._plot_counts()
-        self._plot_MC_group_params()
+        if self.MC_samples > 1:
+            self._plot_MC_group_params()
         return None
 
     
