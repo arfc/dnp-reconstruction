@@ -1,5 +1,6 @@
 from mosden.utils.csv_handler import CSVHandler
 from mosden.utils.input_handler import InputHandler
+from mosden.utils.literature_handler import Literature
 import os
 import pytest
 
@@ -20,7 +21,7 @@ def test_csv_handler():
     
     assert read_data == data, f"Expected {data}, but got {read_data}"
  
-    return
+    return None
 
 def test_input_handler():
     """
@@ -47,4 +48,34 @@ def test_input_handler():
 
     os.remove(input_path)
     
-    return
+    return None
+
+def test_literature_handler():
+    """
+    Test the Literature class for handling literature data.
+    """
+    input_path = './tests/unit/input/input.json'
+    lit_data = Literature(input_path)
+    zero_data = lit_data._get_group_data_helper('U235', 0, 'keepin', 'thermal')
+    assert zero_data['yield'] == [0.0]*6, "Expected zero yields for zero fraction"
+    assert zero_data['sigma yield'] == [0.0]*6, "Expected zero uncertainties for zero fraction"
+    assert zero_data['half_life'] == [0.0]*6, "Expected zero half-lives for zero fraction"
+    assert zero_data['sigma half_life'] == [0.0]*6, "Expected zero uncertainties for zero half-lives"
+
+    U235_data = lit_data._get_group_data_helper('U235', 1, 'keepin', 'thermal')
+    U238_data = lit_data._get_group_data_helper('U238', 1, 'keepin', 'thermal')
+    lit_data.fissiles['U235'] = 0.5
+    lit_data.fissiles['U238'] = 0.5
+    lit_data.energy_MeV = 0.0253e-6
+    split_235_238_data = lit_data.get_group_data()
+    for i in range(len(U235_data['yield'])):
+        assert split_235_238_data['keepin']['yield'][i] == (0.5*U235_data['yield'][i] + 0.5*U238_data['yield'][i])
+        assert split_235_238_data['keepin']['half_life'][i] == (0.5*U235_data['half_life'][i] + 0.5*U238_data['half_life'][i])
+
+
+
+    with pytest.raises(KeyError):
+        none_data = lit_data._get_group_data_helper('nonexistant', 1, 'nonexistant', 'nonexistant')
+
+    return None
+
