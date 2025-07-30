@@ -99,14 +99,6 @@ class CountRate(BaseClass):
         net_unique_nucs = list(set(emission_nucs+half_life_nucs+conc_nucs))
         net_similar_nucs = list(set(emission_nucs) & set(half_life_nucs) & set(conc_nucs))
 
-        nuc_data: dict[dict[str: list[str]]] = {
-            "emission_nucs": emission_nucs,
-            "half_life_nucs": half_life_nucs,
-            "conc_nucs": conc_nucs,
-            "net_unique_nucs": net_unique_nucs,
-            "net_similar_nucs": net_similar_nucs
-        }
-
         if len(net_similar_nucs) == 0:
             raise Exception('Error: no data exists for given emission, half life, and concentration data')
 
