@@ -231,8 +231,10 @@ class PostProcess(BaseClass):
             # Huunh 2014 Calculation shows total yield is Pn*CFY (CFY = lam*N at saturation)
             if self.irrad_type == 'saturation':
                 nuc_yield[nuc] = Pn * N * lam_val
+            elif self.irrad_type == 'pulse':
+                nuc_yield[nuc] = Pn * N
             else:
-                raise NotImplementedError(f'{self.irrad_type} yield has not been determined yet')
+                raise NotImplementedError(f'{self.irrad_type} yield is not defined')
             halflife_times_yield[nuc] = nuc_yield[nuc] / lam_val
 
         
