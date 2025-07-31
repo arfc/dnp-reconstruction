@@ -107,7 +107,7 @@ class Concentrations(BaseClass):
             data[nuc] = {}
             data[nuc]['Concentration'] = concentrations[nuc]
             data[nuc]['sigma Concentration'] = 0.0
-            
+
         return data
 
 
