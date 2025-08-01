@@ -24,6 +24,8 @@ class PostProcess(BaseClass):
         self.MC_samples: int = self.input_data['group_options']['samples']
         self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
         self.use_data: list[str] = ['keepin']
+        self.nuclides: list[str] = ['Br87']
+        self.load_post_data()
 
 
         if not os.path.exists(self.output_dir):
@@ -37,7 +39,7 @@ class PostProcess(BaseClass):
         self.compare_yields()
         self.MC_NLLS_analysis()
         return None
-    
+
     def MC_NLLS_analysis(self) -> None:
         """
         Analyze Monte Carlo Non-linear Least Squares results
@@ -45,24 +47,30 @@ class PostProcess(BaseClass):
         self._plot_counts()
         if self.MC_samples > 1:
             self._plot_MC_group_params()
-            self._plot_sensitivities()
+            self._plot_sensitivities(off_nominal=True)
         return None
-    
-    def _plot_sensitivities(self) -> None:
+
+    def _plot_sensitivities(self, off_nominal: bool=True) -> None:
         """
         Plot the sensitivities of emission probabilities, concentrations, and half-lives
         """
         def scatter_helper(data:dict, group_params:np.ndarray[float], xlab:str, ylab:str, savename:str, savedir:str) -> None:
             markers = ['.', 'o', 'x', '^', 's', 'D']
-            nuclides = list(data[0].keys())
-            nuclides = ['Br87']
+            nuclides = self.nuclides or list(data[0].keys())
+            off_nominal = True
             for nuc in nuclides:
                 for group in range(self.num_groups):
                     data_vals = [data[nuc] for data in data]
                     group_vals = group_params[group, 1:]
-                    plt.scatter(data_vals, group_vals, label=f'Group {group+1}', alpha=1, s=4, marker=markers[group])
+                    if off_nominal:
+                        plot_val = group_vals - np.mean(group_vals)
+                    else:
+                        plot_val = group_vals
+                    plt.scatter(data_vals, plot_val, label=f'Group {group+1}', alpha=1, s=4, marker=markers[group])
                 plt.legend(markerscale=2)
                 plt.xlabel(xlab)
+                if off_nominal:
+                    ylab = fr'$\Delta$ {ylab}'
                 plt.ylabel(ylab)
                 plt.savefig(f'{savedir}{savename}_{nuc}.png')
                 plt.close()
