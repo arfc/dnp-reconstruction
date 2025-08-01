@@ -77,7 +77,7 @@ class PostProcess(BaseClass):
                 item = item * scaler
                 bins = np.linspace(min(item), max(item), int(np.sqrt(len(item))))
                 counts, edges = np.histogram(item, bins=bins)
-                normalized_counts = counts #/ counts.max()
+                normalized_counts = counts
                 bin_centers = 0.5 * (edges[:-1] + edges[1:])
                 plt.bar(bin_centers, normalized_counts, width=np.diff(edges), label=f'Sampled {label_name}', alpha=0.5, color='red', edgecolor='black')
 
