@@ -141,21 +141,24 @@ class CountRate(BaseClass):
                 decay_const = sample_parameter(decay_const, sampler_func)
                 conc = sample_parameter(conc, sampler_func)
             
-            if conc < 0.0:
-                conc = 0.0
-            if decay_const < 0.0:
-                decay_const = 0.0
-            if Pn < 0.0:
-                Pn = 0.0
+                if conc < 0.0:
+                    conc = 0.0
+                if decay_const < 0.0:
+                    decay_const = 0.0
+                if Pn < 0.0:
+                    Pn = 0.0
+                
+                counts = Pn * decay_const * conc * np.exp(-decay_const * self.decay_times)
+                count_rate += counts
+            else:
+                counts = Pn * decay_const * conc * unumpy.exp(-decay_const * self.decay_times)
+                count_rate += unumpy.nominal_values(counts)
+                sigma_count_rate += unumpy.std_devs(counts)
 
             Pn_post_data[nuc] = Pn
             lam_post_data[nuc] = np.log(2) / decay_const
             conc_post_data[nuc] = conc
 
-
-            counts = Pn * decay_const * conc * unumpy.exp(-decay_const * self.decay_times)
-            count_rate += unumpy.nominal_values(counts)
-            sigma_count_rate += unumpy.std_devs(counts)
 
         if MC_run:
             if 'PnMC' not in self.post_data.keys():
