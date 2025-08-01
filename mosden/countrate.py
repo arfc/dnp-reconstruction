@@ -116,6 +116,10 @@ class CountRate(BaseClass):
 
         if len(net_similar_nucs) == 0:
             raise Exception('Error: no data exists for given emission, half life, and concentration data')
+        
+        Pn_post_data = dict()
+        lam_post_data = dict()
+        conc_post_data = dict()
 
         for nuc in net_similar_nucs:
             Pn_data = self.emission_prob_data[nuc]
@@ -142,10 +146,27 @@ class CountRate(BaseClass):
                     decay_const = 0.0
                 if Pn < 0.0:
                     Pn = 0.0
+                
+            Pn_post_data[nuc] = Pn
+            lam_post_data[nuc] = decay_const
+            conc_post_data[nuc] = conc
+
 
             counts = Pn * decay_const * conc * unumpy.exp(-decay_const * self.decay_times)
             count_rate += unumpy.nominal_values(counts)
             sigma_count_rate += unumpy.std_devs(counts)
+
+        if MC_run:
+            if 'PnMC' not in self.post_data.keys():
+                self.post_data['PnMC'] = list()
+            if 'lamMC' not in self.post_data.keys():
+                self.post_data['lamMC'] = list()
+            if 'concMC' not in self.post_data.keys():
+                self.post_data['concMC'] = list()
+            self.post_data['PnMC'].append(Pn_post_data)
+            self.post_data['lamMC'].append(lam_post_data)
+            self.post_data['concMC'].append(conc_post_data)
+            self.save_postproc()
 
         data = {
             'times': self.decay_times,
