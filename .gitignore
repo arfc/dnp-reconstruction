@@ -165,9 +165,15 @@ cython_debug/
 /tests/integration/output*
 /tests/integration/data_output
 /mosden/results*
+
 /examples/keepin_1957/*.csv
 /examples/huynh_2014/*.csv
+/examples/empty_run/*.csv
+
 /examples/keepin_1957/postproc.json
 /examples/huynh_2014/postproc.json
+/examples/empty_run/postproc.json
+
 /examples/keepin_1957/*.png
 /examples/huynh_2014/*.png
+/examples/empty_run/*.png
