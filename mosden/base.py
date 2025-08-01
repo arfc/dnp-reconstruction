@@ -90,7 +90,10 @@ class BaseClass:
         """
         with open(self.postproc_path, 'r') as f:
             existing_data = json.load(f)
-        existing_data.update(self.post_data)
+        try:
+            existing_data.update(self.post_data)
+        except AttributeError:
+            self.post_data = dict()
         data_to_write = existing_data
         with open(self.postproc_path, 'w') as f:
             json.dump(data_to_write, f, indent=4)
