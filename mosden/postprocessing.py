@@ -77,22 +77,20 @@ class PostProcess(BaseClass):
                 item = item * scaler
                 bins = np.linspace(min(item), max(item), int(np.sqrt(len(item))))
                 counts, edges = np.histogram(item, bins=bins)
-                normalized_counts = counts / counts.max()
+                normalized_counts = counts #/ counts.max()
                 bin_centers = 0.5 * (edges[:-1] + edges[1:])
-                plt.bar(bin_centers, normalized_counts, width=np.diff(edges), label=f'Sampled {label_name}', alpha=0.5, color='blue', edgecolor='black')
+                plt.bar(bin_centers, normalized_counts, width=np.diff(edges), label=f'Sampled {label_name}', alpha=0.5, color='red', edgecolor='black')
 
-                plt.axvline(group_item[group].n, color='orange', linestyle='--', label=f'Group {label_name} ± $\sigma$')
-                plt.axvspan(group_item[group].n-group_item[group].s, group_item[group].n+group_item[group].s, color='orange', alpha=0.25)
+                plt.axvline(group_item[group].n, color='blue', linestyle='--', label=f'Group {label_name} ± $1\sigma$')
+                plt.axvspan(group_item[group].n-group_item[group].s, group_item[group].n+group_item[group].s, color='blue', alpha=0.25)
 
-                std_MC = np.std(item)
-                mean_MC = np.mean(item)
-                plt.axvline(mean_MC, color='green', linestyle='-.',  label=f'Sampled Mean ± $\sigma$')
-                plt.axvspan(mean_MC-std_MC, mean_MC+std_MC, color='green', alpha=0.25)
+                plt.axvline(items[group, 0], color='black', linestyle='-', label=f'Nominal {label_name}')
+
 
                 plt.xlabel(xlabel+scale_label)
                 plt.gca().xaxis.set_major_formatter(ticker.ScalarFormatter(useMathText=True))
                 plt.ticklabel_format(style='sci', axis='x', scilimits=(-2, 2))
-                plt.ylabel('Relative Frequency')
+                plt.ylabel('Frequency')
                 plt.legend()
                 plt.tight_layout()
                 plt.savefig(f'{self.output_dir}MC_group{group+1}_{name}.png')
@@ -166,7 +164,7 @@ class PostProcess(BaseClass):
 
         for MC_iterm, count_val in enumerate(counts):
             label = 'Sampled' if MC_iterm == 0 else None
-            plt.plot(times, count_val/base_counts, alpha=alpha_MC, color=sample_color, label=label)
+            plt.plot(times, count_val/base_counts, alpha=alpha_MC, color=sample_color, label=label, linestyle='', marker='o', markersize=3)
         plt.errorbar(times, count_data['counts']/base_counts, count_data['sigma counts'], color=mean_color, linestyle='', marker='x', label='Mean', markersize=5, markevery=5)
 
         plt.plot(times, group_counts['counts']/base_counts, color=group_color, alpha=0.75, label='Group Fit', linestyle='--', zorder=3)

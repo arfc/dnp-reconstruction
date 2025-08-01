@@ -89,6 +89,18 @@ class CountRate(BaseClass):
         """
         Calculate the delayed neutron count rate from existing data
         """
+        def sample_parameter(val:object, dist: str) -> float:
+            if isinstance(val, float):
+                return val
+            if val.s == 0.0:
+                return val.n
+            if dist == 'normal':
+                return np.random.normal(val.n, val.s)
+            elif dist == 'uniform':
+                return np.random.uniform(val.n - val.s, val.n + val.s)
+            else:
+                raise NotImplementedError(f'{dist} sampling not implemented')
+
         data: dict[str: list[float]] = dict()
         count_rate: np.ndarray = np.zeros(len(self.decay_times))
         sigma_count_rate: np.ndarray = np.zeros(len(self.decay_times))
@@ -121,18 +133,9 @@ class CountRate(BaseClass):
             conc = ufloat(conc_data['Concentration'], conc_data['sigma Concentration'])
 
             if MC_run and sampler_func:
-                if sampler_func == 'normal':
-                    Pn = np.random.normal(Pn.n, Pn.s)
-                    decay_const  = np.random.normal(decay_const.n, decay_const.s)
-                    conc = np.random.normal(conc.n, conc.s)
-                elif sampler_func == 'uniform':
-                    Pn = np.random.uniform(Pn.n-Pn.s, Pn.n+Pn.s)
-                    decay_const = np.random.uniform(decay_const.n-decay_const.s,
-                                                    decay_const.n+decay_const.s)
-                    conc = np.random.uniform(conc.n-conc.s,
-                                             conc.n+conc.s)
-                else:
-                    raise NotImplementedError(f'{sampler_func} not available')
+                Pn = sample_parameter(Pn, sampler_func)
+                decay_const = sample_parameter(decay_const, sampler_func)
+                conc = sample_parameter(conc, sampler_func)
                 if conc < 0.0:
                     conc = 0.0
                 if decay_const < 0.0:
