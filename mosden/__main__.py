@@ -4,6 +4,7 @@ from mosden.concentrations import Concentrations
 from mosden.countrate import CountRate
 from mosden.groupfit import Grouper
 from mosden.postprocessing import PostProcess
+from mosden.base import BaseClass
 from . import __version__
 
 def main():
@@ -20,6 +21,7 @@ def main():
     args = parser.parse_args()
 
     if args.input:
+        BaseClass(args.input).clear_post_data()
         concentrations = Concentrations(args.input)
         concentrations.generate_concentrations()
         countrate = CountRate(args.input)
@@ -33,6 +35,7 @@ def main():
         postprocess = PostProcess(args.postprocess)
         postprocess.run()
     elif args.all:
+        BaseClass(args.all).clear_post_data()
         preprocess = Preprocess(args.all)
         preprocess.run()
         concentrations = Concentrations(args.all)

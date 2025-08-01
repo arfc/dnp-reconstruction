@@ -42,12 +42,11 @@ class BaseClass:
         self.group_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'group_parameters.csv')
         self.postproc_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'postproc.json')
 
-        self.post_data: dict[str: float|str|list] = dict()
         if Path(self.postproc_path).exists():
             with open(self.postproc_path, 'r') as f:
                 self.post_data = json.load(f)
         else:
-            self.post_data = dict()
+            self.post_data: dict[str: float|str|list] = dict()
         
         self.names: dict[str: str] = {
             'countsMC': 'countsMC',
@@ -59,15 +58,23 @@ class BaseClass:
         self.logger.info(f'{modulename} took {round(time()-starttime, 3)}s')
         return None
 
+    def clear_post_data(self) -> None:
+        """
+        Clear the post-processing data.
+        """
+        self.post_data = {}
+        with open(self.postproc_path, 'w') as f:
+            json.dump(self.post_data, f, indent=4)
+        return None
     
     def save_postproc(self) -> None:
-        if Path(self.postproc_path).exists():
-            with open(self.postproc_path, 'r') as f:
-                existing_data = json.load(f)
-            existing_data.update(self.post_data)
-            data_to_write = existing_data
-        else:
-            data_to_write = self.post_data
+        """
+        Save post-processing data
+        """
+        with open(self.postproc_path, 'r') as f:
+            existing_data = json.load(f)
+        existing_data.update(self.post_data)
+        data_to_write = existing_data
         with open(self.postproc_path, 'w') as f:
             json.dump(data_to_write, f, indent=4)
         return None
