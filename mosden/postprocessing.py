@@ -55,7 +55,7 @@ class PostProcess(BaseClass):
         Plot the sensitivities of emission probabilities, concentrations, and half-lives
         """
         def scatter_helper(data:dict, group_params:np.ndarray[float], xlab:str, ylab:str, savename:str, savedir:str) -> None:
-            markers = ['.', 'o', 'x', '^', 's', 'D']
+            markers = ['v', 'o', 'x', '^', 's', 'D']
             nuclides = self.nuclides or list(data[0].keys())
             off_nominal = True
             for nuc in nuclides:
@@ -66,7 +66,7 @@ class PostProcess(BaseClass):
                         plot_val = group_vals - np.mean(group_vals)
                     else:
                         plot_val = group_vals
-                    plt.scatter(data_vals, plot_val, label=f'Group {group+1}', alpha=1, s=4, marker=markers[group])
+                    plt.scatter(data_vals, plot_val, label=f'Group {group+1}', alpha=0.75, s=4, marker=markers[group])
                 plt.legend(markerscale=2)
                 plt.xlabel(xlab)
                 if off_nominal:
