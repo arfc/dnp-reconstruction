@@ -61,8 +61,15 @@ class BaseClass:
 
     
     def save_postproc(self) -> None:
+        if Path(self.postproc_path).exists():
+            with open(self.postproc_path, 'r') as f:
+                existing_data = json.load(f)
+            existing_data.update(self.post_data)
+            data_to_write = existing_data
+        else:
+            data_to_write = self.post_data
         with open(self.postproc_path, 'w') as f:
-            json.dump(self.post_data, f, indent=4)
+            json.dump(data_to_write, f, indent=4)
         return None
     
 
