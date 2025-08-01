@@ -23,7 +23,7 @@ class BaseClass:
         logger_overwrite: bool = self.input_data.get('file_options', {}).get('overwrite', {}).get('logger', False)
 
         self.logger: logging.Logger = logging.getLogger(__name__)
-        if logger_overwrite:
+        if logger_overwrite and BaseClass._INITIALIZED:
             log_mode = 'w'
         else:
             log_mode = 'a'
