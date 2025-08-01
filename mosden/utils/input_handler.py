@@ -1,6 +1,11 @@
 import json
+from mosden.utils.defaults import DEFAULTS
+import warnings
+import logging
 
 class InputHandler:
+    _default_counts = {}
+
     def __init__(self, input_path: str) -> None:
         """
         This class handles the input files for all processing.
@@ -12,12 +17,18 @@ class InputHandler:
         """
         self.input_path = input_path
         self.preproc_choices: dict = dict()
+        self.logger = logging.getLogger(__name__)
+        self.preprocessing_occurance_index = 2
+        self.leaf_dict_keys: set = set((
+            "reprocessing",
+            "fissile_fractions"
+        ))
         
         self.independent_fission_yields = ['omcchain']
         self.cumulative_fission_yields = ['nfy']
         return None
     
-    def read_input(self, check=True, adjust_data=True) -> dict:
+    def read_input(self, check: bool=True, adjust_data: bool=True, apply_defaults: bool=True) -> dict:
         """
         Read the input file and return the data as a dictionary.
 
@@ -34,12 +45,37 @@ class InputHandler:
             Dictionary containing settings and data selections.
         """
         with open(self.input_path, 'r') as file:
-            output = json.load(file)
+            try:
+                output = json.load(file)
+            except json.decoder.JSONDecodeError:
+                output = dict()
+        if apply_defaults:
+            output = self._apply_defaults(output, DEFAULTS)
         if check:
             self._check_behaviour(output)
         if adjust_data:
             output = self._adjust_data(output)
         return output
+    
+    def _apply_defaults(self, data: dict, defaults: dict, path: str='') -> dict:
+        final = {}
+        for k in defaults.keys():
+            full_key = f"{path}.{k}" if path else k
+            if k in data:
+                key_can_vary = k in self.leaf_dict_keys
+                default_not_dict = not isinstance(defaults[k], dict)
+                data_not_dict = not isinstance(data[k], dict)
+                if key_can_vary or default_not_dict or data_not_dict:
+                    final[k] = data[k]
+                else:
+                    final[k] = self._apply_defaults(data[k], defaults[k], full_key)
+            else:
+                InputHandler._default_counts.setdefault(full_key, 0)
+                InputHandler._default_counts[full_key] += 1
+                if InputHandler._default_counts[full_key] == self.preprocessing_occurance_index:
+                    self.logger.warning(f"Using default for '{full_key}': {defaults[k]!r}", stacklevel=2)
+                final[k] = defaults[k]
+        return final
     
     def _check_behaviour(self, data: dict) -> None:
         """
