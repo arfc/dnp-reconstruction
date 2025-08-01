@@ -27,6 +27,8 @@ def test_input_handler():
     """
     Test the InputHandler class for reading input files.
     """
+    from mosden.utils.input_handler import DEFAULTS
+    import json
     input_path = 'test_input.json'
     
     # Create a test input file
@@ -36,15 +38,20 @@ def test_input_handler():
     input_handler = InputHandler(input_path)
     
     # Test reading the input file
-    data = input_handler.read_input(check=False, adjust_data=False)
+    data = input_handler.read_input(check=False, adjust_data=False, apply_defaults=False)
     
     assert data == {"key": "value"}, f"Expected {{'key': 'value'}}, but got {data}"
 
     # Test exceptions in input handling
     with pytest.raises(KeyError):
-        data = input_handler.read_input(check=True, adjust_data=False)
-        data = input_handler.read_input(check=False, adjust_data=True)
-        data = input_handler.read_input(check=True, adjust_data=True)
+        data = input_handler.read_input(check=True, adjust_data=False, apply_defaults=False)
+        data = input_handler.read_input(check=False, adjust_data=True, apply_defaults=False)
+        data = input_handler.read_input(check=True, adjust_data=True, apply_defaults=False)
+    
+    data = input_handler.read_input(check=True, adjust_data=True, apply_defaults=True)
+    default_data = json.loads(json.dumps(DEFAULTS))
+    assert default_data == data, "Default application failed"
+
 
     os.remove(input_path)
     
