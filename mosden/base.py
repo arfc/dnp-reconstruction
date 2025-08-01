@@ -8,6 +8,7 @@ from typing import Any
 from time import time
 
 class BaseClass:
+    _INITIALIZED: bool = False
     def __init__(self, input_path: str) -> None:
         self.omc_data_words: list[str] = ['omcchain']
         self.endf_data_words: list[str] = ['nfy']
@@ -42,21 +43,37 @@ class BaseClass:
         self.group_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'group_parameters.csv')
         self.postproc_path: str = os.path.join(self.input_data['file_options']['output_dir'], 'postproc.json')
 
-        if Path(self.postproc_path).exists():
-            with open(self.postproc_path, 'r') as f:
-                self.post_data = json.load(f)
-        else:
-            self.post_data: dict[str: float|str|list] = dict()
         
         self.names: dict[str: str] = {
             'countsMC': 'countsMC',
             'groupfitMC': 'groupfitMC'
         }
+
+        if BaseClass._INITIALIZED:
+            self.load_post_data()
+        else:
+            BaseClass._INITIALIZED = True
         return None
     
     def time_track(self, starttime: float, modulename: str ='') -> None:
         self.logger.info(f'{modulename} took {round(time()-starttime, 3)}s')
         return None
+    
+    def load_post_data(self) -> dict[str: float|str|list]:
+        """
+        Load post-processing data
+
+        Returns
+        -------
+        dict[str: float|str|list]
+            The post-processing data loaded from the JSON file.
+        """
+        if Path(self.postproc_path).exists():
+            with open(self.postproc_path, 'r') as f:
+                self.post_data = json.load(f)
+        else:
+            self.post_data: dict[str: float|str|list] = dict()
+        return self.post_data
 
     def clear_post_data(self) -> None:
         """
