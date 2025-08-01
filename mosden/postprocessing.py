@@ -9,6 +9,7 @@ import os
 import numpy as np
 from uncertainties import ufloat
 from logging import INFO
+import json
 
 class PostProcess(BaseClass):
     """
@@ -17,12 +18,18 @@ class PostProcess(BaseClass):
     def __init__(self, input_path: str) -> None:
         super().__init__(input_path)
         self.processed_data_dir: str = self.input_data['file_options']['processed_data_dir']
-        self.output_dir: str = self.input_data['file_options']['output_dir']
+        self.output_dir: str = os.path.join(self.input_data['file_options']['output_dir'], 'images/')
         self.overwrite: bool = self.input_data['file_options']['overwrite']['postprocessing']
         self.num_groups: int = self.input_data['group_options']['num_groups']
         self.MC_samples: int = self.input_data['group_options']['samples']
         self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
         self.use_data: list[str] = ['keepin']
+
+
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
+        
+        self.MC_yields, self.MC_half_lives = self._get_MC_group_params()
 
         return None
     
@@ -38,7 +45,49 @@ class PostProcess(BaseClass):
         self._plot_counts()
         if self.MC_samples > 1:
             self._plot_MC_group_params()
+            self._plot_sensitivities()
         return None
+    
+    def _plot_sensitivities(self) -> None:
+        """
+        Plot the sensitivities of emission probabilities, concentrations, and half-lives
+        """
+        def scatter_helper(data:dict, group_params:np.ndarray[float], xlab:str, ylab:str, savename:str, savedir:str) -> None:
+            markers = ['.', 'o', 'x', '^', 's', 'D']
+            nuclides = list(data[0].keys())
+            nuclides = ['Br87']
+            for nuc in nuclides:
+                for group in range(self.num_groups):
+                    data_vals = [data[nuc] for data in data]
+                    group_vals = group_params[group, 1:]
+                    plt.scatter(data_vals, group_vals, label=f'Group {group+1}', alpha=1, s=4, marker=markers[group])
+                plt.legend(markerscale=2)
+                plt.xlabel(xlab)
+                plt.ylabel(ylab)
+                plt.savefig(f'{savedir}{savename}_{nuc}.png')
+                plt.close()
+            return None
+
+        pn_save_dir = os.path.join(self.output_dir, 'sens_pn/')
+        if not os.path.exists(pn_save_dir):
+            os.makedirs(pn_save_dir)
+        lam_save_dir = os.path.join(self.output_dir, 'sens_lam/')
+        if not os.path.exists(lam_save_dir):
+            os.makedirs(lam_save_dir)
+        conc_save_dir = os.path.join(self.output_dir, 'sens_conc/')
+        if not os.path.exists(conc_save_dir):
+            os.makedirs(conc_save_dir)
+        Pn_data = self.post_data['PnMC']
+        halflife_data = self.post_data['HLMC']
+        conc_data = self.post_data['concMC']
+        scatter_helper(Pn_data, self.MC_yields, 'Emission Probability', 'Yield', 'sens_pn_yield', pn_save_dir)
+        scatter_helper(halflife_data, self.MC_yields, 'Half-life', 'Yield', 'sens_lam_yield', lam_save_dir)
+        scatter_helper(conc_data, self.MC_yields, 'Concentration', 'Yield', 'sens_conc_yield', conc_save_dir)
+        scatter_helper(Pn_data, self.MC_half_lives, 'Emission Probability', 'Half-life', 'sens_pn_halflife', pn_save_dir)
+        scatter_helper(halflife_data, self.MC_half_lives, 'Half-life', 'Half-life', 'sens_lam_halflife', lam_save_dir)
+        scatter_helper(conc_data, self.MC_half_lives, 'Concentration', 'Half-life', 'sens_conc_halflife', conc_save_dir)
+        return None
+
 
     
     def compare_yields(self) -> None:
@@ -97,9 +146,19 @@ class PostProcess(BaseClass):
                 plt.close()
             return None
 
-        parameters = self.post_data[self.names['groupfitMC']]
         group_data = CSVHandler(self.group_path, create=False).read_vector_csv()
-
+        
+        helper_func('yield', self.MC_yields, group_data)
+        helper_func('half_life', self.MC_half_lives, group_data)
+        
+        return None
+    
+    def _get_MC_group_params(self) -> tuple[np.ndarray[float], np.ndarray[float]]:
+        """
+        Get the Monte Carlo group parameters from the postprocessing data
+        Returns yields and half-lives as numpy arrays
+        """
+        parameters = self.post_data[self.names['groupfitMC']]
         yields = np.zeros((self.num_groups, self.MC_samples))
         half_lives = np.zeros((self.num_groups, self.MC_samples))
         for MC_i, params in enumerate(parameters):
@@ -109,10 +168,7 @@ class PostProcess(BaseClass):
             yields[:, MC_i] = np.asarray(yield_val)[sort_idx]
             half_lives[:, MC_i] = np.asarray(half_life_val)[sort_idx]
         
-        helper_func('yield', yields, group_data)
-        helper_func('half_life', half_lives, group_data)
-        
-        return None
+        return yields, half_lives
     
     def _plot_counts(self) -> None:
         sample_color = 'red'

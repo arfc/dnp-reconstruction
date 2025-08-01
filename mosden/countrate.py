@@ -148,7 +148,7 @@ class CountRate(BaseClass):
                     Pn = 0.0
                 
             Pn_post_data[nuc] = Pn
-            lam_post_data[nuc] = decay_const
+            lam_post_data[nuc] = np.log(2) / decay_const
             conc_post_data[nuc] = conc
 
 
@@ -159,12 +159,12 @@ class CountRate(BaseClass):
         if MC_run:
             if 'PnMC' not in self.post_data.keys():
                 self.post_data['PnMC'] = list()
-            if 'lamMC' not in self.post_data.keys():
-                self.post_data['lamMC'] = list()
+            if 'HLMC' not in self.post_data.keys():
+                self.post_data['HLMC'] = list()
             if 'concMC' not in self.post_data.keys():
                 self.post_data['concMC'] = list()
             self.post_data['PnMC'].append(Pn_post_data)
-            self.post_data['lamMC'].append(lam_post_data)
+            self.post_data['HLMC'].append(lam_post_data)
             self.post_data['concMC'].append(conc_post_data)
             self.save_postproc()
 
