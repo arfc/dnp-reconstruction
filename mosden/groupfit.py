@@ -9,10 +9,15 @@ from time import time
 import warnings
 
 class Grouper(BaseClass):
-    """
-    Class to handle the formation of groups from count rates
-    """
     def __init__(self, input_path: str) -> None:
+        """
+        This class handles the formation of groups from count rates
+
+        Parameters
+        ----------
+        input_path : str
+            Path to the input file
+        """
         super().__init__(input_path)
         self.output_dir: str = self.input_data['file_options']['output_dir']
 
@@ -67,7 +72,22 @@ class Grouper(BaseClass):
         residual = (counts - fit_func(times, parameters)) / (counts + 1e-12)
         return residual
     
-    def _pulse_fit_function(self, times: np.ndarray[float], parameters: np.ndarray[float]) -> np.ndarray[float|object]:
+    def _pulse_fit_function(self, times: np.ndarray[float|object], parameters: np.ndarray[float|object]) -> np.ndarray[float|object]:
+        """
+        Fit function for a pulse irradiation
+
+        Parameters
+        ----------
+        times : np.ndarray[float|object]
+            Times at which to evaluate the fit function
+        parameters : np.ndarray[float|object]
+            Fit parameters for the model
+
+        Returns
+        -------
+        counts : np.ndarray[float|object]
+            Array of counts for each time point (can be float or ufloat)
+        """
         yields = parameters[:self.num_groups]
         half_lives = parameters[self.num_groups:]
         counts: np.ndarray[float] = np.zeros(len(times))
@@ -82,7 +102,22 @@ class Grouper(BaseClass):
                 counts += (a * lam * unumpy.exp(-lam * times))
         return counts
 
-    def _saturation_fit_function(self, times: np.ndarray[float], parameters: np.ndarray[float]) -> np.ndarray[float|object]:
+    def _saturation_fit_function(self, times: np.ndarray[float|object], parameters: np.ndarray[float|object]) -> np.ndarray[float|object]:
+        """
+        Fit function for a saturation irradiation
+
+        Parameters
+        ----------
+        times : np.ndarray[float|object]
+            Times at which to evaluate the fit function
+        parameters : np.ndarray[float|object]
+            Fit parameters for the model
+
+        Returns
+        -------
+        counts : np.ndarray[float|object]
+            Array of counts for each time point (can be float or ufloat)
+        """
         yields = parameters[:self.num_groups]
         half_lives = parameters[self.num_groups:]
         counts: np.ndarray[float] = np.zeros(len(times))
@@ -108,6 +143,16 @@ class Grouper(BaseClass):
         """
         Run nonlinear least squares fit on the delayed neutron count rate curve
         to generate group half-lives and yields
+
+        Parameters
+        ----------
+        count_data : dict[str: np.ndarray[float]], optional
+            Dictionary containing the count data, by default None
+        
+        Returns
+        -------
+        data : dict[str: dict[str: float]]
+            Dictionary containing the group parameters (yield, sigma yield, half_life, sigma half_life)
         """
         from mosden.countrate import CountRate
         initial_parameter_guess = np.ones(self.num_groups*2)
@@ -148,7 +193,6 @@ class Grouper(BaseClass):
         countrate = CountRate(self.input_path)
         self.logger.info(f'Currently using {self.sample_func} sampling')
         for _ in range(1, self.MC_samples):
-            input('Why are we here')
             data = countrate.calculate_count_rate(MC_run=True, sampler_func=self.sample_func)
             count_sample = data['counts']
             with warnings.catch_warnings():
@@ -196,8 +240,16 @@ class Grouper(BaseClass):
     def _sort_params_by_half_life(self, params: np.ndarray[float]) -> np.ndarray[float]:
         """
         Sorts yields and half-lives in params by half-life (descending).
-        Returns concatenated sorted yields and half-lives.
-        Only used for user experience in visualizing the postproc.json file.
+
+        Parameters
+        ----------
+        params : np.ndarray[float]
+            Array of parameters containing yields and half-lives
+        
+        Returns
+        -------
+        sorted_params : np.ndarray[float]
+            Array of parameters sorted by half-life in descending order
         """
         yields = params[:self.num_groups]
         half_lives = params[self.num_groups:]

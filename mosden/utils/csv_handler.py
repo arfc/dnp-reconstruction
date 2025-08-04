@@ -2,13 +2,27 @@ import pandas as pd
 import os
 from uncertainties import ufloat
 import numpy as np
+import logging
 
 class CSVHandler:
     def __init__(self, file_path: str, overwrite: bool=False, create=True) -> None:
+        """
+        This class handles reading and writing CSV files for MoSDeN data.
+
+        Parameters
+        ----------
+        file_path : str
+            Path to the CSV file
+        overwrite : bool, optional
+            Whether to overwrite the file if it exists, by default False
+        create : bool, optional
+            Whether to create the file if it does not exist, by default True
+        """
         self.file_path = file_path
         if create:
             self._create_directory() 
         self.overwrite = overwrite
+        self.logger = logging.getLogger(__name__)
         return None
     
     def _create_directory(self) -> None:
@@ -32,6 +46,19 @@ class CSVHandler:
         return os.path.isfile(self.file_path)
 
     def read_csv(self, raw_iaea=False) -> dict[str, dict[str, float]]:
+        """
+        Read the CSV file and return the data as a dictionary.
+
+        Parameters
+        ----------
+        raw_iaea : bool, optional
+            Whether the data is in IAEA format, by default False
+
+        Returns
+        -------
+        dict[str, dict[str, float]]
+            The data read from the CSV file
+        """
         if raw_iaea:
             return self._read_iaea_csv()
         df = pd.read_csv(self.file_path, index_col=0)
@@ -82,12 +109,12 @@ class CSVHandler:
         Parameters
         ----------
         iaea_nuc : str
-            IAEA nuclide identifier.
+            IAEA nuclide identifier
 
         Returns
         -------
         str
-            MoSDeN formatted nuclide identifier.
+            MoSDeN formatted nuclide identifier (e.g., 'U235', 'Br87')
         """
         i = 0
         while i < len(iaea_nuc) and iaea_nuc[i].isdigit():
@@ -97,16 +124,34 @@ class CSVHandler:
         return f"{element}{mass}"
 
     def write_csv(self, data: dict[str: dict[str, float]]) -> None:
+        """
+        Write the data to a CSV file.
+
+        Parameters
+        ----------
+        data : dict[str: dict[str, float]]
+            The data to write to the CSV file, where keys are nuclides and values are dictionaries of properties.
+        """
         if not self.overwrite and self._file_exists():
-            raise FileExistsError(f"File {self.file_path} already exists. Set overwrite=True to overwrite.")
+            self.logger.warning(f"File {self.file_path} already exists. Set overwrite=True to overwrite.")
         df = pd.DataFrame.from_dict(data, orient='index')
         df.index.name = 'Nuclide'
         df.to_csv(self.file_path, index=True)
         return None
     
     def write_groups_csv(self, data: dict[str: list[float]], sortby: str = 'half_life') -> None:
+        """
+        Write the group data to a CSV file, sorted by a specified column.
+
+        Parameters
+        ----------
+        data : dict[str: list[float]]
+            The data to write, where keys are group names and values are lists of properties.
+        sortby : str, optional
+            The column to sort, by default 'half_life'
+        """
         if not self.overwrite and self._file_exists():
-            raise FileExistsError(f"File {self.file_path} already exists. Set overwrite=True to overwrite.")
+            self.logger.warning(f"File {self.file_path} already exists. Set overwrite=True to overwrite.")
         df = pd.DataFrame.from_dict(data, orient='index')
         df = df.sort_values(by=sortby, ascending=False)
         df.to_csv(self.file_path, index=False)
@@ -114,13 +159,30 @@ class CSVHandler:
 
     
     def write_count_rate_csv(self, data: dict[str: list[float]]) -> None:
+        """
+        Write the count rate data to a CSV file.
+
+        Parameters
+        ----------
+        data : dict[str: list[float]]
+            The data to write, where keys are nuclides and values are lists of count rates
+        """
         if not self.overwrite and self._file_exists():
-            raise FileExistsError(f"File {self.file_path} already exists. Set overwrite=True to overwrite.")
+            self.logger.warning(f"File {self.file_path} already exists. Set overwrite=True to overwrite.")
         df = pd.DataFrame(data)
         df.to_csv(self.file_path, index=False)
         return None
     
     def read_vector_csv(self) -> dict[str: list[float]]:
+        """
+        Read a vector CSV file and return the data as a dictionary.
+        The data is structured such that each column is a key and the values are lists.
+
+        Returns
+        -------
+        dict[str: list[float]]
+            The vector data from the CSV file
+        """
         df = pd.read_csv(self.file_path)
         data = {col: df[col].astype(float).tolist() for col in df.columns}
         return data

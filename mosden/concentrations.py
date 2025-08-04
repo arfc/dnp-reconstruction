@@ -5,10 +5,15 @@ from mosden.base import BaseClass
 from time import time
 
 class Concentrations(BaseClass):
-    """
-    Class to handle the formation of concentrations from data
-    """
     def __init__(self, input_path: str) -> None:
+        """
+        This class handles the formation of concentrations from data.
+
+        Parameters
+        ----------
+        input_path : str
+            Path to the input file
+        """
         super().__init__(input_path)
         self.output_dir: str = self.input_data['file_options']['output_dir']
 

@@ -13,7 +13,7 @@ DEFAULTS = {
             "count_rate": True,
             "group_fitting": True,
             "postprocessing": True,
-            "logger": True
+            "logger": False
         },
         "unprocessed_data_dir": f"{unprocessed_data_dir}",
         "processed_data_dir": f"{current_dir}/",

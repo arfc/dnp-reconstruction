@@ -9,6 +9,14 @@ from time import time
 class BaseClass:
     _INITIALIZED: bool = False
     def __init__(self, input_path: str) -> None:
+        """
+        This class serves as the base class for MoSDeN.
+
+        Parameters
+        ----------
+        input_path : str
+            Path to the input file
+        """
         self.omc_data_words: list[str] = ['omcchain']
         self.endf_data_words: list[str] = ['nfy']
         self.iaea_data_words: list[str] = ['iaea']
