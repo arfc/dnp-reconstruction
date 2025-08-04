@@ -9,7 +9,6 @@ import os
 import numpy as np
 from uncertainties import ufloat
 from logging import INFO
-import json
 
 class PostProcess(BaseClass):
     """
@@ -138,7 +137,7 @@ class PostProcess(BaseClass):
                 bin_centers = 0.5 * (edges[:-1] + edges[1:])
                 plt.bar(bin_centers, normalized_counts, width=np.diff(edges), label=f'Sampled {label_name}', alpha=0.5, color='red', edgecolor='black')
 
-                plt.axvline(group_item[group].n, color='blue', linestyle='--', label=f'Group {label_name} ± $1\sigma$')
+                plt.axvline(group_item[group].n, color='blue', linestyle='--', label=fr'Group {label_name} ± $1\sigma$')
                 plt.axvspan(group_item[group].n-group_item[group].s, group_item[group].n+group_item[group].s, color='blue', alpha=0.25)
 
                 plt.axvline(items[group, 0], color='black', linestyle='-', label=f'Nominal {label_name}')
@@ -193,7 +192,7 @@ class PostProcess(BaseClass):
         count_data = CSVHandler(self.countrate_path).read_vector_csv()
         plt.errorbar(times, count_data['counts'], count_data['sigma counts'], color=mean_color, linestyle='', marker='x', label='Mean', markersize=5, markevery=5)
         countrate.method = 'groupfit'
-        group_counts = countrate.calculate_count_rate()
+        group_counts = countrate.calculate_count_rate(write_data=False)
         plt.plot(times, group_counts['counts'], color=group_color, alpha=0.75, label='Group Fit', linestyle='--', zorder=3)
         plt.fill_between(times, group_counts['counts']-group_counts['sigma counts'], group_counts['counts']+group_counts['sigma counts'], color=group_color, alpha=0.3, zorder=2,
                          edgecolor='black')
@@ -287,7 +286,8 @@ class PostProcess(BaseClass):
             N = ufloat(conc_data['Concentration'],
                        conc_data['sigma Concentration'])
             hl_data = halflife_data[nuc]
-            hl = ufloat(hl_data['half_life'], hl_data['sigma half_life'])
+            uncert = hl_data.get('sigma half_life', 1e-12)
+            hl = ufloat(hl_data['half_life'], uncert)
             # Equation based on Parish 1999 Status of Six-group DN data
             lam_val = np.log(2) / hl
             # Huunh 2014 Calculation shows total yield is Pn*CFY (CFY = lam*N at saturation)

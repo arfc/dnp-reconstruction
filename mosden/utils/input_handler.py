@@ -1,6 +1,5 @@
 import json
 from mosden.utils.defaults import DEFAULTS
-import warnings
 import logging
 
 class InputHandler:

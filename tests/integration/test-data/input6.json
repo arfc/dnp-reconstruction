@@ -1,0 +1,11 @@
+{
+    "name": "empty test",
+    "file_options": {
+        "overwrite": {
+        },
+        "unprocessed_data_dir": "./mosden/data/unprocessed",
+        "processed_data_dir": "./tests/integration/output6",
+        "output_dir": "./tests/integration/output6",
+        "log_file": "./tests/integration/output6/log.log"
+    }
+}
