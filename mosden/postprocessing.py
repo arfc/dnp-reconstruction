@@ -11,10 +11,15 @@ from uncertainties import ufloat
 from logging import INFO
 
 class PostProcess(BaseClass):
-    """
-    Class to handle the postprocessing from the postprocessing json file
-    """
     def __init__(self, input_path: str) -> None:
+        """
+        This class handles the postprocessing from the postprocessing json file
+
+        Parameters
+        ----------
+        input_path : str
+            Path to the input file
+        """
         super().__init__(input_path)
         self.processed_data_dir: str = self.input_data['file_options']['processed_data_dir']
         self.output_dir: str = os.path.join(self.input_data['file_options']['output_dir'], 'images/')
@@ -52,6 +57,11 @@ class PostProcess(BaseClass):
     def _plot_sensitivities(self, off_nominal: bool=True) -> None:
         """
         Plot the sensitivities of emission probabilities, concentrations, and half-lives
+
+        Parameters
+        ----------
+        off_nominal : bool, optional
+            Whether to plot off-nominal sensitivities, by default True
         """
         def scatter_helper(data:dict, group_params:np.ndarray[float], xlab:str, ylab:str, savename:str, savedir:str) -> None:
             markers = ['v', 'o', 'x', '^', 's', 'D']
@@ -164,6 +174,11 @@ class PostProcess(BaseClass):
         """
         Get the Monte Carlo group parameters from the postprocessing data
         Returns yields and half-lives as numpy arrays
+
+        Returns
+        -------
+        yields, half_lives : tuple[np.ndarray[float], np.ndarray[float]]
+            Tuple containing the yields and half-lives as numpy arrays
         """
         parameters = self.post_data[self.names['groupfitMC']]
         yields = np.zeros((self.num_groups, self.MC_samples))
@@ -178,6 +193,9 @@ class PostProcess(BaseClass):
         return yields, half_lives
     
     def _plot_counts(self) -> None:
+        """
+        Plot the counts from all sources
+        """
         sample_color = 'red'
         mean_color = 'black'
         group_color = 'blue'
@@ -257,6 +275,15 @@ class PostProcess(BaseClass):
         return None
 
     def _get_group_params(self) -> tuple[float, float]:
+        """
+        Get the group parameters from the postprocessing data
+
+        returns
+        -------
+        net_yield, avg_half_life : tuple[float, float]
+            net yield and average half-life of the group.
+
+        """
         group_data = CSVHandler(self.group_path, create=False).read_vector_csv()
         yields = [ufloat(y, std) for y, std in zip(group_data['yield'], group_data['sigma yield'])]
         halflives = [ufloat(hl, std) for hl, std in zip(group_data['half_life'], group_data['sigma half_life'])]
@@ -269,6 +296,19 @@ class PostProcess(BaseClass):
 
     
     def _get_summed_params(self, num_top: int=10) -> tuple[float, float]:
+        """
+        Get the summed parameters from the postprocessing data
+
+        Parameters
+        ----------
+        num_top : int, optional
+            Number of top contributors to consider, by default 10
+
+        returns
+        -------
+        net_yield, avg_half_life : tuple[float, float]
+            net yield and average half-life of the group.
+        """
         nuc_yield: dict[str: float] = dict()
         emission_prob_data = CSVHandler(os.path.join(self.processed_data_dir, 'emission_probability.csv'), create=False).read_csv()
         halflife_data = CSVHandler(os.path.join(self.processed_data_dir, 'half_life.csv'), create=False).read_csv()

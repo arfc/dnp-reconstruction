@@ -8,7 +8,7 @@ from mosden.base import BaseClass
 from . import __version__
 
 def main():
-    parser = argparse.ArgumentParser(description="MoSDeN CLI")
+    parser = argparse.ArgumentParser(description="MoSDeN")
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-v", "--version", action="version", version=f"MoSDeN {__version__}")

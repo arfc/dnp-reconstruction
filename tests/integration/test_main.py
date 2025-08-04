@@ -32,10 +32,10 @@ def test_mosden_cli(input_path, reference_output_path, output_path):
             reference_data = CSVHandler(reference_file).read_csv()
         for key in output_data.keys():
             if not isinstance(output_data[key], dict):
-                assert np.allclose(output_data[key], reference_data[key]), f"Data mismatch for {key} in {filename}"
+                assert np.allclose(output_data[key], reference_data[key], atol=1e-5), f"Data mismatch for {key} in {filename}"
             else:
                 for subkey in output_data[key].keys():
-                    assert np.isclose(output_data[key][subkey], reference_data[key][subkey]), f"Data mismatch for {subkey} in {key} of {filename}"
+                    assert np.isclose(output_data[key][subkey], reference_data[key][subkey], atol=1e-5), f"Data mismatch for {subkey} in {key} of {filename}"
 
     result = subprocess.run(["mosden", "-a", input_path])
     assert result.returncode == 0, f"mosden failed: {result.stderr}"

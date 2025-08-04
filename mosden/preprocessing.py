@@ -65,6 +65,13 @@ class Preprocess(BaseClass):
     def openmc_preprocess(self, data_val:str, unprocessed_path:str) -> None:
         """
         Processes OpenMC data
+
+        Parameters
+        ----------
+        data_val : str
+            Type of data to process
+        unprocessed_path : str
+            Path to the unprocessed data
         """
         self._openmc_chain_preprocess(data_val, unprocessed_path)
         return None
@@ -72,6 +79,13 @@ class Preprocess(BaseClass):
     def endf_preprocess(self, data_val: str, unprocessed_path:str) -> None:
         """
         Processes ENDF data
+
+        Parameters
+        ----------
+        data_val : str
+            Type of data to process
+        unprocessed_path : str
+            Path to the unprocessed data
         """
         self._endf_nfy_preprocess(data_val, unprocessed_path)
         return None
@@ -79,6 +93,14 @@ class Preprocess(BaseClass):
     def iaea_preprocess(self, data_val: str, unprocessed_path: str) -> None:
         """
         Processes IAEA data
+
+        Parameters
+        ----------
+        data_val : str
+            Type of data to process
+        unprocessed_path : str
+            Path to the unprocessed data
+
         """
         self._iaea_dn_preprocess(data_val, unprocessed_path)
         return None
@@ -149,6 +171,16 @@ class Preprocess(BaseClass):
     def _treat_endf_data(self, pre_treated_data: dict[str: dict[str: dict[str: float]]]) -> dict[str: dict[str: float]]:
         """
         Take endf data for each nuclide and scale it by fissile fraction for each nuclide
+
+        Parameters
+        ----------
+        pre_treated_data : dict[str: dict[str: dict[str: float]]]
+            Dictionary containing the pre-treated data for each fissile target
+
+        Returns
+        -------
+        treated_data : dict[str: dict[str: float]]
+            Dictionary containing the treated data with fissile fractions applied.
         """
         treated_data: dict[str: dict[str: float]] = dict()
         for fissile in pre_treated_data.keys():
@@ -221,8 +253,6 @@ class Preprocess(BaseClass):
         ----------
         file : str
             Name of the NFY file to process.
-        fissile : str
-            Name of the fissile target to process.
 
         Returns
         -------
