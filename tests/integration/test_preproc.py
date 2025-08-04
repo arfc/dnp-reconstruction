@@ -16,6 +16,7 @@ def test_preprocess(input_path, reference_output_path):
     Test the preprocessing functionality.
     """
     preproc = Preprocess(input_path)
+    preproc.postproc_path = os.path.join(reference_output_path, 'postproc.json')
     preproc.run()
 
     output_dir = Path(preproc.out_dir)
