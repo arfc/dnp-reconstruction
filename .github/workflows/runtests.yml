@@ -1,0 +1,24 @@
+name: Tester
+on: [push, pull_request]
+jobs: 
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          environment-file: environment.yml
+          activate-environment: mosdenv
+          auto-activate-base: false
+
+      - name: Install MoSDeN
+        shell: bash -l {0}
+        run: |
+          pip install -e .
+
+      - name: Run pytest
+        run: |
+          pytest --cov=mosden tests/
