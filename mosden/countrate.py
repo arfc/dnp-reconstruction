@@ -24,10 +24,11 @@ class CountRate(BaseClass):
         self.method = self.input_data['modeling_options']['count_rate_handling']
 
         self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
+        np.random.seed(self.input_data['group_options']['seed'])
 
         return None
     
-    def calculate_count_rate(self, MC_run: bool=False, sampler_func: str=None) -> dict[str: list[float]]:
+    def calculate_count_rate(self, MC_run: bool=False, sampler_func: str=None, write_data:bool = True) -> dict[str: list[float]]:
         """
         Calculate the delayed neutron count rate from
         concentrations using various methods
@@ -45,7 +46,7 @@ class CountRate(BaseClass):
         else:
             raise NotImplementedError(f'{self.method} not available')
 
-        if not MC_run:
+        if not MC_run and write_data:
             CSVHandler(self.countrate_path, self.overwrite).write_count_rate_csv(data)
             self.save_postproc()
             self.time_track(start, 'Countrate')

@@ -1,15 +1,12 @@
 import numpy as np
-from mosden.utils.input_handler import InputHandler
 from mosden.utils.csv_handler import CSVHandler
-from pathlib import Path
-from uncertainties import ufloat, unumpy
+from uncertainties import unumpy
 from mosden.base import BaseClass
-from scipy.optimize import least_squares, curve_fit
+from scipy.optimize import least_squares
 from typing import Callable
 from math import ceil
 from time import time
 import warnings
-from logging import INFO
 
 class Grouper(BaseClass):
     """
@@ -151,6 +148,7 @@ class Grouper(BaseClass):
         countrate = CountRate(self.input_path)
         self.logger.info(f'Currently using {self.sample_func} sampling')
         for _ in range(1, self.MC_samples):
+            input('Why are we here')
             data = countrate.calculate_count_rate(MC_run=True, sampler_func=self.sample_func)
             count_sample = data['counts']
             with warnings.catch_warnings():

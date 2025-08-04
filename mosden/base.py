@@ -4,7 +4,6 @@ from mosden.utils.csv_handler import CSVHandler
 import os
 import logging
 import json
-from typing import Any
 from time import time
 
 class BaseClass:
@@ -27,9 +26,15 @@ class BaseClass:
             log_mode = 'w'
         else:
             log_mode = 'a'
-        logging.basicConfig(filename=self.log_file,
-                            level=self.log_level,
-                            filemode=log_mode)
+        try:
+            logging.basicConfig(filename=self.log_file,
+                                level=self.log_level,
+                                filemode=log_mode)
+        except FileNotFoundError:
+            os.makedirs(os.path.dirname(self.log_file), exist_ok=True)
+            logging.basicConfig(filename=self.log_file,
+                                level=self.log_level,
+                                filemode=log_mode)
         
         self.name: str = self.input_data['name']
         self.energy_MeV: float = self.input_data['data_options']['energy_MeV']
