@@ -17,6 +17,7 @@ def test_calculate_count_rate(input_path, reference_output_path):
     """
     countrate = CountRate(input_path)
     countrate.processed_data_dir = reference_output_path
+    countrate.postproc_path = os.path.join(reference_output_path, 'postproc.json')
     countrate.concentration_path = os.path.join(countrate.input_data['file_options']['output_dir'], 'concentrations.csv')
 
     countrate.calculate_count_rate()
