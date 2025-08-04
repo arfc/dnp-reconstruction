@@ -17,6 +17,7 @@ def test_fit_groups(input_path, reference_output_path):
     """
     grouper = Grouper(input_path)
 
+    grouper.postproc_path = os.path.join(reference_output_path, 'postproc.json')
     grouper.generate_groups()
 
     output_path = Path(grouper.output_dir) / "group_parameters.csv"

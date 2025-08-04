@@ -1,3 +1,4 @@
+import os
 from mosden.concentrations import Concentrations
 from pathlib import Path
 from mosden.utils.csv_handler import CSVHandler
@@ -15,6 +16,7 @@ def test_generate_concentrations(input_path, reference_output_path):
     Test the concentration generation method.
     """
     concentrations = Concentrations(input_path)
+    concentrations.postproc_path = os.path.join(reference_output_path, 'postproc.json')
     concentrations.processed_data_dir = reference_output_path
     
     concentrations.generate_concentrations()
