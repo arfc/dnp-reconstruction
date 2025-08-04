@@ -6,6 +6,11 @@ class Literature(BaseClass):
     def __init__(self, input_path) -> None:
         """
         This class holds data from the literature for passing into MoSDeN post processing.
+
+        Parameters
+        ----------
+        input_path : str
+            Path to the input file containing fissile data.
         """
         super().__init__(input_path)
         self.available_names: list[str] = ['keepin', 'charlton', 'endfb6', 'mills', 'saleh', 'synetos', 'tuttle', 'waldo']
@@ -14,6 +19,11 @@ class Literature(BaseClass):
     def get_group_data(self, names:list[str]=['keepin']) -> dict[dict[str: list[float]]]:
         """
         Get countrate data from various sources and compile into a dictionary
+
+        Parameters
+        ----------
+        names : list[str]
+            List of names for which to retrieve data. Default is ['keepin'].
         """
         data_holder = dict()
         self.logger.warning('Current literature energy binning could be improved')
@@ -31,7 +41,12 @@ class Literature(BaseClass):
     
     def _merge_fiss(self, data: dict[str: dict[str: list[float]]]) -> dict[dict[str: list[float]]]:
         """
-        Merge same name fissile data into a single dictionary
+        Merge same name fissile data into a single dictionary.
+
+        Parameters
+        ----------
+        data : dict[str: dict[str: list[float]]]
+            Dictionary containing group data for different names, fissile nuclides, and energies.
         """
         merged_data = dict()
         for name, name_data in data.items():
@@ -51,6 +66,29 @@ class Literature(BaseClass):
 
 
     def _get_group_data_helper(self, fiss: str, frac: float, name: str, energy: str) -> dict[str: list[float]]:
+        """
+        Helper function to retrieve group data for a specific fissile nuclide and energy.
+        Parameters
+        ----------
+        fiss : str
+            Fissile nuclide for which to retrieve data (e.g., 'U235').
+        frac : float
+            Fraction of the fissions from the given fissile nuclide.
+        name : str
+            Name of the literature source (e.g., 'keepin').
+        energy : str
+            Energy level ('thermal' or 'fast').
+
+        Returns
+        -------
+        group_params : dict[str: list[float]]
+            Group data for the specified fissile nuclide and energy.
+        
+        Raises
+        ------
+        UnboundLocalError
+            If the fissile nuclide or energy level is not found in the specified literature source
+        """
         if name == 'keepin':
             if fiss == 'U235':
                 if energy == 'thermal':

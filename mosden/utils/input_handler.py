@@ -12,7 +12,7 @@ class InputHandler:
         Parameters
         ----------
         input_path : str
-            Path to the input file.
+            Path to the input file
         """
         self.input_path = input_path
         self.preproc_choices: dict = dict()
@@ -37,6 +37,8 @@ class InputHandler:
             If True, checks the behaviour of the input data. Default is True.
         adjust_data : bool, optional
             If True, adjusts the data to fit desired formatting. Default is True.
+        apply_defaults : bool, optional
+            If True, applies default values to missing keys. Default is True.
 
         Returns
         -------
@@ -57,6 +59,23 @@ class InputHandler:
         return output
     
     def _apply_defaults(self, data: dict, defaults: dict, path: str='') -> dict:
+        """
+        Apply default values to the input data.
+
+        Parameters
+        ----------
+        data : dict
+            The input data to apply defaults to.
+        defaults : dict
+            The default values to apply.
+        path : str, optional
+            The current path in the data hierarchy, by default ''
+
+        Returns
+        -------
+        dict
+            The input data with defaults applied.
+        """
         final = {}
         for k in defaults.keys():
             full_key = f"{path}.{k}" if path else k
