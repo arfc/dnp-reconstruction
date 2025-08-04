@@ -129,7 +129,7 @@ class InputHandler:
             if not cfy_in_yields:
                 raise ValueError(f"CFY requires cumulative fission yield data {self.cumulative_fission_yields} (not in {data["data_options"]["fission_yield"]})")
         
-        possible_decay_spacings = ['linear']
+        possible_decay_spacings = ['linear', 'log']
         _check_if_in_options(data['data_options']['decay_time_spacing'], possible_decay_spacings)
         possible_concentration_options = ['CFY', 'IFY']
         _check_if_in_options(data['modeling_options']['concentration_handling'], possible_concentration_options)
@@ -141,6 +141,13 @@ class InputHandler:
         _check_if_in_options(data['group_options']['method'], possible_group_method_options)
         possible_sampler_funcs = ['normal', 'uniform']
         _check_if_in_options(data['group_options']['sample_func'], possible_sampler_funcs)
+
+        possible_reprocessing_locations = ['incore', 'excore', 'net', '']
+        for item in data['modeling_options']['reprocessing_locations']:
+            _check_if_in_options(item, possible_reprocessing_locations)
+        possible_spatial_scaling = ['scaled', 'unscaled', 'explicit']
+        _check_if_in_options(data['modeling_options']['spatial_scaling'], possible_spatial_scaling)
+        self.logger.warning("Spatial scaling and reprocecssing is not yet implemented.")
 
         if sum(data['data_options']['fissile_fractions'].values()) != 1.0:
             raise ValueError("Fissile fractions must sum to 1.0. Current sum: "
@@ -156,10 +163,6 @@ class InputHandler:
         data : dict
             Dictionary containing settings and data selections.
         """
-        try:
-            data['name']
-        except KeyError:
-            data['name'] = 'default'
         return data
 
 

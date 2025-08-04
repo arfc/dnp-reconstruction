@@ -38,7 +38,8 @@ DEFAULTS = {
         "parent_feeding": False,
         "concentration_handling": "CFY",
         "count_rate_handling": "data",
-        "reprocessing_locations": ["excore"],
+        "reprocessing_locations": [""],
+        "spatial_scaling": "scaled",
         "reprocessing": {
             "Xe": 0.0
         },

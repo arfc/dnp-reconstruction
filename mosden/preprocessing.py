@@ -191,6 +191,8 @@ class Preprocess(BaseClass):
                 except KeyError:
                     treated_data[nuc] = dict()
                 cur_dict = treated_data[nuc]
+                if pre_treated_data[fissile][nuc]['sigma CFY'] == 0.0:
+                    pre_treated_data[fissile][nuc]['sigma CFY'] = 1e-12
                 CFY_vals = ufloat(pre_treated_data[fissile][nuc]['CFY'],
                                   pre_treated_data[fissile][nuc]['sigma CFY'])
                 treated_val = frac * CFY_vals
@@ -347,7 +349,10 @@ class Preprocess(BaseClass):
         energy_index: int = np.argmin(np.abs(np.array(energies) - self.energy_MeV * 1e6))
         for i, nuc in enumerate(endf_nucs):
             fission_yield = fys[energy_index][nuc]
-            fit_FY_endf[nuc] = ufloat(fission_yield.n, fission_yield.s)
+            uncert = fission_yield.s
+            if fission_yield.s == 0.0:
+                uncert = 1e-12
+            fit_FY_endf[nuc] = ufloat(fission_yield.n, uncert)
         return fit_FY_endf
 
     def _fit_fy_chain(self, FY_chain: dict[str: dict[float: float]], order:int=1) -> dict[str: float]:

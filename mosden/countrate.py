@@ -23,7 +23,13 @@ class CountRate(BaseClass):
         self.parent_feed: bool = self.input_data['modeling_options']['parent_feeding']
         self.num_times: int = self.input_data['modeling_options']['num_decay_times']
         self.decay_time: float = self.input_data['modeling_options']['decay_time']
-        self.decay_times: np.ndarray = np.linspace(0, self.decay_time, self.num_times)
+        decay_time_spacing: str = self.input_data['data_options']['decay_time_spacing']
+        if decay_time_spacing == 'linear':
+            self.decay_times: np.ndarray = np.linspace(0, self.decay_time, self.num_times)
+        elif decay_time_spacing == 'log':
+            self.decay_times: np.ndarray = np.logspace(0, np.log10(self.decay_time), self.num_times)
+        else:
+            raise ValueError(f"Decay time spacing '{decay_time_spacing}' not supported.")
         self.method = self.input_data['modeling_options']['count_rate_handling']
 
         self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
