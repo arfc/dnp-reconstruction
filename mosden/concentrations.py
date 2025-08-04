@@ -1,7 +1,5 @@
 import numpy as np
-from mosden.utils.input_handler import InputHandler
 from mosden.utils.csv_handler import CSVHandler
-from pathlib import Path
 from uncertainties import ufloat
 from mosden.base import BaseClass
 from time import time

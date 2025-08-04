@@ -11,7 +11,7 @@
         "unprocessed_data_dir": "./mosden/data/unprocessed",
         "processed_data_dir": "./tests/integration/output4",
         "output_dir": "./tests/integration/output4",
-        "log_level": 1,
+        "log_level": 15,
         "log_file": "./tests/integration/output4/log.log"
     },
     "data_options": {

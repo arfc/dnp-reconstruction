@@ -11,7 +11,7 @@
         "unprocessed_data_dir": "./tests/integration/test-data",
         "processed_data_dir": "./tests/integration/output3",
         "output_dir": "./tests/integration/output3",
-        "log_level": 1,
+        "log_level": 15,
         "log_file": "./tests/integration/output3/log.log"
     },
     "data_options": {

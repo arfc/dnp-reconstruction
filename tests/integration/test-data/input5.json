@@ -1,25 +1,18 @@
-import os
-import numpy as np
-unprocessed_data_dir = os.path.join(os.path.dirname(__file__), '../data/unprocessed')
-mosden_dir = os.path.dirname(__file__)
-current_dir = os.getcwd()
-seed = np.random.randint(0, 2**32 - 1)
-DEFAULTS = {
-    "name": "default",
+{
+    "name": "real data MC test",
     "file_options": {
         "overwrite": {
-            "preprocessing": True,
-            "concentrations": True,
-            "count_rate": True,
-            "group_fitting": True,
-            "postprocessing": True,
-            "logger": True
+            "preprocessing": true,
+            "concentrations": true,
+            "count_rate": true,
+            "group_fitting": true,
+            "postprocessing": true
         },
-        "unprocessed_data_dir": f"{unprocessed_data_dir}",
-        "processed_data_dir": f"{current_dir}/",
-        "output_dir": f"{current_dir}/",
-        "log_level": 20,
-        "log_file": f"{current_dir}/log.log"
+        "unprocessed_data_dir": "./mosden/data/unprocessed",
+        "processed_data_dir": "./tests/integration/output5",
+        "output_dir": "./tests/integration/output5",
+        "log_level": 15,
+        "log_file": "./tests/integration/output5/log.log"
     },
     "data_options": {
         "half_life": "iaea/eval.csv",
@@ -31,11 +24,12 @@ DEFAULTS = {
         "density_g_cm3": 2.3275,
         "energy_MeV": 0.0253e-6,
         "fissile_fractions": {
-            "U235": 1.0
+            "U235": 0.95,
+            "U238": 0.05
         }
     },
     "modeling_options": {
-        "parent_feeding": False,
+        "parent_feeding": false,
         "concentration_handling": "CFY",
         "count_rate_handling": "data",
         "reprocessing_locations": ["excore"],
@@ -52,8 +46,8 @@ DEFAULTS = {
     "group_options": {
         "num_groups": 6,
         "method": "nlls",
-        "samples": 1,
+        "samples": 100,
         "sample_func": "normal",
-        "seed": seed
+        "seed": 42
     }
 }
