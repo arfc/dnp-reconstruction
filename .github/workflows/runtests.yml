@@ -7,6 +7,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-latex-base
+
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
