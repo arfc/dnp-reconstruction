@@ -6,6 +6,7 @@ import re
 from uncertainties import ufloat
 from time import time
 
+
 class Preprocess(BaseClass):
     def __init__(self, input_path: str) -> None:
         """
@@ -17,11 +18,13 @@ class Preprocess(BaseClass):
             Path to the input file.
         """
         super().__init__(input_path)
+        file_options: dict = self.input_data['file_options']
 
-        self.data_dir: str = self.input_data['file_options']['unprocessed_data_dir']
-        self.overwrite: bool = self.input_data['file_options']['overwrite']['preprocessing']
-        self.out_dir: str = self.input_data['file_options']['processed_data_dir']
-        self.fissile_targets: list = list(self.input_data['data_options']['fissile_fractions'].keys())
+        self.data_dir: str = file_options['unprocessed_data_dir']
+        self.overwrite: bool = file_options['overwrite']['preprocessing']
+        self.out_dir: str = file_options['processed_data_dir']
+        self.fissile_targets: list = list(
+            self.input_data['data_options']['fissile_fractions'].keys())
         self.energy_MeV: float = self.input_data['data_options']['energy_MeV']
 
         data_keys: list[str] = [
@@ -35,7 +38,7 @@ class Preprocess(BaseClass):
         }
 
         return None
-    
+
     def run(self) -> None:
         """
         Run the preprocessing.
@@ -51,9 +54,9 @@ class Preprocess(BaseClass):
             self.endf_preprocess,
             self.iaea_preprocess
         ]
-        
+
         func_selector: list[zip] = list(zip(datasource_list,
-                                 func_list))
+                                            func_list))
         for data_val, path in self.data_to_proc.items():
             for ids, func in func_selector:
                 if any(word in path for word in ids):
@@ -61,8 +64,8 @@ class Preprocess(BaseClass):
         self.save_postproc()
         self.time_track(start, 'Preprocessing')
         return None
-    
-    def openmc_preprocess(self, data_val:str, unprocessed_path:str) -> None:
+
+    def openmc_preprocess(self, data_val: str, unprocessed_path: str) -> None:
         """
         Processes OpenMC data
 
@@ -75,8 +78,8 @@ class Preprocess(BaseClass):
         """
         self._openmc_chain_preprocess(data_val, unprocessed_path)
         return None
-    
-    def endf_preprocess(self, data_val: str, unprocessed_path:str) -> None:
+
+    def endf_preprocess(self, data_val: str, unprocessed_path: str) -> None:
         """
         Processes ENDF data
 
@@ -89,7 +92,7 @@ class Preprocess(BaseClass):
         """
         self._endf_nfy_preprocess(data_val, unprocessed_path)
         return None
-    
+
     def iaea_preprocess(self, data_val: str, unprocessed_path: str) -> None:
         """
         Processes IAEA data
@@ -119,12 +122,12 @@ class Preprocess(BaseClass):
         data_file: str = os.path.join(self.data_dir, path)
         out_file: str = os.path.join(self.out_dir, f'{data_val}.csv')
 
-        data = CSVHandler(data_file, create=False).read_csv(raw_iaea=True) 
+        data = CSVHandler(data_file, create=False).read_csv(raw_iaea=True)
         csv_path: str = os.path.join(out_file)
         CSVHandler(csv_path, self.overwrite).write_csv(data)
         return None
-    
-    def _openmc_chain_preprocess(self, data_val:str, path: str) -> None:
+
+    def _openmc_chain_preprocess(self, data_val: str, path: str) -> None:
         """
         Processes OpenMC all chain_* files
 
@@ -137,11 +140,12 @@ class Preprocess(BaseClass):
         """
         data_path: str = os.path.join(self.data_dir, path)
         out_path: str = os.path.join(self.out_dir, f'{data_val}.csv')
-        file_data: dict[str: dict[str: float]] = self._process_chain_file(data_path)
+        file_data: dict[str: dict[str: float]
+                        ] = self._process_chain_file(data_path)
         CSVHandler(out_path, self.overwrite).write_csv(file_data)
         return None
-    
-    def _endf_nfy_preprocess(self, data_val:str, path: str) -> None:
+
+    def _endf_nfy_preprocess(self, data_val: str, path: str) -> None:
         """
         Processes ENDF data for the specified fissile target.
 
@@ -161,16 +165,22 @@ class Preprocess(BaseClass):
                 if not file.startswith(f'nfy-{adjusted_fissile}'):
                     continue
                 full_path: str = os.path.join(data_dir, file)
-                file_data : dict[str: dict[str: float]] = self._process_endf_nfy_file(full_path)
+                file_data: dict[str: dict[str: float]
+                                ] = self._process_endf_nfy_file(full_path)
             pre_treated_data[fissile] = file_data
-        treated_data: dict[str: dict[str: float]] = self._treat_endf_data(pre_treated_data)
+        treated_data: dict[str: dict[str: float]
+                           ] = self._treat_endf_data(pre_treated_data)
         csv_path: str = os.path.join(out_path)
-        CSVHandler(csv_path, self.overwrite).write_csv(treated_data) 
+        CSVHandler(csv_path, self.overwrite).write_csv(treated_data)
         return None
-    
-    def _treat_endf_data(self, pre_treated_data: dict[str: dict[str: dict[str: float]]]) -> dict[str: dict[str: float]]:
+
+    def _treat_endf_data(
+            self,
+            pre_treated_data: dict[str: dict[str: dict[str: float]]]
+            ) -> dict[str: dict[str: float]]:
         """
-        Take endf data for each nuclide and scale it by fissile fraction for each nuclide
+        Take endf data for each nuclide and scale it by fissile fraction 
+          for each nuclide
 
         Parameters
         ----------
@@ -180,7 +190,7 @@ class Preprocess(BaseClass):
         Returns
         -------
         treated_data : dict[str: dict[str: float]]
-            Dictionary containing the treated data with fissile fractions applied.
+            Dictionary containing the data with fissile fractions applied.
         """
         treated_data: dict[str: dict[str: float]] = dict()
         for fissile in pre_treated_data.keys():
@@ -197,9 +207,10 @@ class Preprocess(BaseClass):
                                   pre_treated_data[fissile][nuc]['sigma CFY'])
                 treated_val = frac * CFY_vals
                 cur_dict['CFY'] = cur_dict.get('CFY', 0) + treated_val.n
-                cur_dict['sigma CFY'] = cur_dict.get('sigma CFY', 0) + treated_val.s
+                cur_dict['sigma CFY'] = cur_dict.get(
+                    'sigma CFY', 0) + treated_val.s
         return treated_data
- 
+
     def _endf_fissile_name(self, fissile: str) -> str:
         """
         Adjusts the fissile target name for ENDF processing.
@@ -220,33 +231,37 @@ class Preprocess(BaseClass):
 
         symbol, A = match.groups()
         A = int(A)
-        
+
         periodic_table = {
-            'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7, 'O': 8, 'F': 9, 'Ne': 10,
-            'Na': 11, 'Mg': 12, 'Al': 13, 'Si': 14, 'P': 15, 'S': 16, 'Cl': 17, 'Ar': 18,
-            'K': 19, 'Ca': 20, 'Sc': 21, 'Ti': 22, 'V': 23, 'Cr': 24, 'Mn': 25, 'Fe': 26,
-            'Co': 27, 'Ni': 28, 'Cu': 29, 'Zn': 30, 'Ga': 31, 'Ge': 32, 'As': 33, 'Se': 34,
-            'Br': 35, 'Kr': 36, 'Rb': 37, 'Sr': 38, 'Y': 39, 'Zr': 40, 'Nb': 41, 'Mo': 42,
-            'Tc': 43, 'Ru': 44, 'Rh': 45, 'Pd': 46, 'Ag': 47, 'Cd': 48, 'In': 49, 'Sn': 50,
-            'Sb': 51, 'Te': 52, 'I': 53, 'Xe': 54, 'Cs': 55, 'Ba': 56, 'La': 57, 'Ce': 58,
-            'Pr': 59, 'Nd': 60, 'Pm': 61, 'Sm': 62, 'Eu': 63, 'Gd': 64, 'Tb': 65, 'Dy': 66,
-            'Ho': 67, 'Er': 68, 'Tm': 69, 'Yb': 70, 'Lu': 71, 'Hf': 72, 'Ta': 73, 'W': 74,
-            'Re': 75, 'Os': 76, 'Ir': 77, 'Pt': 78, 'Au': 79, 'Hg': 80, 'Tl': 81, 'Pb': 82,
-            'Bi': 83, 'Po': 84, 'At': 85, 'Rn': 86, 'Fr': 87, 'Ra': 88, 'Ac': 89, 'Th': 90,
-            'Pa': 91, 'U': 92, 'Np': 93, 'Pu': 94, 'Am': 95, 'Cm': 96, 'Bk': 97, 'Cf': 98,
-            'Es': 99, 'Fm': 100, 'Md': 101, 'No': 102, 'Lr': 103, 'Rf': 104, 'Db': 105,
-            'Sg': 106, 'Bh': 107, 'Hs': 108, 'Mt': 109, 'Ds': 110, 'Rg': 111, 'Cn': 112,
-            'Fl': 114, 'Lv': 116
+            'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7, 'O': 8,
+            'F': 9, 'Ne': 10, 'Na': 11, 'Mg': 12, 'Al': 13, 'Si': 14, 'P': 15,
+            'S': 16, 'Cl': 17, 'Ar': 18, 'K': 19, 'Ca': 20, 'Sc': 21, 'Ti': 22,
+            'V': 23, 'Cr': 24, 'Mn': 25, 'Fe': 26, 'Co': 27, 'Ni': 28, 'Cu': 29,
+            'Zn': 30, 'Ga': 31, 'Ge': 32, 'As': 33, 'Se': 34, 'Br': 35,
+            'Kr': 36, 'Rb': 37, 'Sr': 38, 'Y': 39, 'Zr': 40, 'Nb': 41, 'Mo': 42,
+            'Tc': 43, 'Ru': 44, 'Rh': 45, 'Pd': 46, 'Ag': 47, 'Cd': 48,
+            'In': 49, 'Sn': 50, 'Sb': 51, 'Te': 52, 'I': 53, 'Xe': 54, 'Cs': 55,
+            'Ba': 56, 'La': 57, 'Ce': 58, 'Pr': 59, 'Nd': 60, 'Pm': 61,
+            'Sm': 62, 'Eu': 63, 'Gd': 64, 'Tb': 65, 'Dy': 66, 'Ho': 67,
+            'Er': 68, 'Tm': 69, 'Yb': 70, 'Lu': 71, 'Hf': 72, 'Ta': 73, 'W': 74,
+            'Re': 75, 'Os': 76, 'Ir': 77, 'Pt': 78, 'Au': 79, 'Hg': 80,
+            'Tl': 81, 'Pb': 82, 'Bi': 83, 'Po': 84, 'At': 85, 'Rn': 86,
+            'Fr': 87, 'Ra': 88, 'Ac': 89, 'Th': 90, 'Pa': 91, 'U': 92, 'Np': 93,
+            'Pu': 94, 'Am': 95, 'Cm': 96, 'Bk': 97, 'Cf': 98, 'Es': 99,
+            'Fm': 100, 'Md': 101, 'No': 102, 'Lr': 103, 'Rf': 104, 'Db': 105,
+            'Sg': 106, 'Bh': 107, 'Hs': 108, 'Mt': 109, 'Ds': 110, 'Rg': 111,
+            'Cn': 112, 'Fl': 114, 'Lv': 116
         }
 
-        symbol = symbol.capitalize() if len(symbol) == 1 else symbol[0].upper() + symbol[1:].lower()
+        symbol = symbol.capitalize() if len(
+            symbol) == 1 else symbol[0].upper() + symbol[1:].lower()
 
         Z = periodic_table.get(symbol)
         if Z is None:
             raise ValueError(f"Unknown element symbol: {symbol}")
-        
+
         return f"{Z:03d}_{symbol}_{A}"
-    
+
     def _process_endf_nfy_file(self, file: str) -> dict[str, dict[str: float]]:
         """
         Processes a single ENDF NFY file and returns the data as a dictionary.
@@ -262,7 +277,8 @@ class Preprocess(BaseClass):
             Dictionary containing the processed data.
         """
         import openmc.data
-        fpys = openmc.data.FissionProductYields(openmc.data.endf.Evaluation(file))
+        fpys = openmc.data.FissionProductYields(
+            openmc.data.endf.Evaluation(file))
         energies = fpys.energies
         fys = fpys.cumulative
         endf_nucs: list = list(fys[0].keys())
@@ -274,11 +290,10 @@ class Preprocess(BaseClass):
             data[nuc]['CFY'] = fit_FY_nfy[nuc].n
             data[nuc]['sigma CFY'] = fit_FY_nfy[nuc].s
         return data
-        
-    
+
     def _process_chain_file(self, file: str) -> dict[str, dict[str: float]]:
         """
-        Processes a single OpenMC chain file and returns the data as a dictionary.
+        Processes an OpenMC chain file and returns the data as a dictionary.
 
         Parameters
         ----------
@@ -309,25 +324,29 @@ class Preprocess(BaseClass):
                     FY_chain[product] = {}
                 for energy in energies:
                     cur_dict = FY_chain[product]
-                    cur_dict[energy] = cur_dict.get(energy, 0) + FY_data[energy][product]*frac
+                    cur_dict[energy] = cur_dict.get(
+                        energy, 0) + FY_data[energy][product] * frac
 
         fit_FY_chain: dict[str: float] = self._fit_fy_chain(FY_chain, order=1)
         chain_nucs: list[str] = list(fit_FY_chain.keys())
-        nuclide_halflives: dict[str: float] = {nuc.name: nuc.half_life for nuc in nuclides}
+        nuclide_halflives: dict[str: float] = {
+            nuc.name: nuc.half_life for nuc in nuclides}
 
         data: dict[str: dict[str: float]] = dict()
         for nuc in chain_nucs:
             data[nuc] = {}
-            if nuclide_halflives[nuc] != None:
+            if nuclide_halflives[nuc] is not None:
                 data[nuc]['half_life'] = nuclide_halflives[nuc]
             else:
                 data[nuc]['half_life'] = np.inf
-            
+
             data[nuc]['IFY'] = fit_FY_chain[nuc]
-        
+
         return data
 
-    def _fit_fy_endf(self, energies: list[float], fys: list[dict[str: ufloat]]) -> dict[str: ufloat]:
+    def _fit_fy_endf(self,
+                     energies: list[float],
+                     fys: list[dict[str: ufloat]]) -> dict[str: ufloat]:
         """
         Fit the fission yield data from ENDF files.
         Uses the closest fit, not an interpolation.
@@ -346,7 +365,11 @@ class Preprocess(BaseClass):
         """
         fit_FY_endf: dict[str: float] = {}
         endf_nucs: list[str] = list(fys[0].keys())
-        energy_index: int = np.argmin(np.abs(np.array(energies) - self.energy_MeV * 1e6))
+        energy_index: int = np.argmin(
+            np.abs(
+                np.array(energies) -
+                self.energy_MeV *
+                1e6))
         for i, nuc in enumerate(endf_nucs):
             fission_yield = fys[energy_index][nuc]
             uncert = fission_yield.s
@@ -355,7 +378,9 @@ class Preprocess(BaseClass):
             fit_FY_endf[nuc] = ufloat(fission_yield.n, uncert)
         return fit_FY_endf
 
-    def _fit_fy_chain(self, FY_chain: dict[str: dict[float: float]], order:int=1) -> dict[str: float]:
+    def _fit_fy_chain(self,
+                      FY_chain: dict[str: dict[float: float]],
+                      order: int = 1) -> dict[str: float]:
         """
         Fit the fission yield chain data.
 
@@ -373,12 +398,17 @@ class Preprocess(BaseClass):
         """
         fit_FY_chain: dict[str: float] = {}
         for product in FY_chain:
-            fit_FY_chain[product] = self._energy_fit(energies=list(FY_chain[product].keys()),
-                                                     values=list(FY_chain[product].values()), 
-                                                     order=order)
+            fit_FY_chain[product] = self._energy_fit(
+                energies=list(
+                    FY_chain[product].keys()), values=list(
+                    FY_chain[product].values()), order=order)
         return fit_FY_chain
-    
-    def _energy_fit(self, energies: list[float], values: list[float], order: int = 1) -> float:
+
+    def _energy_fit(
+            self,
+            energies: list[float],
+            values: list[float],
+            order: int = 1) -> float:
         """
         Fit the energy values to a polynomial of the specified order.
         Evaluates at `self.energy_MeV`.
@@ -397,7 +427,7 @@ class Preprocess(BaseClass):
         fit_value : float
             The fitted value at `self.energy_MeV`.
         """
-        xs = [energy*1e-6 for energy in energies]
+        xs = [energy * 1e-6 for energy in energies]
         if order == 1:
             fit_value = np.interp(self.energy_MeV, xs, values)
         else:
@@ -409,6 +439,3 @@ class Preprocess(BaseClass):
 if __name__ == "__main__":
     preproc = Preprocess('../examples/keepin_1957/input.json')
     preproc.run()
-    #preproc.iaea_preprocess('emission_probability', 'iaea/eval.csv')
-    #preproc.openmc_preprocess('half_life', 'endfb71/omcchain/chain_casl_pwr.xml')
-    #preproc.endf_preprocess('fission_yield', 'endfb71/nfy')
