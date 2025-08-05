@@ -8,6 +8,7 @@ from math import ceil
 from time import time
 import warnings
 
+
 class Grouper(BaseClass):
     def __init__(self, input_path: str) -> None:
         """
@@ -20,10 +21,12 @@ class Grouper(BaseClass):
         """
         super().__init__(input_path)
         self.output_dir: str = self.input_data['file_options']['output_dir']
+        file_options: dict = self.input_data.get('file_options', {})
+        overwrite: dict = file_options.get('overwrite', {})
 
         self.model_method: str = self.input_data['group_options']['method']
         self.num_groups: int = self.input_data['group_options']['num_groups']
-        self.overwrite: bool = self.input_data['file_options']['overwrite']['group_fitting']
+        self.overwrite: bool = overwrite.get('group_fitting', False)
         self.MC_samples: int = self.input_data['group_options']['samples']
 
         self.t_in: float = self.input_data['modeling_options']['incore_s']
@@ -32,7 +35,7 @@ class Grouper(BaseClass):
         self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
         self.sample_func: str = self.input_data['group_options']['sample_func']
         return None
-    
+
     def generate_groups(self) -> None:
         """
         Generate some number of groups based on the selected method
@@ -42,14 +45,23 @@ class Grouper(BaseClass):
         if self.model_method == 'nlls':
             data = self._nonlinear_least_squares()
         else:
-            raise NotImplementedError(f'{self.model_method} is not implemented')
-        CSVHandler(self.group_path, self.overwrite).write_groups_csv(data, sortby='half_life')
+            raise NotImplementedError(
+                f'{self.model_method} is not implemented')
+        CSVHandler(
+            self.group_path,
+            self.overwrite).write_groups_csv(
+            data,
+            sortby='half_life')
         self.save_postproc()
         self.time_track(start, 'Groupfit')
         return None
-    
-    def _residual_function(self, parameters: np.ndarray[float], times: np.ndarray[float], counts: np.ndarray[float],
-                           fit_func : Callable) -> float:
+
+    def _residual_function(
+            self,
+            parameters: np.ndarray[float],
+            times: np.ndarray[float],
+            counts: np.ndarray[float],
+            fit_func: Callable) -> float:
         """
         Calculate the residual of the current set of parameters
 
@@ -71,8 +83,11 @@ class Grouper(BaseClass):
         """
         residual = (counts - fit_func(times, parameters)) / (counts + 1e-12)
         return residual
-    
-    def _pulse_fit_function(self, times: np.ndarray[float|object], parameters: np.ndarray[float|object]) -> np.ndarray[float|object]:
+
+    def _pulse_fit_function(self,
+                            times: np.ndarray[float | object],
+                            parameters: np.ndarray[float | object]
+                            ) -> np.ndarray[float | object]:
         """
         Fit function for a pulse irradiation
 
@@ -98,11 +113,15 @@ class Grouper(BaseClass):
                 counts += (a * lam * np.exp(-lam * times))
             except TypeError:
                 if group == 0:
-                    counts: np.ndarray[object] = np.zeros(len(times), dtype=object)
+                    counts: np.ndarray[object] = np.zeros(
+                        len(times), dtype=object)
                 counts += (a * lam * unumpy.exp(-lam * times))
         return counts
 
-    def _saturation_fit_function(self, times: np.ndarray[float|object], parameters: np.ndarray[float|object]) -> np.ndarray[float|object]:
+    def _saturation_fit_function(self,
+                                 times: np.ndarray[float | object],
+                                 parameters: np.ndarray[float | object]
+                                 ) -> np.ndarray[float | object]:
         """
         Fit function for a saturation irradiation
 
@@ -126,20 +145,32 @@ class Grouper(BaseClass):
             lam = np.log(2) / half_lives[group]
             a = yields[group]
             cycle_sum = 0
-            for j in range(1, tot_cycles+1):
+            for j in range(1, tot_cycles + 1):
+                exponent = (-lam * (self.t_net - 
+                                    j * self.t_in - 
+                                    (j - 1) * self.t_ex))
                 try:
-                    cycle_sum += np.exp(-lam * (self.t_net - j*self.t_in - (j-1)*self.t_ex))
+                    cycle_sum += np.exp(exponent)
                 except TypeError:
-                    cycle_sum += unumpy.exp(-lam * (self.t_net - j*self.t_in - (j-1)*self.t_ex))
+                    cycle_sum += unumpy.exp(exponent)
             try:
-                counts += a * np.exp(-lam * times) * (1 - np.exp(-lam * self.t_net + (1 - np.exp(lam * self.t_ex) * cycle_sum)))
+                counts += (a * np.exp(-lam * times) * 
+                           (1 - np.exp(-lam * self.t_net + 
+                                       (1 - np.exp(lam * self.t_ex) * cycle_sum)
+                                       )))
             except TypeError:
                 if group == 0:
-                    counts: np.ndarray[object] = np.zeros(len(times), dtype=object)
-                counts += a * unumpy.exp(-lam * times) * (1 - unumpy.exp(-lam * self.t_net + (1 - unumpy.exp(lam * self.t_ex) * cycle_sum)))
+                    counts: np.ndarray[object] = np.zeros(
+                        len(times), dtype=object)
+                counts += (a * unumpy.exp(-lam * times) * 
+                           (1 - unumpy.exp(-lam * self.t_net +
+                                           (1 - unumpy.exp(lam * self.t_ex)
+                                             * cycle_sum))))
         return counts
-    
-    def _nonlinear_least_squares(self, count_data: dict[str: np.ndarray[float]] = None) -> dict[str: dict[str: float]]:
+
+    def _nonlinear_least_squares(self,
+                                 count_data: dict[str: np.ndarray[float]] = None
+                                 ) -> dict[str: dict[str: float]]:
         """
         Run nonlinear least squares fit on the delayed neutron count rate curve
         to generate group half-lives and yields
@@ -148,15 +179,16 @@ class Grouper(BaseClass):
         ----------
         count_data : dict[str: np.ndarray[float]], optional
             Dictionary containing the count data, by default None
-        
+
         Returns
         -------
         data : dict[str: dict[str: float]]
-            Dictionary containing the group parameters (yield, sigma yield, half_life, sigma half_life)
+            Dictionary containing the group parameters
+              (yield, sigma yield, half_life, sigma half_life)
         """
         from mosden.countrate import CountRate
-        initial_parameter_guess = np.ones(self.num_groups*2)
-        if count_data == None:
+        initial_parameter_guess = np.ones(self.num_groups * 2)
+        if count_data is None:
             count_data = CSVHandler(self.countrate_path).read_vector_csv()
         times = np.asarray(count_data['times'])
         counts = np.asarray(count_data['counts'])
@@ -166,15 +198,25 @@ class Grouper(BaseClass):
         elif self.irrad_type == 'saturation':
             fit_function = self._saturation_fit_function
         else:
-            raise NotImplementedError(f'{self.irrad_type} not supported in nonlinear least squares solver')
-        
+            raise NotImplementedError(
+                f'{self.irrad_type} not supported in nonlinear least squares')
+
         min_half_life = 1e-3
         max_half_life = 1e3
         max_yield = 1.0
-        lower_bounds = np.concatenate((np.zeros(self.num_groups), np.ones(self.num_groups) * min_half_life))
-        upper_bounds = np.concatenate((np.ones(self.num_groups) * max_yield, np.ones(self.num_groups) * max_half_life))
+        lower_bounds = np.concatenate(
+            (np.zeros(
+                self.num_groups), np.ones(
+                self.num_groups) * min_half_life))
+        upper_bounds = np.concatenate(
+            (np.ones(
+                self.num_groups) *
+                max_yield,
+                np.ones(
+                self.num_groups) *
+                max_half_life))
 
-        bounds = (lower_bounds, upper_bounds) 
+        bounds = (lower_bounds, upper_bounds)
         result = least_squares(self._residual_function,
                                initial_parameter_guess,
                                bounds=bounds,
@@ -193,20 +235,25 @@ class Grouper(BaseClass):
         countrate = CountRate(self.input_path)
         self.logger.info(f'Currently using {self.sample_func} sampling')
         for _ in range(1, self.MC_samples):
-            data = countrate.calculate_count_rate(MC_run=True, sampler_func=self.sample_func)
+            data = countrate.calculate_count_rate(
+                MC_run=True, sampler_func=self.sample_func)
             count_sample = data['counts']
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore')
-                result = least_squares(self._residual_function,
-                                    result.x,
-                                    bounds=bounds,
-                                    method='trf',
-                                    ftol=1e-12,
-                                    gtol=1e-12,
-                                    xtol=1e-12,
-                                    verbose=0,
-                                    max_nfev=1e3,
-                                    args=(times, count_sample, fit_function))
+                result = least_squares(
+                    self._residual_function,
+                    result.x,
+                    bounds=bounds,
+                    method='trf',
+                    ftol=1e-12,
+                    gtol=1e-12,
+                    xtol=1e-12,
+                    verbose=0,
+                    max_nfev=1e3,
+                    args=(
+                        times,
+                        count_sample,
+                        fit_function))
             tracked_counts.append([i for i in count_sample])
             sorted_params = self._sort_params_by_half_life(result.x)
             sampled_params.append(sorted_params)
@@ -236,8 +283,9 @@ class Grouper(BaseClass):
             data[group]['half_life'] = np.mean(half_lives[group])
             data[group]['sigma half_life'] = np.std(half_lives[group])
         return data
-    
-    def _sort_params_by_half_life(self, params: np.ndarray[float]) -> np.ndarray[float]:
+
+    def _sort_params_by_half_life(
+            self, params: np.ndarray[float]) -> np.ndarray[float]:
         """
         Sorts yields and half-lives in params by half-life (descending).
 
@@ -245,7 +293,7 @@ class Grouper(BaseClass):
         ----------
         params : np.ndarray[float]
             Array of parameters containing yields and half-lives
-        
+
         Returns
         -------
         sorted_params : np.ndarray[float]
@@ -257,6 +305,7 @@ class Grouper(BaseClass):
         sorted_yields = np.asarray(yields)[sort_idx]
         sorted_half_lives = np.asarray(half_lives)[sort_idx]
         return np.concatenate([sorted_yields, sorted_half_lives])
+
 
 if __name__ == "__main__":
     input_path = "../examples/keepin_1957/input.json"
