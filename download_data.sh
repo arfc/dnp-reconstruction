@@ -17,7 +17,7 @@ roman_to_int() {
   esac
 }
 
-DATA_DIR="mosden/data/testing"
+DATA_DIR="mosden/data/unprocessed"
 
 # ENDF --------------------------------------------------------------------
 ENDF_VERSION="VII.1"
@@ -64,13 +64,24 @@ echo "NFY data handled"
 # IAEA --------------------------------------------------------------------
 IAEA_DIR="${DATA_DIR}/iaea"
 IAEA_FILE="$IAEA_DIR/eval.csv"
-URL="https://www-nds.iaea.org/relnsd/delayedn/eval.csv"
+IAEA_URL="https://www-nds.iaea.org/relnsd/delayedn/eval.csv"
 mkdir -p "$IAEA_DIR"
 
 echo "Downloading IAEA delayed neutron data..."
-wget -q --show-progress -O "$IAEA_FILE" "$URL"
+wget -q --show-progress -O "$IAEA_FILE" "$IAEA_URL"
 echo "Saved to $IAEA_FILE"
 
 # /IAEA --------------------------------------------------------------------
 
 # OpenMC --------------------------------------------------------------------
+OPENMC_DIR="${ENDF_DIR}/omcchain/"
+mkdir -p "$OPENMC_DIR"
+wget -q --show-progress -O "${OPENMC_DIR}chain_casl_pwr.xml" "https://anl.box.com/shared/static/3nvnasacm2b56716oh5hyndxdyauh5gs.xml"
+wget -q --show-progress -O "${OPENMC_DIR}chain_casl_sfr.xml" "https://anl.box.com/shared/static/9fqbq87j0tx4m6vfl06pl4ccc0hwamg9.xml"
+if [[ "${ENDF_VERSION}" == "VII.1" ]]; then
+  wget -q --show-progress -O "${OPENMC_DIR}chain_endfb71_pwr.xml" "https://anl.box.com/shared/static/os1u896bwsbopurpgas72bi6aij2zzdc.xml"
+  wget -q --show-progress -O "${OPENMC_DIR}chain_endfb71_sfr.xml" "https://anl.box.com/shared/static/9058zje1gm0ekd93hja542su50pccvj0.xml"
+elif [[ "${ENDF_VERSION}" == "VIII.0" ]]; then
+  wget -q --show-progress -O "${OPENMC_DIR}chain_endfb71_pwr.xml" "https://anl.box.com/shared/static/nyezmyuofd4eqt6wzd626lqth7wvpprr.xml"
+  wget -q --show-progress -O "${OPENMC_DIR}chain_endfb71_sfr.xml" "https://anl.box.com/shared/static/x3kp739hr5upmeqpbwx9zk9ep04fnmtg.xml"
+fi
