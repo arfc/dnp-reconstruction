@@ -46,7 +46,7 @@ legend.title_fontsize: 16
 lines.linewidth : 1.5
 lines.markersize : 1
 scatter.marker : .
-axes.prop_cycle : cycler('color', ['E69F00', '56B4E9', '009E73', 'F0E442', '0072B2', 'D55E00', 'CC79A7'])
+axes.prop_cycle : cycler('color', ['3B3B3B', 'E69F00', '56B4E9', '009E73', 'F0E442', '0072B2', 'D55E00', 'CC79A7'])
 
 # FIGURE OUTPUT
 figure.autolayout : True
