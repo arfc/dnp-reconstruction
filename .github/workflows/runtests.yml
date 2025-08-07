@@ -22,12 +22,17 @@ jobs:
           activate-environment: mosdenv
           auto-activate-base: false
       
-      - name: Run download script
+      - name: Restore cached data
         id: cache-data
         uses: actions/cache@v4
         with:
           path: mosden/data/unprocessed
-          key: data-cache-${{ hashFiles('download_data.sh')}}
+          key: data-cache-${{ hashFiles('download_data.sh') }}
+
+      - name: Run download script if cache miss
+        if: steps.cache-data.outputs.cache-hit != 'true'
+        shell: bash -l {0}
+        run: bash download_data.sh
 
       - name: Install MoSDeN
         shell: bash -l {0}
