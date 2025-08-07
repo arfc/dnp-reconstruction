@@ -78,6 +78,24 @@ class PostProcess(BaseClass):
                 off_nominal: bool = True) -> None:
             markers = ['v', 'o', 'x', '^', 's', 'D']
             nuclides = self.nuclides or list(data[0].keys())
+            xlabel_replace = {
+                "Half-life": fr"$\lambda_i [s^{{-1}}]$",
+                "Concentration": fr"$N_i [-]$",
+                "Emission Probability": fr'$P_{{n, i}} [-]$'
+            }
+            ylabel_replace = {
+                "Half-life": fr"$\lambda_k [s^{{-1}}]$",
+                "Yield": fr"$\bar{{\nu}}_{{d, k}} [-]$",
+            }
+            offnom_ylabel_replace = {
+                "Half-life": fr"$\Delta \lambda_k [s^{{-1}}]$",
+                "Yield": fr"$\Delta \bar{{\nu}}_{{d, k}} [-]$",
+            }
+            xlab = xlabel_replace[xlab]
+            if off_nominal:
+                ylab = offnom_ylabel_replace[ylab]
+            else:
+                ylab = ylabel_replace[ylab]
             for nuc in nuclides:
                 for group in range(self.num_groups):
                     data_vals = [data[nuc] for data in data]
@@ -90,13 +108,11 @@ class PostProcess(BaseClass):
                         data_vals,
                         plot_val,
                         label=f'Group {group + 1}',
-                        alpha=0.75,
+                        alpha=0.5,
                         s=4,
                         marker=markers[group])
                 plt.legend(markerscale=2)
                 plt.xlabel(xlab)
-                if off_nominal:
-                    ylab = fr'$\Delta$ {ylab}'
                 plt.ylabel(ylab)
                 plt.savefig(f'{savedir}{savename}_{nuc}.png')
                 plt.close()
@@ -112,7 +128,7 @@ class PostProcess(BaseClass):
         if not os.path.exists(conc_save_dir):
             os.makedirs(conc_save_dir)
         Pn_data = self.post_data['PnMC']
-        halflife_data = self.post_data['HLMC']
+        decayconst_data = self.post_data['lamMC']
         conc_data = self.post_data['concMC']
         scatter_helper(
             Pn_data,
@@ -123,7 +139,7 @@ class PostProcess(BaseClass):
             pn_save_dir,
             off_nominal=off_nominal)
         scatter_helper(
-            halflife_data,
+            decayconst_data,
             self.MC_yields,
             'Half-life',
             'Yield',
@@ -147,7 +163,7 @@ class PostProcess(BaseClass):
             pn_save_dir,
             off_nominal=off_nominal)
         scatter_helper(
-            halflife_data,
+            decayconst_data,
             self.MC_half_lives,
             'Half-life',
             'Half-life',

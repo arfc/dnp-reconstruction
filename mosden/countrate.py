@@ -244,18 +244,18 @@ class CountRate(BaseClass):
                 sigma_count_rate += unumpy.std_devs(counts)
 
             Pn_post_data[nuc] = Pn
-            lam_post_data[nuc] = np.log(2) / decay_const
+            lam_post_data[nuc] = decay_const
             conc_post_data[nuc] = conc
 
         if MC_run:
             if 'PnMC' not in self.post_data.keys():
                 self.post_data['PnMC'] = list()
-            if 'HLMC' not in self.post_data.keys():
-                self.post_data['HLMC'] = list()
+            if 'lamMC' not in self.post_data.keys():
+                self.post_data['lamMC'] = list()
             if 'concMC' not in self.post_data.keys():
                 self.post_data['concMC'] = list()
             self.post_data['PnMC'].append(Pn_post_data)
-            self.post_data['HLMC'].append(lam_post_data)
+            self.post_data['lamMC'].append(lam_post_data)
             self.post_data['concMC'].append(conc_post_data)
             self.save_postproc()
 
