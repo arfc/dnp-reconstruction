@@ -18,6 +18,8 @@ roman_to_int() {
 }
 
 DATA_DIR="mosden/data/testing"
+
+# ENDF --------------------------------------------------------------------
 ENDF_VERSION="VII.1"
 ALLOWED_VERSIONS=("VIII.0" "VII.1")
 
@@ -37,11 +39,17 @@ INTEGER_VALUE=$(roman_to_int "$ROMAN_PART")
 LOWERCASE_VERSION="${INTEGER_VALUE}${DIGIT_PART}"
 
 ENDF_DIR="${DATA_DIR}/endfb${LOWERCASE_VERSION}"
-NFY_DIR="${ENDF_DIR}/nfy"
+NFY_DIR="${ENDF_DIR}"
 mkdir -p "$NFY_DIR"
 
-NFY_ZIP_NAME="ENDF-B-${ENDF_VERSION}_nfy.zip"
-NFY_URL="https://www.nndc.bnl.gov/endf-releases/${NFY_ZIP_NAME}"
+if [[ "${ENDF_VERSION}" == "VII.1" ]]; then
+  SEPARATOR="-"
+elif [[ "${ENDF_VERSION}" == "VIII.0" ]]; then
+  SEPARATOR="_"
+fi
+
+NFY_ZIP_NAME="ENDF-B-${ENDF_VERSION}${SEPARATOR}nfy.zip"
+NFY_URL="https://www.nndc.bnl.gov/endf-b7.1/zips/${NFY_ZIP_NAME}"
 
 echo "Downloading NFY data for ENDF/B-${ENDF_VERSION}..."
 TEMP_ZIP="${NFY_DIR}/${NFY_ZIP_NAME}"
@@ -51,6 +59,9 @@ unzip "$TEMP_ZIP" -d "$NFY_DIR"
 rm "$TEMP_ZIP"
 echo "NFY data handled"
 
+# /ENDF --------------------------------------------------------------------
+
+# IAEA --------------------------------------------------------------------
 IAEA_DIR="${DATA_DIR}/iaea"
 IAEA_FILE="$IAEA_DIR/eval.csv"
 URL="https://www-nds.iaea.org/relnsd/delayedn/eval.csv"
@@ -60,3 +71,6 @@ echo "Downloading IAEA delayed neutron data..."
 wget -q --show-progress -O "$IAEA_FILE" "$URL"
 echo "Saved to $IAEA_FILE"
 
+# /IAEA --------------------------------------------------------------------
+
+# OpenMC --------------------------------------------------------------------
