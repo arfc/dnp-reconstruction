@@ -148,3 +148,20 @@ class BaseClass:
                 f"Processed data file {data_path} does not exist.")
         data = csv_handler.read_csv()
         return data
+
+    def _get_element_from_nuclide(self, nuclide: str) -> str:
+        """
+        Get the element from a given nuclide of the form `XX##`
+
+        Parameters
+        ----------
+        nuclide : str
+            Nuclide, such as `Xe135`
+        
+        Returns
+        -------
+        element : str
+            Element, such as `Xe`
+        """
+        element = ''.join([i for i in nuclide if i.isalpha()])
+        return element

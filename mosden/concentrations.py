@@ -34,6 +34,16 @@ class Concentrations(BaseClass):
         self.t_ex: float = modeling_options.get('excore_s', 0.0)
         self.t_net: float = modeling_options.get('net_irrad_s', 0.0)
         self.irrad_type: str = modeling_options.get('irrad_type', 'saturation')
+        self.f_in: float = self.t_in / (self.t_in + self.t_ex)
+        self.f_ex: float = self.t_ex / (self.t_net + self.t_ex)
+
+        self.repr_scale = 0.0
+        if 'incore' in self.reprocess_locations:
+            self.repr_scale += self.f_in
+        if 'excore' in self.reprocess_locations:
+            self.repr_scale += self.f_ex
+
+
 
         return None
 
@@ -48,8 +58,6 @@ class Concentrations(BaseClass):
             if self.t_ex > 0.0:
                 raise NotImplementedError(
                     'Excore residence not available for CFY')
-            if self.reprocess:
-                raise NotImplementedError('Reprocessing not available for CFY')
             if self.irrad_type != 'saturation':
                 self.logger.error(
                     'CFY is intended for a saturation irradiation')
@@ -88,15 +96,19 @@ class Concentrations(BaseClass):
             concs = ufloat(
                 CFY_data[nuclide]['CFY'],
                 CFY_data[nuclide]['sigma CFY'])
-
             try:
                 hl = ufloat(
                     half_life_data[nuclide]['half_life'],
                     half_life_data[nuclide]['sigma half_life'])
             except KeyError:
                 continue
+            repr_term = 0.0
+            if self.reprocess:
+                nuc_element = self._get_element_from_nuclide(nuclide)
+                repr_term = self.reprocessing.get(nuc_element, 0.0)
             lam = np.log(2) / hl
-            concentrations[nuclide] = concs / lam
+            loss_term = lam + self.repr_scale * repr_term
+            concentrations[nuclide] = self.f_in * concs / loss_term
             all_nucs.add(nuclide)
 
         data: dict[str: dict[str: float]] = dict()
