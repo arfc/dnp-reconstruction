@@ -1,5 +1,5 @@
 from logging import INFO
-from uncertainties import ufloat
+from uncertainties import ufloat, unumpy
 import numpy as np
 import os
 from mosden.utils.literature_handler import Literature
@@ -32,9 +32,11 @@ class PostProcess(BaseClass):
         self.num_groups: int = self.input_data['group_options']['num_groups']
         self.MC_samples: int = self.input_data['group_options']['samples']
         self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
-        self.use_data: list[str] = ['keepin']
+        self.use_data: list[str] = ['keepin', 'charlton', 'endfb6', 'mills']#, 'saleh', 'synetos', 'tuttle', 'waldo']
         self.nuclides: list[str] = ['Br87']
+        self.markers: list[str] = ['v', 'o', 'x', '^', 's', 'D']
         self.load_post_data()
+        self.decay_times: np.ndarray[float] = CountRate(input_path).decay_times
 
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
@@ -76,7 +78,7 @@ class PostProcess(BaseClass):
                 savename: str,
                 savedir: str,
                 off_nominal: bool = True) -> None:
-            markers = ['v', 'o', 'x', '^', 's', 'D']
+            markers = self.markers
             nuclides = self.nuclides or list(data[0].keys())
             xlabel_replace = {
                 "Half-life": fr"$\lambda_i [s^{{-1}}]$",
@@ -185,12 +187,70 @@ class PostProcess(BaseClass):
         Compare the total DN yields from summing individuals and from 
           group parameters
         """
-        summed_yield, summed_avg_halflife = self._get_summed_params()
+        num_top = 7
+        num_stack = 2
+        summed_yield, summed_avg_halflife = self._get_summed_params(num_top)
         group_yield, group_avg_halflife = self._get_group_params()
+        self._plot_nuclide_count_rates(num_stack)
         self.logger.info(f'Summed yield: {summed_yield}')
         self.logger.info(f'Summed average half-life: {summed_avg_halflife} s')
         self.logger.info(f'Group yield {group_yield}')
         self.logger.info(f'Group average half-life: {group_avg_halflife} s')
+        return None
+    
+    def _plot_nuclide_count_rates(self, num_stack: int=1):
+        """
+        Plot the most important nuclide (by delayed neutron counts emitted) at
+            each time step.
+
+        Parameters
+        ----------
+        num_stack : int, optional
+            number of nuclides to plot stacked at each time, by default 1
+        """
+        data_dict = self._get_data()
+        net_nucs = data_dict['net_nucs']
+        count_rates = dict()
+
+        for nuc in net_nucs:
+            Pn = data_dict['nucs'][nuc]['emission_probability']
+            N = data_dict['nucs'][nuc]['concentration']
+            hl = data_dict['nucs'][nuc]['half_life']
+            lam = np.log(2) / hl
+            count_rates[nuc] = list()
+            counts = Pn * lam * N * unumpy.exp(-lam * self.decay_times)
+            count_rates[nuc] = counts
+
+        biggest_nucs_list = list()
+        for ti in range(len(self.decay_times)):
+            cur_t_counts = dict()
+            for nuc in net_nucs:
+                cur_t_counts[nuc] = count_rates[nuc][ti]
+            for nuc in range(num_stack):
+                max_nuc = max(cur_t_counts, key=cur_t_counts.get)
+                biggest_nucs_list.append(max_nuc)
+                del cur_t_counts[max_nuc]
+        biggest_nucs = list(dict.fromkeys(biggest_nucs_list))
+
+        for nuci, nuc in enumerate(biggest_nucs):
+            rate_n = unumpy.nominal_values(count_rates[nuc])
+            rate_s = unumpy.std_devs(count_rates[nuc])
+            upper = rate_n + rate_s
+            lower = rate_n - rate_s
+            plt.fill_between(self.decay_times, lower, upper, color=f'C{nuci}',
+                             alpha=0.5)
+            plt.plot(self.decay_times, rate_n, color=f'C{nuci}', label=f'{nuc}',
+                     linestyle='--', marker=self.markers[nuci%len(self.markers)], markevery=5,
+                     markersize=3)
+        
+        plt.xlabel('Time [s]')
+        plt.ylabel('Relative Delayed Neutron Emission')
+        plt.xscale('log')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(f'{self.output_dir}individual_nuclide_rates.png')
+        plt.close()
+ 
         return None
 
     def _plot_MC_group_params(self) -> None:
@@ -482,6 +542,57 @@ class PostProcess(BaseClass):
         # Equation based on Parish 1999 Status of Six-group DN data
         avg_halflife = sum(yields / (net_yield * lam_vals))
         return net_yield, avg_halflife
+    
+    def _get_data(self) -> dict[str: dict]:
+        """
+        Collect the data from the processed data files and add them to a
+            dictionary
+
+        Returns
+        -------
+        data_dict : dict[str: dict]
+            Dictionary of processed data name to its data
+        """
+        data_dict = dict()
+        emission_prob_data = CSVHandler(
+            os.path.join(
+                self.processed_data_dir,
+                'emission_probability.csv'),
+            create=False).read_csv()
+        data_dict['emission_probability'] = emission_prob_data
+        halflife_data = CSVHandler(
+            os.path.join(
+                self.processed_data_dir,
+                'half_life.csv'),
+            create=False).read_csv()
+        data_dict['half_life'] = halflife_data
+        concentration_data = CSVHandler(
+            self.concentration_path,
+            create=False).read_csv()
+        data_dict['concentration'] = concentration_data
+
+        emission_nucs = list(emission_prob_data.keys())
+        conc_nucs = list(concentration_data.keys())
+        net_nucs = list(set(emission_nucs) & set(conc_nucs))
+        data_dict['net_nucs'] = net_nucs
+        data_dict['nucs'] = {}
+
+        for nuc in net_nucs:
+            data_dict['nucs'][nuc] = {}
+            emission_data = emission_prob_data[nuc]
+            Pn = ufloat(emission_data['emission probability'],
+                        emission_data['sigma emission probability'])
+            conc_data = concentration_data[nuc]
+            N = ufloat(conc_data['Concentration'],
+                       conc_data['sigma Concentration'])
+            hl_data = halflife_data[nuc]
+            uncert = hl_data.get('sigma half_life', 1e-12)
+            hl = ufloat(hl_data['half_life'], uncert)
+            data_dict['nucs'][nuc]['emission_probability'] = Pn
+            data_dict['nucs'][nuc]['concentration'] = N
+            data_dict['nucs'][nuc]['half_life'] = hl
+        return data_dict
+
 
     def _get_summed_params(self, num_top: int = 10) -> tuple[float, float]:
         """
@@ -498,45 +609,17 @@ class PostProcess(BaseClass):
             net yield and average half-life of the group.
         """
         nuc_yield: dict[str: float] = dict()
-        emission_prob_data = CSVHandler(
-            os.path.join(
-                self.processed_data_dir,
-                'emission_probability.csv'),
-            create=False).read_csv()
-        halflife_data = CSVHandler(
-            os.path.join(
-                self.processed_data_dir,
-                'half_life.csv'),
-            create=False).read_csv()
-        concentration_data = CSVHandler(
-            self.concentration_path,
-            create=False).read_csv()
-        emission_nucs = list(emission_prob_data.keys())
-        conc_nucs = list(concentration_data.keys())
-        net_nucs = list(set(emission_nucs) & set(conc_nucs))
+        data_dict = self._get_data()
+        net_nucs = data_dict['net_nucs']
+
         halflife_times_yield: dict[str: float] = dict()
 
         for nuc in net_nucs:
-            emission_data = emission_prob_data[nuc]
-            Pn = ufloat(emission_data['emission probability'],
-                        emission_data['sigma emission probability'])
-            conc_data = concentration_data[nuc]
-            N = ufloat(conc_data['Concentration'],
-                       conc_data['sigma Concentration'])
-            hl_data = halflife_data[nuc]
-            uncert = hl_data.get('sigma half_life', 1e-12)
-            hl = ufloat(hl_data['half_life'], uncert)
-            # Equation based on Parish 1999 Status of Six-group DN data
+            Pn = data_dict['nucs'][nuc]['emission_probability']
+            N = data_dict['nucs'][nuc]['concentration']
+            hl = data_dict['nucs'][nuc]['half_life']
             lam_val = np.log(2) / hl
-            # Huunh 2014 Calculation shows total yield is Pn*CFY (CFY = lam*N
-            # at saturation)
-            if self.irrad_type == 'saturation':
-                nuc_yield[nuc] = Pn * N * lam_val
-            elif self.irrad_type == 'pulse':
-                nuc_yield[nuc] = Pn * N
-            else:
-                raise NotImplementedError(
-                    f'{self.irrad_type} yield is not defined')
+            nuc_yield[nuc] = Pn * N
             halflife_times_yield[nuc] = nuc_yield[nuc] / lam_val
 
         sorted_yields = dict(
@@ -590,9 +673,17 @@ class PostProcess(BaseClass):
                 sizes.append(remainder)
             colors = [colormap(i) for i in np.linspace(0.15, 1, len(labels))]
             fig, ax = plt.subplots()
-            _, _, _ = ax.pie(sizes, labels=labels, autopct='%1.1f%%',
+            wedges, _, _ = ax.pie(sizes, autopct='%1.1f%%',
                              pctdistance=0.7, labeldistance=1.1,
                              colors=colors, textprops={'fontsize': 12})
+
+            ax.legend(
+                wedges,
+                labels,
+                title="Relative Fission Rates",
+                loc="center left",
+                bbox_to_anchor=(1, 0, 0.5, 1)
+            )
 
             ax.axis('equal')
 
