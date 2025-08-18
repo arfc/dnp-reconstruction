@@ -36,12 +36,20 @@ class Concentrations(BaseClass):
         self.irrad_type: str = modeling_options.get('irrad_type', 'saturation')
         self.f_in: float = self.t_in / (self.t_in + self.t_ex)
         self.f_ex: float = self.t_ex / (self.t_in + self.t_ex)
+        self.spatial_scaling: str = modeling_options.get('spatial_scaling', 'unscaled')
 
-        self.repr_scale = 0.0
-        if 'incore' in self.reprocess_locations:
-            self.repr_scale += self.f_in
-        if 'excore' in self.reprocess_locations:
-            self.repr_scale += self.f_ex
+        if self.spatial_scaling == 'unscaled':
+            self.repr_scale = 1.0
+            self.f_in = 1.0
+            self.f_ex = 1.0
+        elif self.spatial_scaling == 'scaled':
+            self.repr_scale = 0.0
+            if 'incore' in self.reprocess_locations:
+                self.repr_scale += self.f_in
+            if 'excore' in self.reprocess_locations:
+                self.repr_scale += self.f_ex
+        else:
+            raise NotImplementedError(f'{self.spatial_scaling} not implemented')
 
 
 

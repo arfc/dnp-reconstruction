@@ -8,6 +8,7 @@ from mosden.utils.csv_handler import CSVHandler
 from mosden.base import BaseClass
 import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
+from scipy.integrate import cumulative_trapezoid
 plt.style.use('mosden.plotting')
 
 
@@ -191,10 +192,11 @@ class PostProcess(BaseClass):
         num_stack = 2
         summed_yield, summed_avg_halflife = self._get_summed_params(num_top)
         group_yield, group_avg_halflife = self._get_group_params()
-        try:
-            self._plot_nuclide_count_rates(num_stack)
-        except ValueError:
-            pass
+        #try:
+        self._plot_nuclide_count_rates(num_stack)
+        #except ValueError as e:
+        #    self.logger.error(e)
+        #    pass
         self.logger.info(f'Summed yield: {summed_yield}')
         self.logger.info(f'Summed average half-life: {summed_avg_halflife} s')
         self.logger.info(f'Group yield {group_yield}')
@@ -247,11 +249,32 @@ class PostProcess(BaseClass):
                      markersize=3)
         
         plt.xlabel('Time [s]')
-        plt.ylabel('Relative Delayed Neutron Emission')
+        plt.ylabel('Relative Delayed Neutron Rate')
         plt.xscale('log')
         plt.legend()
         plt.tight_layout()
         plt.savefig(f'{self.output_dir}individual_nuclide_rates.png')
+        plt.close()
+
+        for nuci, nuc in enumerate(biggest_nucs):
+            rate_n = unumpy.nominal_values(count_rates[nuc])
+            rate_s = unumpy.std_devs(count_rates[nuc])
+            upper = cumulative_trapezoid(rate_n + rate_s, self.decay_times, initial=0)
+            lower = cumulative_trapezoid(rate_n - rate_s, self.decay_times, initial=0)
+            rate_n = cumulative_trapezoid(rate_n, self.decay_times, initial=0)
+            rate_s = cumulative_trapezoid(rate_s, self.decay_times, initial=0)
+
+            plt.fill_between(self.decay_times, lower, upper, color=f'C{nuci}', alpha=0.5)
+            plt.plot(self.decay_times, rate_n, color=f'C{nuci}', label=f'{nuc}',
+                     linestyle='--', marker=self.markers[nuci%len(self.markers)], markevery=5,
+                     markersize=3)
+        plt.xlabel('Time [s]')
+        plt.ylabel('Relative Delayed Neutron Emission')
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(f'{self.output_dir}individual_nuclide_counts.png')
         plt.close()
  
         return None

@@ -35,8 +35,8 @@ class CountRate(BaseClass):
             self.decay_times: np.ndarray = np.linspace(
                 0, self.decay_time, self.num_times)
         elif decay_time_spacing == 'log':
-            self.decay_times: np.ndarray = np.logspace(
-                0, np.log10(self.decay_time), self.num_times)
+            self.decay_times: np.ndarray = np.geomspace(
+                1e-2, self.decay_time, self.num_times)
         else:
             raise ValueError(
                 f"Decay time spacing '{decay_time_spacing}' not supported.")
