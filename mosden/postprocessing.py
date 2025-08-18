@@ -191,7 +191,10 @@ class PostProcess(BaseClass):
         num_stack = 2
         summed_yield, summed_avg_halflife = self._get_summed_params(num_top)
         group_yield, group_avg_halflife = self._get_group_params()
-        self._plot_nuclide_count_rates(num_stack)
+        try:
+            self._plot_nuclide_count_rates(num_stack)
+        except ValueError:
+            pass
         self.logger.info(f'Summed yield: {summed_yield}')
         self.logger.info(f'Summed average half-life: {summed_avg_halflife} s')
         self.logger.info(f'Group yield {group_yield}')
