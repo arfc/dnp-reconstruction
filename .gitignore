@@ -167,13 +167,17 @@ cython_debug/
 /mosden/results*
 
 /examples/keepin_1957/*.csv
-/examples/huynh_2014/*.csv
-/examples/empty_run/*.csv
-
 /examples/keepin_1957/postproc.json
-/examples/huynh_2014/postproc.json
-/examples/empty_run/postproc.json
-
 /examples/keepin_1957/images/*
+
+/examples/huynh_2014/*.csv
+/examples/huynh_2014/postproc.json
 /examples/huynh_2014/images/*
+
+/examples/empty_run/*.csv
+/examples/empty_run/postproc.json
 /examples/empty_run/images/*
+
+/examples/msre/*.csv
+/examples/msre/postproc.json
+/examples/msre/images/*
