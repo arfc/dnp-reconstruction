@@ -8,12 +8,11 @@ from mosden.base import BaseClass
 @pytest.mark.parametrize("input_path, reference_output_path, output_path", [
     ("tests/integration/test-data/input1.json", "tests/integration/test-data/reference/test1", "tests/integration/output1"),
     ("tests/integration/test-data/input2.json", "tests/integration/test-data/reference/test2", "tests/integration/output2"),
-    ("tests/integration/test-data/input3.json", "tests/integration/test-data/reference/test3", "tests/integration/output3"),
-    ("tests/integration/test-data/input4.json", "tests/integration/test-data/reference/test4", "tests/integration/output4"),
-    ("tests/integration/test-data/input5.json", "tests/integration/test-data/reference/test5", "tests/integration/output5"),
-    ("tests/integration/test-data/input6.json", "tests/integration/test-data/reference/test6", "tests/integration/output6"),
+    pytest.param("tests/integration/test-data/input3.json", "tests/integration/test-data/reference/test3", "tests/integration/output3", marks=pytest.mark.slow),
+    pytest.param("tests/integration/test-data/input4.json", "tests/integration/test-data/reference/test4", "tests/integration/output4", marks=pytest.mark.slow),
+    pytest.param("tests/integration/test-data/input5.json", "tests/integration/test-data/reference/test5", "tests/integration/output5", marks=pytest.mark.slow),
+    pytest.param("tests/integration/test-data/input6.json", "tests/integration/test-data/reference/test6", "tests/integration/output6", marks=pytest.mark.slow),
 ])
-@pytest.mark.slow
 def test_mosden_cli(input_path, reference_output_path, output_path):
 
     def check_output_file_exists_and_matches(output_path, filename, reference_path):
