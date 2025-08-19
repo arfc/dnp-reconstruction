@@ -4,6 +4,7 @@ from mosden.concentrations import Concentrations
 from mosden.countrate import CountRate
 from mosden.groupfit import Grouper
 from mosden.postprocessing import PostProcess
+from mosden.multipostprocessing import MultiPostProcess
 from mosden.base import BaseClass
 from . import __version__
 
@@ -33,6 +34,11 @@ def _run_main(file, clear=True):
 def _run_post(file):
     postprocess = PostProcess(file)
     postprocess.run()
+    return None
+
+def _run_multi_post(files):
+    multipost = MultiPostProcess(files)
+    multipost.run()
     return None
 
 
@@ -70,9 +76,11 @@ def main():
     elif args.postprocess:
         for file in args.postprocess:
             _run_post(file)
+        _run_multi_post(args.postprocess)
     elif args.all:
         for file in args.all:
             _run_all(file)
+        _run_multi_post(args.all)
     else:
         print("No valid option provided. Use -h for help.")
 
