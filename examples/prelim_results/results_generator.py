@@ -5,6 +5,7 @@ import itertools
 import shutil
 from copy import deepcopy
 import subprocess
+from mosden.utils.chemical_schemes import MSBR_scheme
 
 base_input_file = './input.json'
 analysis_list = list()
@@ -12,17 +13,46 @@ analysis_list = list()
 residence_time_analysis = {
     'meta': {
         'name': 'tintex',
-        'run_full': True,
-        'run_post': True,
-        'overwrite': True
+        'run_full': False,
+        'run_post': False,
+        'overwrite': True,
     },
-    'incore_s': [1, 2],
-    'excore_s': [1, 2],
+    'incore_s': [0.1, 1, 10, 100],
+    'excore_s': [1],
+    'multi_id': ['residence_time']
 }
 analysis_list.append(residence_time_analysis)
 
 
+chemical_long_analysis = {
+    'meta': {
+        'name': 'chem_long',
+        'run_full': False,
+        'run_post': False,
+        'overwrite': True
+    },
+    'reprocessing': [MSBR_scheme(),
+                     MSBR_scheme(include_long=False)],
+    'incore_s': [10],
+    'excore_s': [10],
+    'multi_id': ['chem_long']
+}
+analysis_list.append(chemical_long_analysis)
 
+chemical_bool_analysis = {
+    'meta': {
+        'name': 'chem_bool',
+        'run_full': True,
+        'run_post': False,
+        'overwrite': True
+    },
+    'reprocessing': [MSBR_scheme(),
+                     MSBR_scheme(rate_scaling=0.0)],
+    'incore_s': [10],
+    'excore_s': [10],
+    'multi_id': ['chem_bool']
+}
+analysis_list.append(chemical_bool_analysis)
 
 
 
@@ -84,7 +114,6 @@ def populate_inputs(analysis: dict, dir_path: str) -> list[str]:
             json.dump(new_data, f, indent=2)
 
         paths.append(str(file_path))
-
     return paths
 
 def run_mosden(analysis: dict, input_paths: list[str]):
@@ -100,6 +129,7 @@ def run_mosden(analysis: dict, input_paths: list[str]):
 if __name__ == '__main__':
     for analysis in analysis_list:
         dir_name = f'./{analysis["meta"]["name"]}'
-        input_paths = populate_inputs(analysis, dir_name)
-        run_mosden(analysis, input_paths)
+        if analysis['meta']['run_full'] or analysis['meta']['run_post']:
+            input_paths = populate_inputs(analysis, dir_name)
+            run_mosden(analysis, input_paths)
     pass

@@ -28,6 +28,9 @@ class MultiPostProcess():
         elif np.all([post.multi_id == 'chem_long' for post in self.posts]):
             self.posts[0].name = 'Full MSBR'
             self.posts[1].name = 'Partial MSBR'
+        elif np.all([post.multi_id == 'chem_bool' for post in self.posts]):
+            self.posts[0].name = 'Full MSBR'
+            self.posts[1].name = 'No removal'
 
 
         self.hm_x_vals: list = list()
