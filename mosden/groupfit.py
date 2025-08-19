@@ -162,6 +162,9 @@ class Grouper(BaseClass):
                                        (1 - np.exp(lam * self.t_ex) * cycle_sum)
                                        )))
             except TypeError:
+                if lam.n * self.t_ex > 709:
+                    self.logger.critical(f'{self.t_ex=} {lam=}')
+                    continue
                 if group == 0:
                     counts: np.ndarray[object] = np.zeros(
                         len(times), dtype=object)
