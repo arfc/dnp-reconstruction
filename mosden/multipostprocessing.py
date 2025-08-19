@@ -18,8 +18,10 @@ class MultiPostProcess():
         self.heatmap_key: str = 'modeling_options'
         self.heatmap_x: str = 'incore_s'
         self.heatmap_y: str = 'excore_s'
-        self.hm_x_name = r'$\tau_{in}$ $[s]$ '
-        self.hm_y_name = r'$\tau_{ex}$ $[s]$'
+        self.hm_x_name = r'$\tau_{in}$'
+        self.hm_x_units = r'$[s]$'
+        self.hm_y_name = r'$\tau_{ex}$'
+        self.hm_y_units = r'$[s]$'
         self.hm_x_vals: list = list()
         self.hm_y_vals: list = list()
         self._initialize_posts()
@@ -68,15 +70,17 @@ class MultiPostProcess():
     def heatmap_gen(self):
         z_values: dict[str, list[float]] = self._collect_post_data()
         for z_id in self.hm_z_names.keys():
+            x_name = self.hm_x_name + self.hm_x_units
             X = self.hm_x_vals
+            y_name = self.hm_y_name + self.hm_y_units
             Y = self.hm_y_vals
             z_name = self.hm_z_names[z_id]
             Z = z_values[z_id]
 
             df = pd.DataFrame.from_dict(np.array([X, Y, Z]).T)
-            df.columns = [self.hm_x_name, self.hm_y_name, z_name]
+            df.columns = [x_name, y_name, z_name]
             df[z_name] = pd.to_numeric(df[z_name])
-            pivotted = df.pivot(index=self.hm_x_name, columns=self.hm_y_name, values=z_name)
+            pivotted = df.pivot(index=x_name, columns=y_name, values=z_name)
             color = sns.color_palette("dark:pink_r", as_cmap=True)
             ax = sns.heatmap(pivotted, cmap=color)
             ax.invert_yaxis()
@@ -92,6 +96,7 @@ class MultiPostProcess():
 
             plt.plot(x_to_y_ratio, sorted_z, marker='.', markersize=5)
             plt.xlabel(f'{self.hm_x_name}/{self.hm_y_name}')
+            plt.xscale('log')
             plt.ylabel(z_name)
             plt.tight_layout()
             plt.savefig(f'{self.output_dir}ratio_{z_id}.png')
