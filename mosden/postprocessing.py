@@ -192,11 +192,7 @@ class PostProcess(BaseClass):
         num_stack = 2
         summed_yield, summed_avg_halflife = self._get_summed_params(num_top)
         group_yield, group_avg_halflife = self._get_group_params()
-        #try:
         self._plot_nuclide_count_rates(num_stack)
-        #except ValueError as e:
-        #    self.logger.error(e)
-        #    pass
         self.logger.info(f'Summed yield: {summed_yield}')
         self.logger.info(f'Summed average half-life: {summed_avg_halflife} s')
         self.logger.info(f'Group yield {group_yield}')
@@ -232,7 +228,11 @@ class PostProcess(BaseClass):
             for nuc in net_nucs:
                 cur_t_counts[nuc] = count_rates[nuc][ti]
             for nuc in range(num_stack):
-                max_nuc = max(cur_t_counts, key=cur_t_counts.get)
+                try:
+                    max_nuc = max(cur_t_counts, key=cur_t_counts.get)
+                except ValueError:
+                    self.logger.warning("Max nuc evaluation failed")
+                    break
                 biggest_nucs_list.append(max_nuc)
                 del cur_t_counts[max_nuc]
         biggest_nucs = list(dict.fromkeys(biggest_nucs_list))
