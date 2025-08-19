@@ -12,7 +12,8 @@ analysis_list = list()
 residence_time_analysis = {
     'meta': {
         'name': 'residence_time',
-        'run': True,
+        'run_full': True,
+        'run_post': True,
         'overwrite': True
     },
     'incore_s': [1, 2],
@@ -46,8 +47,7 @@ def replace_value(input_data: dict, key: str, new_val) -> bool:
                 return True
     return False
 
-def create_directory(analysis: dict) -> str:
-    dir_name = f'./{analysis["meta"]["name"]}'
+def create_directory(dir_name) -> str:
     if os.path.isdir(dir_name) and analysis['meta']['overwrite']:
         shutil.rmtree(dir_name)
     os.makedirs(dir_name, exist_ok=analysis['meta']['overwrite'])
@@ -70,8 +70,13 @@ def populate_inputs(analysis: dict, dir_path: str) -> list[str]:
             if not replaced:
                 raise KeyError(f'{key} not found in input file')
 
-        filename = f"{analysis['meta']['name']}_{idx}.json"
-        file_path = dir_path / filename
+        filename = 'input.json'
+        file_dir = dir_path / str(idx)
+        file_path = file_dir / filename
+        new_data['file_options']['processed_data_dir'] = str(file_dir)
+        new_data['file_options']['output_dir'] = str(file_dir)
+        if analysis['meta']['run_full']:
+            create_directory(file_dir)
 
         with open(file_path, "w") as f:
             json.dump(new_data, f, indent=2)
@@ -80,16 +85,20 @@ def populate_inputs(analysis: dict, dir_path: str) -> list[str]:
 
     return paths
 
-def run_mosden(input_paths: list[str]):
-    command = ['mosden', '-a'] + input_paths
+def run_mosden(analysis: dict, input_paths: list[str]):
+    if analysis['meta']['run_full']:
+        command = ['mosden', '-a'] + input_paths
+    elif analysis['meta']['run_post']:
+        command = ['mosden', '-post'] + input_paths
+    else:
+        return None
     subprocess.run(command)
+    return None
 
 if __name__ == '__main__':
     for analysis in analysis_list:
-        # Create directory for each analysis
-        dir_path = create_directory(analysis)
-        # Populate input files
+        dir_name = f'./{analysis["meta"]["name"]}'
+        dir_path = create_directory(dir_name)
         input_paths = populate_inputs(analysis, dir_path)
-        # Run MoSDeN and MultiPostProc
-        run_mosden(input_paths)
+        run_mosden(analysis, input_paths)
     pass

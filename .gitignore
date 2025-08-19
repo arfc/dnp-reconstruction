@@ -181,3 +181,7 @@ cython_debug/
 /examples/msre/*.csv
 /examples/msre/postproc.json
 /examples/msre/images/*
+
+/examples/prelim_results/*
+!/examples/prelim_results/input.json
+!/examples/prelim_results/results_generator.py
