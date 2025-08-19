@@ -15,13 +15,21 @@ class MultiPostProcess():
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
-        self.heatmap_key: str = 'modeling_options'
-        self.heatmap_x: str = 'incore_s'
-        self.heatmap_y: str = 'excore_s'
-        self.hm_x_name = r'$\tau_{in}$'
-        self.hm_x_units = r'$[s]$'
-        self.hm_y_name = r'$\tau_{ex}$'
-        self.hm_y_units = r'$[s]$'
+        self.do_heatmap = False
+        if np.all([post.multi_id == 'residence_time' for post in self.posts]):
+            self.heatmap_key: str = 'modeling_options'
+            self.heatmap_x: str = 'incore_s'
+            self.heatmap_y: str = 'excore_s'
+            self.hm_x_name = r'$\tau_{in}$'
+            self.hm_x_units = r'$[s]$'
+            self.hm_y_name = r'$\tau_{ex}$'
+            self.hm_y_units = r'$[s]$'
+            self.do_heatmap = True
+        elif np.all([post.multi_id == 'chem_long' for post in self.posts]):
+            self.posts[0].name = 'Full MSBR'
+            self.posts[1].name = 'Partial MSBR'
+
+
         self.hm_x_vals: list = list()
         self.hm_y_vals: list = list()
         self._initialize_posts()
@@ -36,15 +44,19 @@ class MultiPostProcess():
     def _initialize_posts(self):
         for post in self.posts:
             post.run()
-            modeling_options: dict = post.input_data.get(self.heatmap_key, {})
-            post.hm_x = modeling_options.get(self.heatmap_x, 0.0)
-            post.hm_y = modeling_options.get(self.heatmap_y, 0.0)
-            self.hm_x_vals.append(post.hm_x)
-            self.hm_y_vals.append(post.hm_y)
+            try:
+                modeling_options: dict = post.input_data.get(self.heatmap_key, {})
+                post.hm_x = modeling_options.get(self.heatmap_x, 0.0)
+                post.hm_y = modeling_options.get(self.heatmap_y, 0.0)
+                self.hm_x_vals.append(post.hm_x)
+                self.hm_y_vals.append(post.hm_y)
+            except AttributeError:
+                self.do_heatmap = False
         return None
     
     def run(self):
-        self.heatmap_gen()
+        if self.do_heatmap:
+            self.heatmap_gen()
         self.group_param_histogram()
         self.group_fit_counts()
         return None

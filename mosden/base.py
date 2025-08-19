@@ -26,6 +26,7 @@ class BaseClass:
         self.input_path: str = input_path
         self.input_handler: InputHandler = InputHandler(input_path)
         self.input_data: dict = self.input_handler.read_input()
+        self.multi_id: str = self.input_data.get('multi_id', None)
         file_options: dict = self.input_data.get('file_options', {})
         overwrite: dict = file_options.get('overwrite', {})
 
