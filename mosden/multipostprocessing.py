@@ -3,7 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
-from uncertainties import unumpy
 
 class MultiPostProcess():
     def __init__(self, input_paths: list[str]) -> None:
@@ -16,6 +15,12 @@ class MultiPostProcess():
         self.hm_x_vals: list = list()
         self.hm_y_vals: list = list()
         self._initialize_posts()
+        self.hm_z_names: dict[str, str] = {
+            'summed_yield': r'$\bar{\nu}_d$',
+            'group_yield': r'$\bar{\nu}_d$',
+            'summed_avg_halflife': r'$\bar{T} [s]$',
+            'group_avg_halflife': r'$\bar{T} [s]$'
+        }
         return None
     
     def _initialize_posts(self):
@@ -30,6 +35,7 @@ class MultiPostProcess():
     
     def run(self):
         self.heatmap_gen()
+        self.group_param_histogram()
         return None
     
     def _collect_post_data(self) -> dict[str: list[float]]:
@@ -51,17 +57,11 @@ class MultiPostProcess():
 
 
     def heatmap_gen(self):
-        z_names: dict[str, str] = {
-            'summed_yield': r'$\bar{\nu}_d$',
-            'group_yield': r'$\bar{\nu}_d$',
-            'summed_avg_halflife': r'$\bar{T} [s]$',
-            'group_avg_halflife': r'$\bar{T} [s]$'
-        }
         z_values: dict[str, list[float]] = self._collect_post_data()
-        for z_id in z_names.keys():
+        for z_id in self.hm_z_names.keys():
             X = self.hm_x_vals
             Y = self.hm_y_vals
-            z_name = z_names[z_id]
+            z_name = self.hm_z_names[z_id]
             Z = z_values[z_id]
 
             df = pd.DataFrame.from_dict(np.array([X, Y, Z]).T)
@@ -76,3 +76,34 @@ class MultiPostProcess():
             plt.savefig(f'surf_{z_id}.png')
             plt.close()
         return None
+    
+    def group_param_histogram(self):
+        data = dict()
+        yields = list()
+        halflives = list()
+        groups = list()
+        names = list()
+        for post in self.posts:
+            yield_val, halflife_val = post._get_MC_group_params()
+            for gi, val in enumerate(yield_val):
+                yields.append(val[0])
+                halflives.append(halflife_val[gi][0])
+                groups.append(gi+1)
+                names.append(post.name)
+        data['Yield'] = yields
+        data['Halflife [s]'] = halflives
+        data['Group'] = groups
+        data['Data Source'] = names
+        df = pd.DataFrame(data)
+        df = df.explode(['Yield', 'Halflife [s]', 'Group'], ignore_index=True)
+        sns.barplot(df, x='Group', y='Yield', hue='Data Source')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(f'yields.png')
+        plt.close()
+        sns.barplot(df, x='Group', y='Halflife [s]', hue='Data Source')
+        plt.legend()
+        plt.yscale('log')
+        plt.tight_layout()
+        plt.savefig(f'halflives.png')
+        plt.close()

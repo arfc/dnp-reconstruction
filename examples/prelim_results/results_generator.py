@@ -76,6 +76,7 @@ def populate_inputs(analysis: dict, dir_path: str) -> list[str]:
         new_data['file_options']['processed_data_dir'] = str(file_dir)
         new_data['file_options']['output_dir'] = str(file_dir)
         new_data['file_options']['log_file'] = str(file_dir) + '/log.log'
+        new_data['name'] = str(combination)
         if analysis['meta']['run_full']:
             create_directory(file_dir)
 
