@@ -38,7 +38,6 @@ class PostProcess(BaseClass):
         self.markers: list[str] = ['v', 'o', 'x', '^', 's', 'D']
         self.load_post_data()
         self.decay_times: np.ndarray[float] = CountRate(input_path).decay_times
-
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
@@ -192,6 +191,12 @@ class PostProcess(BaseClass):
         num_stack = 2
         summed_yield, summed_avg_halflife = self._get_summed_params(num_top)
         group_yield, group_avg_halflife = self._get_group_params()
+
+        self.summed_yield = summed_yield
+        self.summed_avg_halflife = summed_avg_halflife
+        self.group_yield = group_yield
+        self.group_avg_halflife = group_avg_halflife
+
         self._plot_nuclide_count_rates(num_stack)
         self.logger.info(f'Summed yield: {summed_yield}')
         self.logger.info(f'Summed average half-life: {summed_avg_halflife} s')

@@ -12,7 +12,6 @@ def _run_all(file):
     BaseClass(file).clear_post_data()
     _run_pre(file)
     _run_main(file, clear=False)
-    _run_post(file)
     return None
 
 def _run_pre(file):
@@ -74,8 +73,6 @@ def main():
         for file in args.preprocess:
             _run_pre(file)
     elif args.postprocess:
-        for file in args.postprocess:
-            _run_post(file)
         _run_multi_post(args.postprocess)
     elif args.all:
         for file in args.all:

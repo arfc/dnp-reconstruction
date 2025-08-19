@@ -12,7 +12,7 @@ analysis_list = list()
 residence_time_analysis = {
     'meta': {
         'name': 'residence_time',
-        'run_full': True,
+        'run_full': False,
         'run_post': True,
         'overwrite': True
     },
@@ -47,11 +47,11 @@ def replace_value(input_data: dict, key: str, new_val) -> bool:
                 return True
     return False
 
-def create_directory(dir_name) -> str:
+def create_directory(dir_name) -> None:
     if os.path.isdir(dir_name) and analysis['meta']['overwrite']:
         shutil.rmtree(dir_name)
     os.makedirs(dir_name, exist_ok=analysis['meta']['overwrite'])
-    return dir_name
+    return None
 
 def populate_inputs(analysis: dict, dir_path: str) -> list[str]:
     paths = []
@@ -75,6 +75,7 @@ def populate_inputs(analysis: dict, dir_path: str) -> list[str]:
         file_path = file_dir / filename
         new_data['file_options']['processed_data_dir'] = str(file_dir)
         new_data['file_options']['output_dir'] = str(file_dir)
+        new_data['file_options']['log_file'] = str(file_dir) + '/log.log'
         if analysis['meta']['run_full']:
             create_directory(file_dir)
 
@@ -98,7 +99,6 @@ def run_mosden(analysis: dict, input_paths: list[str]):
 if __name__ == '__main__':
     for analysis in analysis_list:
         dir_name = f'./{analysis["meta"]["name"]}'
-        dir_path = create_directory(dir_name)
-        input_paths = populate_inputs(analysis, dir_path)
+        input_paths = populate_inputs(analysis, dir_name)
         run_mosden(analysis, input_paths)
     pass
