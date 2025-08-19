@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+from mosden.countrate import CountRate
 
 class MultiPostProcess():
     def __init__(self, input_paths: list[str]) -> None:
@@ -36,6 +37,7 @@ class MultiPostProcess():
     def run(self):
         self.heatmap_gen()
         self.group_param_histogram()
+        self.group_fit_counts()
         return None
     
     def _collect_post_data(self) -> dict[str: list[float]]:
@@ -107,3 +109,41 @@ class MultiPostProcess():
         plt.tight_layout()
         plt.savefig(f'halflives.png')
         plt.close()
+        return None
+    
+    def group_fit_counts(self):
+        for pi, post in enumerate(self.posts):
+            times = post.decay_times
+            countrate = CountRate(post.input_path)
+            countrate.method = 'groupfit'
+            group_counts = countrate.calculate_count_rate(write_data=False)
+            plt.plot(
+                times,
+                group_counts['counts'],
+                color=f'C{pi}',
+                alpha=0.75,
+                label='Group Fit',
+                linestyle='--',
+                zorder=3,
+                marker=post.markers[pi%len(post.markers)],
+                markersize=3,
+                markevery=5)
+            plt.fill_between(
+                times,
+                group_counts['counts'] -
+                group_counts['sigma counts'],
+                group_counts['counts'] +
+                group_counts['sigma counts'],
+                color=f'C{pi}',
+                alpha=0.3,
+                zorder=2,
+                edgecolor='black')
+        plt.xlabel('Time [s]')
+        plt.ylabel(r'Count Rate $[n \cdot s^{-1}]$')
+        plt.yscale('log')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(f'group_counts.png')
+        plt.close()
+
+

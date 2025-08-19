@@ -36,6 +36,7 @@ class PostProcess(BaseClass):
         self.use_data: list[str] = ['keepin', 'charlton', 'endfb6', 'mills']#, 'saleh', 'synetos', 'tuttle', 'waldo']
         self.nuclides: list[str] = ['Br87']
         self.markers: list[str] = ['v', 'o', 'x', '^', 's', 'D']
+        self.linestyles: list[str] = ['--', '..', '-.']
         self.load_post_data()
         self.decay_times: np.ndarray[float] = CountRate(input_path).decay_times
         if not os.path.exists(self.output_dir):
