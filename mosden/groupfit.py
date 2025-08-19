@@ -155,6 +155,9 @@ class Grouper(BaseClass):
                 try:
                     cycle_sum += np.exp(exponent)
                 except TypeError:
+                    if exponent.n > 709:
+                        self.logger.critical(f'{exponent=} {self.t_net=} {lam=}')
+                        continue
                     cycle_sum += unumpy.exp(exponent)
             try:
                 counts += (a * np.exp(-lam * times) * 
