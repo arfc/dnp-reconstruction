@@ -11,8 +11,8 @@ analysis_list = list()
 
 residence_time_analysis = {
     'meta': {
-        'name': 'residence_time',
-        'run_full': False,
+        'name': 'tintex',
+        'run_full': True,
         'run_post': True,
         'overwrite': True
     },

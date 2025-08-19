@@ -4,10 +4,17 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from mosden.countrate import CountRate
+import os
 
 class MultiPostProcess():
     def __init__(self, input_paths: list[str]) -> None:
         self.posts: list[PostProcess] = [PostProcess(p) for p in input_paths]
+        self.output_dir = self.posts[0].output_dir
+        if len(self.posts) > 1:
+            self.output_dir = './images/'
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
+
         self.heatmap_key: str = 'modeling_options'
         self.heatmap_x: str = 'incore_s'
         self.heatmap_y: str = 'excore_s'
@@ -75,7 +82,19 @@ class MultiPostProcess():
             ax.invert_yaxis()
             ax.collections[0].colorbar.set_label(z_name)
             plt.tight_layout()
-            plt.savefig(f'surf_{z_id}.png')
+            plt.savefig(f'{self.output_dir}surf_{z_id}.png')
+            plt.close()
+
+            x_to_y_ratio = np.asarray(X)/np.asarray(Y)
+            sorted_indices = np.argsort(x_to_y_ratio)
+            x_to_y_ratio = np.array(x_to_y_ratio)[sorted_indices]
+            sorted_z = np.array(Z)[sorted_indices]
+
+            plt.plot(x_to_y_ratio, sorted_z, marker='.', markersize=5)
+            plt.xlabel(f'{self.hm_x_name}/{self.hm_y_name}')
+            plt.ylabel(z_name)
+            plt.tight_layout()
+            plt.savefig(f'{self.output_dir}ratio_{z_id}.png')
             plt.close()
         return None
     
@@ -101,13 +120,13 @@ class MultiPostProcess():
         sns.barplot(df, x='Group', y='Yield', hue='Data Source')
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f'yields.png')
+        plt.savefig(f'{self.output_dir}yields.png')
         plt.close()
         sns.barplot(df, x='Group', y='Halflife [s]', hue='Data Source')
         plt.legend()
         plt.yscale('log')
         plt.tight_layout()
-        plt.savefig(f'halflives.png')
+        plt.savefig(f'{self.output_dir}halflives.png')
         plt.close()
         return None
     
@@ -122,7 +141,7 @@ class MultiPostProcess():
                 group_counts['counts'],
                 color=f'C{pi}',
                 alpha=0.75,
-                label='Group Fit',
+                label=post.name,
                 linestyle='--',
                 zorder=3,
                 marker=post.markers[pi%len(post.markers)],
@@ -143,7 +162,7 @@ class MultiPostProcess():
         plt.yscale('log')
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f'group_counts.png')
+        plt.savefig(f'{self.output_dir}group_counts.png')
         plt.close()
 
 
