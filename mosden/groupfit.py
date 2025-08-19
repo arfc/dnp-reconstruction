@@ -140,7 +140,10 @@ class Grouper(BaseClass):
         yields = parameters[:self.num_groups]
         half_lives = parameters[self.num_groups:]
         counts: np.ndarray[float] = np.zeros(len(times))
-        tot_cycles: int = ceil(self.t_net / (self.t_in + self.t_ex))
+        try:
+            tot_cycles: int = ceil(self.t_net / (self.t_in + self.t_ex))
+        except ZeroDivisionError:
+            tot_cycles = 0
         for group in range(self.num_groups):
             lam = np.log(2) / half_lives[group]
             a = yields[group]

@@ -34,8 +34,13 @@ class Concentrations(BaseClass):
         self.t_ex: float = modeling_options.get('excore_s', 0.0)
         self.t_net: float = modeling_options.get('net_irrad_s', 0.0)
         self.irrad_type: str = modeling_options.get('irrad_type', 'saturation')
-        self.f_in: float = self.t_in / (self.t_in + self.t_ex)
-        self.f_ex: float = self.t_ex / (self.t_in + self.t_ex)
+        self.f_in = 0.0
+        self.f_ex = 0.0
+        try:
+            self.f_in: float = self.t_in / (self.t_in + self.t_ex)
+            self.f_ex: float = self.t_ex / (self.t_in + self.t_ex)
+        except ZeroDivisionError:
+            self.logger.error('No in-core or ex-core time')
         self.spatial_scaling: str = modeling_options.get('spatial_scaling', 'unscaled')
 
         if self.spatial_scaling == 'unscaled':

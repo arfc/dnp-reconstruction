@@ -569,10 +569,15 @@ class PostProcess(BaseClass):
                 hl, std) for hl, std in zip(
                 group_data['half_life'], group_data['sigma half_life'])]
         net_yield = sum(yields)
-        net_yield = ufloat(round(net_yield.n, 5), round(net_yield.s, 5))
+        if net_yield.n <= 0.0:
+            net_yield = ufloat(1e-12, 1e-12)
         lam_vals = np.log(2) / halflives
         # Equation based on Parish 1999 Status of Six-group DN data
         avg_halflife = sum(yields / (net_yield * lam_vals))
+        net_yield = ufloat(round(net_yield.n, 5),
+                           round(net_yield.s, 5))
+        avg_halflife = ufloat(round(avg_halflife.n, 5),
+                              round(avg_halflife.s, 5))
         return net_yield, avg_halflife
     
     def _get_data(self) -> dict[str: dict]:
@@ -660,6 +665,8 @@ class PostProcess(BaseClass):
                 key=lambda item: item[1].n,
                 reverse=True))
         net_yield = sum([i for i in sorted_yields.values()])
+        if net_yield.n <= 0.0:
+            net_yield = ufloat(1e-12, 1e-12)
         # Parish 1999 uses relative alpha_i values, not yields
         avg_halflife = sum(
             [i / net_yield for i in halflife_times_yield.values()])
