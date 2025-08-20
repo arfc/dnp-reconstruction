@@ -24,6 +24,7 @@ class PostProcess(BaseClass):
         """
         super().__init__(input_path)
         file_options: dict = self.input_data.get('file_options', {})
+        modeling_options: dict = self.input_data.get('modeling_options', {})
         overwrite: dict = file_options.get('overwrite', {})
         self.processed_data_dir: str = file_options.get('processed_data_dir',
                                                         '')
@@ -41,6 +42,8 @@ class PostProcess(BaseClass):
         self.decay_times: np.ndarray[float] = CountRate(input_path).decay_times
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
+        self.t_in: float = modeling_options.get('incore_s', 0.0)
+        self.t_ex: float = modeling_options.get('excore_s', 0.0)
 
         self.MC_yields, self.MC_half_lives = self._get_MC_group_params()
 
