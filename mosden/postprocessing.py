@@ -9,6 +9,7 @@ from mosden.base import BaseClass
 import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 from scipy.integrate import cumulative_trapezoid
+import re
 plt.style.use('mosden.plotting')
 
 
@@ -53,6 +54,13 @@ class PostProcess(BaseClass):
         self.MC_yields, self.MC_half_lives = self._get_MC_group_params()
 
         return None
+    
+    def _convert_nuc_to_latex(self, nuc: str) -> str:
+        match = re.match(r"([A-Za-z]+)(\d+)", nuc)
+        if not match:
+            raise ValueError(f"Unexpected format: {nuc}")
+        elem, mass = match.groups()
+        return rf"$^{{{mass}}}${elem}"
 
     def run(self) -> None:
         self.compare_yields()
@@ -239,10 +247,11 @@ class PostProcess(BaseClass):
             count_rates[nuc] = counts
 
         biggest_nucs_list = list()
+        nuc_names = list()
         for ti in range(len(self.decay_times)):
             cur_t_counts = dict()
             for nuc in net_nucs:
-                cur_t_counts[nuc] = count_rates[nuc][ti]
+                cur_t_counts[nuc] = count_rates[nuc][ti].n
             for nuc in range(num_stack):
                 try:
                     max_nuc = max(cur_t_counts, key=cur_t_counts.get)
@@ -250,6 +259,7 @@ class PostProcess(BaseClass):
                     self.logger.warning("Max nuc evaluation failed")
                     break
                 biggest_nucs_list.append(max_nuc)
+                nuc_names.append(self._convert_nuc_to_latex(max_nuc))
                 del cur_t_counts[max_nuc]
         biggest_nucs = list(dict.fromkeys(biggest_nucs_list))
 
@@ -260,7 +270,7 @@ class PostProcess(BaseClass):
             lower = rate_n - rate_s
             plt.fill_between(self.decay_times, lower, upper, color=f'C{nuci}',
                              alpha=0.5)
-            plt.plot(self.decay_times, rate_n, color=f'C{nuci}', label=f'{nuc}',
+            plt.plot(self.decay_times, rate_n, color=f'C{nuci}', label=nuc_names[nuci],
                      linestyle='--', marker=self.markers[nuci%len(self.markers)], markevery=5,
                      markersize=3)
         
@@ -283,7 +293,7 @@ class PostProcess(BaseClass):
             stacked_data.append(rate_n)
 
             plt.fill_between(self.decay_times, lower, upper, color=f'C{nuci}', alpha=0.5)
-            plt.plot(self.decay_times, rate_n, color=f'C{nuci}', label=f'{nuc}',
+            plt.plot(self.decay_times, rate_n, color=f'C{nuci}', label=nuc_names[nuci],
                      linestyle='--', marker=self.markers[nuci%len(self.markers)], markevery=5,
                      markersize=3)
         plt.xlabel('Time [s]')
@@ -296,7 +306,7 @@ class PostProcess(BaseClass):
         plt.close()
 
 
-        plt.stackplot(self.decay_times, stacked_data, labels=biggest_nucs)
+        plt.stackplot(self.decay_times, stacked_data, labels=nuc_names)
         plt.xlabel('Time [s]')
         plt.ylabel('Total Delayed Neutron Counts')
         plt.xscale('log')
@@ -700,7 +710,7 @@ class PostProcess(BaseClass):
                 self.logger.info(
                     f'{nuc} - {round(yield_val.n, 3)} +/- {round(yield_val.s, 3)}')
                 sizes.append(yield_val.n)
-                labels.append(nuc)
+                labels.append(self._convert_nuc_to_latex(nuc))
                 running_sum += yield_val
                 counter += 1
                 extracted_vals[nuc] = yield_val
