@@ -1,5 +1,6 @@
 import numpy as np
 from mosden.utils.csv_handler import CSVHandler
+from mosden.concentrations import Concentrations
 from uncertainties import unumpy
 from mosden.base import BaseClass
 from scipy.optimize import least_squares
@@ -34,7 +35,22 @@ class Grouper(BaseClass):
         self.t_net: float = self.input_data['modeling_options']['net_irrad_s']
         self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
         self.sample_func: str = self.input_data['group_options']['sample_func']
+
+        self.fission_term: float = self._calculate_fission_term()
         return None
+
+    def _calculate_fission_term(self) -> float:
+        conc_handler = Concentrations(self.input_path)
+        fission_term = 1.0
+        if self.irrad_type == 'pulse':
+            raise NotImplementedError('Fission term not implemented')
+        elif self.irrad_type == 'saturation':
+            if conc_handler.model_method == 'CFY' and conc_handler.spatial_scaling == 'scaled':
+                fission_term = conc_handler.f_in
+        else:
+            raise NameError(f'{self.irrad_type = } not available')
+        return fission_term
+
 
     def generate_groups(self) -> None:
         """
@@ -116,7 +132,7 @@ class Grouper(BaseClass):
                     counts: np.ndarray[object] = np.zeros(
                         len(times), dtype=object)
                 counts += (a * lam * unumpy.exp(-lam * times))
-        return counts
+        return counts * self.fission_term
 
     def _saturation_fit_function(self,
                                  times: np.ndarray[float | object],
@@ -175,7 +191,7 @@ class Grouper(BaseClass):
                            (1 - unumpy.exp(-lam * self.t_net +
                                            (1 - unumpy.exp(lam * self.t_ex)
                                              * cycle_sum))))
-        return counts
+        return counts * self.fission_term
 
     def _nonlinear_least_squares(self,
                                  count_data: dict[str: np.ndarray[float]] = None
