@@ -11,12 +11,40 @@ class MultiPostProcess():
         self.posts: list[PostProcess] = [PostProcess(p) for p in input_paths]
         self.output_dir = self.posts[0].output_dir
         if len(self.posts) > 1:
-            self.output_dir = './images/'
+            self.output_dir = f'./{self.posts[0].multi_id}/images/'
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
         self.do_heatmap = False
-        if np.all([post.multi_id == 'residence_time' for post in self.posts]):
+
+
+        self.hm_x_vals: list = list()
+        self.hm_y_vals: list = list()
+        self._post_heatmap_setup()
+        self._initialize_posts()
+        self.hm_z_names: dict[str, str] = {
+            'summed_yield': r'$\bar{\nu}_d$',
+            'group_yield': r'$\bar{\nu}_d$',
+            'summed_avg_halflife': r'$\bar{T} [s]$',
+            'group_avg_halflife': r'$\bar{T} [s]$'
+        }
+        self._set_post_names()
+        return None
+    
+    def _set_post_names(self):
+        if np.all([post.multi_id == 'tintex' for post in self.posts]):
+            for post in self.posts:
+                post.name = f'({post.t_in}, {post.t_ex})'
+        elif np.all([post.multi_id == 'chem_long' for post in self.posts]):
+            self.posts[0].name = 'Full MSBR'
+            self.posts[1].name = 'Partial MSBR'
+        elif np.all([post.multi_id == 'chem_bool' for post in self.posts]):
+            self.posts[0].name = 'Full MSBR'
+            self.posts[1].name = 'No removal'
+        return None
+    
+    def _post_heatmap_setup(self):
+        if np.all([post.multi_id == 'tintex' for post in self.posts]):
             self.heatmap_key: str = 'modeling_options'
             self.heatmap_x: str = 'incore_s'
             self.heatmap_y: str = 'excore_s'
@@ -25,25 +53,8 @@ class MultiPostProcess():
             self.hm_y_name = r'$\tau_{ex}$'
             self.hm_y_units = r'$[s]$'
             self.do_heatmap = True
-        elif np.all([post.multi_id == 'chem_long' for post in self.posts]):
-            self.posts[0].name = 'Full MSBR'
-            self.posts[1].name = 'Partial MSBR'
-        elif np.all([post.multi_id == 'chem_bool' for post in self.posts]):
-            self.posts[0].name = 'Full MSBR'
-            self.posts[1].name = 'No removal'
-
-
-        self.hm_x_vals: list = list()
-        self.hm_y_vals: list = list()
-        self._initialize_posts()
-        self.hm_z_names: dict[str, str] = {
-            'summed_yield': r'$\bar{\nu}_d$',
-            'group_yield': r'$\bar{\nu}_d$',
-            'summed_avg_halflife': r'$\bar{T} [s]$',
-            'group_avg_halflife': r'$\bar{T} [s]$'
-        }
         return None
-    
+ 
     def _initialize_posts(self):
         for post in self.posts:
             post.run()
