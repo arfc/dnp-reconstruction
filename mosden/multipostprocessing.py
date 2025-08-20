@@ -131,10 +131,6 @@ class MultiPostProcess():
     
     def group_param_histogram(self):
         data = dict()
-        yields = list()
-        halflives = list()
-        groups = list()
-        names = list()
 
         label_locations = np.arange(self.posts[0].num_groups)
         n_bars = len(self.posts)
@@ -154,12 +150,8 @@ class MultiPostProcess():
                 sig_halflife = post_data['sigma half_life']
             else:
                 yield_val, halflife_val = post._get_MC_group_params()
-                for gi, val in enumerate(yield_val):
-                    yields.append(val[0])
-                    halflives.append(halflife_val[gi][0])
-            for gi, val in enumerate(yield_val):
-                groups.append(gi+1)
-                names.append(post.name)
+                yield_val = yield_val.flatten()
+                halflife_val = halflife_val.flatten()
             data[post.name]['Yield'] = yield_val
             data[post.name]['Halflife [s]'] = halflife_val
             if post.group_data is not None:
