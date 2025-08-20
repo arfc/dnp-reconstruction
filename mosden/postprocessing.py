@@ -90,16 +90,19 @@ class PostProcess(BaseClass):
             markers = self.markers
             nuclides = self.nuclides or list(data[0].keys())
             xlabel_replace = {
-                "Half-life": fr"$\lambda_i [s^{{-1}}]$",
+                "Half-life": fr"$T_i [s]$",
+                "Decay Constant": fr"$\lambda_i [s^{{-1}}]$",
                 "Concentration": fr"$N_i [-]$",
                 "Emission Probability": fr'$P_{{n, i}} [-]$'
             }
             ylabel_replace = {
-                "Half-life": fr"$\lambda_k [s^{{-1}}]$",
+                "Half-life": fr"$T_k [s]$",
+                "Decay Constant": fr"$\lambda_k [s^{{-1}}]$",
                 "Yield": fr"$\bar{{\nu}}_{{d, k}} [-]$",
             }
             offnom_ylabel_replace = {
-                "Half-life": fr"$\Delta \lambda_k [s^{{-1}}]$",
+                "Half-life": fr"$\Delta T_k [s]$",
+                "Decay Constant": fr"$\Delta \lambda_k [s^{{-1}}]$",
                 "Yield": fr"$\Delta \bar{{\nu}}_{{d, k}} [-]$",
             }
             xlab = xlabel_replace[xlab]
@@ -111,10 +114,9 @@ class PostProcess(BaseClass):
                 for group in range(self.num_groups):
                     data_vals = [data[nuc] for data in data]
                     group_vals = group_params[group, 1:]
+                    plot_val = group_vals
                     if off_nominal:
                         plot_val = group_vals - np.mean(group_vals)
-                    else:
-                        plot_val = group_vals
                     plt.scatter(
                         data_vals,
                         plot_val,
@@ -132,14 +134,14 @@ class PostProcess(BaseClass):
         pn_save_dir = os.path.join(self.output_dir, 'sens_pn/')
         if not os.path.exists(pn_save_dir):
             os.makedirs(pn_save_dir)
-        lam_save_dir = os.path.join(self.output_dir, 'sens_lam/')
+        lam_save_dir = os.path.join(self.output_dir, 'sens_hl/')
         if not os.path.exists(lam_save_dir):
             os.makedirs(lam_save_dir)
         conc_save_dir = os.path.join(self.output_dir, 'sens_conc/')
         if not os.path.exists(conc_save_dir):
             os.makedirs(conc_save_dir)
         Pn_data = self.post_data['PnMC']
-        decayconst_data = self.post_data['lamMC']
+        hl_data = self.post_data['hlMC']
         conc_data = self.post_data['concMC']
         scatter_helper(
             Pn_data,
@@ -150,7 +152,7 @@ class PostProcess(BaseClass):
             pn_save_dir,
             off_nominal=off_nominal)
         scatter_helper(
-            decayconst_data,
+            hl_data,
             self.MC_yields,
             'Half-life',
             'Yield',
@@ -174,7 +176,7 @@ class PostProcess(BaseClass):
             pn_save_dir,
             off_nominal=off_nominal)
         scatter_helper(
-            decayconst_data,
+            hl_data,
             self.MC_half_lives,
             'Half-life',
             'Half-life',
