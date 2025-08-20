@@ -36,7 +36,7 @@ class PostProcess(BaseClass):
         self.MC_samples: int = self.input_data['group_options']['samples']
         self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
         self.use_data: list[str] = ['keepin', 'charlton', 'endfb6', 'mills']#, 'saleh', 'synetos', 'tuttle', 'waldo']
-        self.nuclides: list[str] = ['Br87', 'I137', 'Br88', 'Br89', 'I138', 'Rb94', 'Rb93', 'Te136']
+        self.nuclides: list[str] = ['Br87', 'I137', 'Br88', 'Br89', 'I138', 'Rb94', 'Rb93', 'Te136', 'Ge86', 'As86', 'Br90', 'As85']
         self.markers: list[str] = ['v', 'o', 'x', '^', 's', 'D']
         self.linestyles: list[str] = ['--', '..', '-.']
         self.load_post_data()
@@ -209,10 +209,10 @@ class PostProcess(BaseClass):
         self.group_avg_halflife = group_avg_halflife
 
         self._plot_nuclide_count_rates(num_stack)
-        self.logger.info(f'Summed yield: {summed_yield}')
-        self.logger.info(f'Summed average half-life: {summed_avg_halflife} s')
-        self.logger.info(f'Group yield {group_yield}')
-        self.logger.info(f'Group average half-life: {group_avg_halflife} s')
+        self.logger.info(f'{summed_yield = }')
+        self.logger.info(f'{summed_avg_halflife = } s')
+        self.logger.info(f'{group_yield = }')
+        self.logger.info(f'{group_avg_halflife = } s')
         return None
     
     def _plot_nuclide_count_rates(self, num_stack: int=1):
@@ -272,6 +272,7 @@ class PostProcess(BaseClass):
         plt.savefig(f'{self.output_dir}individual_nuclide_rates.png')
         plt.close()
 
+        stacked_data = list()
         for nuci, nuc in enumerate(biggest_nucs):
             rate_n = unumpy.nominal_values(count_rates[nuc])
             rate_s = unumpy.std_devs(count_rates[nuc])
@@ -279,6 +280,7 @@ class PostProcess(BaseClass):
             lower = cumulative_trapezoid(rate_n - rate_s, self.decay_times, initial=0)
             rate_n = cumulative_trapezoid(rate_n, self.decay_times, initial=0)
             rate_s = cumulative_trapezoid(rate_s, self.decay_times, initial=0)
+            stacked_data.append(rate_n)
 
             plt.fill_between(self.decay_times, lower, upper, color=f'C{nuci}', alpha=0.5)
             plt.plot(self.decay_times, rate_n, color=f'C{nuci}', label=f'{nuc}',
@@ -291,6 +293,16 @@ class PostProcess(BaseClass):
         plt.legend()
         plt.tight_layout()
         plt.savefig(f'{self.output_dir}individual_nuclide_counts.png')
+        plt.close()
+
+
+        plt.stackplot(self.decay_times, stacked_data, labels=biggest_nucs)
+        plt.xlabel('Time [s]')
+        plt.ylabel('Total Delayed Neutron Counts')
+        plt.xscale('log')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(f'{self.output_dir}individual_nuclide_counts_stacked.png')
         plt.close()
  
         return None
@@ -582,12 +594,7 @@ class PostProcess(BaseClass):
         if net_yield.n <= 0.0:
             net_yield = ufloat(1e-12, 1e-12)
         lam_vals = np.log(2) / halflives
-        # Equation based on Parish 1999 Status of Six-group DN data
-        avg_halflife = sum(yields / (net_yield * lam_vals))
-        net_yield = ufloat(round(net_yield.n, 5),
-                           round(net_yield.s, 5))
-        avg_halflife = ufloat(round(avg_halflife.n, 5),
-                              round(avg_halflife.s, 5))
+        avg_halflife = sum(yields * np.asarray(halflives) / (net_yield))
         return net_yield, avg_halflife
     
     def _get_data(self) -> dict[str: dict]:
@@ -660,26 +667,27 @@ class PostProcess(BaseClass):
         net_nucs = data_dict['net_nucs']
 
         halflife_times_yield: dict[str: float] = dict()
+        self.total_delayed_neutrons: float = 0.0
 
         for nuc in net_nucs:
             Pn = data_dict['nucs'][nuc]['emission_probability']
             N = data_dict['nucs'][nuc]['concentration']
             hl = data_dict['nucs'][nuc]['half_life']
             lam_val = np.log(2) / hl
-            nuc_yield[nuc] = Pn * N
-            halflife_times_yield[nuc] = nuc_yield[nuc] / lam_val
+            nuc_yield[nuc] = Pn * N * lam_val
+            self.total_delayed_neutrons += (Pn * N).n
+            halflife_times_yield[nuc] = nuc_yield[nuc] * np.log(2) / lam_val
 
         sorted_yields = dict(
             sorted(
                 nuc_yield.items(),
                 key=lambda item: item[1].n,
                 reverse=True))
-        net_yield = sum([i for i in sorted_yields.values()])
+        net_yield = np.sum([i for i in sorted_yields.values()])
         if net_yield.n <= 0.0:
             net_yield = ufloat(1e-12, 1e-12)
         # Parish 1999 uses relative alpha_i values, not yields
-        avg_halflife = sum(
-            [i / net_yield for i in halflife_times_yield.values()])
+        avg_halflife = np.sum([i / net_yield for i in halflife_times_yield.values()])
         extracted_vals = dict()
         running_sum = 0
         sizes = list()
@@ -739,5 +747,4 @@ class PostProcess(BaseClass):
             plt.tight_layout()
             fig.savefig(f'{self.output_dir}fission_fraction.png')
             plt.close()
-
         return net_yield, avg_halflife
