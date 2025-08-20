@@ -44,6 +44,7 @@ class PostProcess(BaseClass):
             os.makedirs(self.output_dir)
         self.t_in: float = modeling_options.get('incore_s', 0.0)
         self.t_ex: float = modeling_options.get('excore_s', 0.0)
+        self.group_data = None
 
         self.MC_yields, self.MC_half_lives = self._get_MC_group_params()
 
@@ -357,12 +358,12 @@ class PostProcess(BaseClass):
                 plt.close()
             return None
 
-        group_data = CSVHandler(
+        self.group_data = CSVHandler(
             self.group_path,
             create=False).read_vector_csv()
 
-        helper_func('yield', self.MC_yields, group_data)
-        helper_func('half_life', self.MC_half_lives, group_data)
+        helper_func('yield', self.MC_yields, self.group_data)
+        helper_func('half_life', self.MC_half_lives, self.group_data)
 
         return None
 

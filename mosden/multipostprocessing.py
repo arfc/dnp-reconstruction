@@ -135,25 +135,62 @@ class MultiPostProcess():
         halflives = list()
         groups = list()
         names = list()
+
+        label_locations = np.arange(self.posts[0].num_groups)
+        n_bars = len(self.posts)
+        base_width = 0.8
+        width = base_width / n_bars
+        offset = lambda index: np.linspace(-base_width/2 + width/2,
+                                           base_width/2 - width/2,
+                                           n_bars)[index]
+        group_labels = [f'{x}' for x in range(1,self.posts[0].num_groups+1)]
         for post in self.posts:
-            yield_val, halflife_val = post._get_MC_group_params()
+            data[post.name] = {}
+            if post.group_data is not None:
+                post_data = post.group_data
+                yield_val = post_data['yield']
+                halflife_val = post_data['half_life']
+                sig_yield = post_data['sigma yield']
+                sig_halflife = post_data['sigma half_life']
+            else:
+                yield_val, halflife_val = post._get_MC_group_params()
+                for gi, val in enumerate(yield_val):
+                    yields.append(val[0])
+                    halflives.append(halflife_val[gi][0])
             for gi, val in enumerate(yield_val):
-                yields.append(val[0])
-                halflives.append(halflife_val[gi][0])
                 groups.append(gi+1)
                 names.append(post.name)
-        data['Yield'] = yields
-        data['Halflife [s]'] = halflives
-        data['Group'] = groups
-        data['Data Source'] = names
-        df = pd.DataFrame(data)
-        df = df.explode(['Yield', 'Halflife [s]', 'Group'], ignore_index=True)
-        sns.barplot(df, x='Group', y='Yield', hue='Data Source')
+            data[post.name]['Yield'] = yield_val
+            data[post.name]['Halflife [s]'] = halflife_val
+            if post.group_data is not None:
+                data[post.name]['Yield Uncertainty'] = sig_yield
+                data[post.name]['Halflife Uncertainty'] = sig_halflife
+        
+        fig, ax = plt.subplots()
+        for post_i, post in enumerate(self.posts):
+            if post.group_data is not None:
+                ax.bar(label_locations + offset(post_i), data[post.name]['Yield'], width, label=post.name, yerr=data[post.name]['Yield Uncertainty'])
+            else:
+                ax.bar(label_locations + offset(post_i), data[post.name]['Yield'], width, label=post.name)
+        ax.set_ylabel(r'$\bar{\nu}_{d, k}$')
+        ax.set_xticks(label_locations)
+        ax.set_xlabel('Groups')
+        ax.set_xticklabels(group_labels)
         plt.legend()
         plt.tight_layout()
         plt.savefig(f'{self.output_dir}yields.png')
         plt.close()
-        sns.barplot(df, x='Group', y='Halflife [s]', hue='Data Source')
+
+        fig, ax = plt.subplots()
+        for post_i, post in enumerate(self.posts):
+            if post.group_data is not None:
+                ax.bar(label_locations + offset(post_i), data[post.name]['Halflife [s]'], width, label=post.name, yerr=data[post.name]['Halflife Uncertainty'])
+            else:
+                ax.bar(label_locations + offset(post_i), data[post.name]['Halflife [s]'], width, label=post.name)
+        ax.set_ylabel(r'$\bar{T}$')
+        ax.set_xticks(label_locations)
+        ax.set_xlabel('Groups')
+        ax.set_xticklabels(group_labels)
         plt.legend()
         plt.yscale('log')
         plt.tight_layout()
