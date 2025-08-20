@@ -10,8 +10,10 @@ class MultiPostProcess():
     def __init__(self, input_paths: list[str]) -> None:
         self.posts: list[PostProcess] = [PostProcess(p) for p in input_paths]
         self.output_dir = self.posts[0].output_dir
+        self.fig_post_name = ''
         if len(self.posts) > 1:
             self.output_dir = f'./{self.posts[0].multi_id}/images/'
+            self.fig_post_name = f'{self.posts[0].multi_id}'
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
@@ -31,16 +33,31 @@ class MultiPostProcess():
         self._set_post_names()
         return None
     
+    def _is_name(self, name: str) -> bool:
+        return np.all([post.multi_id == name for post in self.posts])
+    
     def _set_post_names(self):
-        if np.all([post.multi_id == 'tintex' for post in self.posts]):
+        if self._is_name('tintex'):
             for post in self.posts:
                 post.name = f'({post.t_in}, {post.t_ex})'
-        elif np.all([post.multi_id == 'chem_long' for post in self.posts]):
+        elif self._is_name('chem_long'):
             self.posts[0].name = 'Full MSBR'
             self.posts[1].name = 'Partial MSBR'
-        elif np.all([post.multi_id == 'chem_bool' for post in self.posts]):
+        elif self._is_name('chem_bool'):
             self.posts[0].name = 'Full MSBR'
             self.posts[1].name = 'No removal'
+        elif self._is_name('spacing_times'):
+            for post in self.posts:
+                post.name = post.decay_time_spacing.capitalize()
+        elif self._is_name('decay_time_nodes'):
+            for post in self.posts:
+                post.name = f'{post.num_decay_times} nodes'
+        elif self._is_name('total_decay_time'):
+            for post in self.posts:
+                post.name = f'T = {post.total_decay_time}'
+        elif self._is_name('detailed_decay'):
+            for post in self.posts:
+                post.name = f'T = {post.total_decay_time} with {post.num_decay_times} nodes'
         return None
     
     def _post_heatmap_setup(self):
@@ -69,6 +86,8 @@ class MultiPostProcess():
         return None
     
     def run(self):
+        if len(self.posts) <= 1:
+            return None
         if self.do_heatmap:
             self.heatmap_gen()
         self.group_param_histogram()
@@ -170,7 +189,7 @@ class MultiPostProcess():
         ax.set_xticklabels(group_labels)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f'{self.output_dir}yields.png')
+        plt.savefig(f'{self.output_dir}yields_{self.fig_post_name}.png')
         plt.close()
 
         fig, ax = plt.subplots()
@@ -186,7 +205,7 @@ class MultiPostProcess():
         plt.legend()
         plt.yscale('log')
         plt.tight_layout()
-        plt.savefig(f'{self.output_dir}halflives.png')
+        plt.savefig(f'{self.output_dir}halflives_{self.fig_post_name}.png')
         plt.close()
         return None
     
@@ -222,7 +241,7 @@ class MultiPostProcess():
         plt.yscale('log')
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f'{self.output_dir}group_counts.png')
+        plt.savefig(f'{self.output_dir}group_counts_{self.fig_post_name}.png')
         plt.close()
 
 

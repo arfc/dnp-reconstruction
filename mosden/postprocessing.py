@@ -25,6 +25,7 @@ class PostProcess(BaseClass):
         super().__init__(input_path)
         file_options: dict = self.input_data.get('file_options', {})
         modeling_options: dict = self.input_data.get('modeling_options', {})
+        data_options: dict = self.input_data['data_options']
         overwrite: dict = file_options.get('overwrite', {})
         self.processed_data_dir: str = file_options.get('processed_data_dir',
                                                         '')
@@ -40,10 +41,13 @@ class PostProcess(BaseClass):
         self.linestyles: list[str] = ['--', '..', '-.']
         self.load_post_data()
         self.decay_times: np.ndarray[float] = CountRate(input_path).decay_times
+        self.num_decay_times = modeling_options['num_decay_times']
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
         self.t_in: float = modeling_options.get('incore_s', 0.0)
         self.t_ex: float = modeling_options.get('excore_s', 0.0)
+        self.decay_time_spacing: str = data_options['decay_time_spacing']
+        self.total_decay_time: float = modeling_options['decay_time']
         self.group_data = None
 
         self.MC_yields, self.MC_half_lives = self._get_MC_group_params()
@@ -259,7 +263,7 @@ class PostProcess(BaseClass):
                      markersize=3)
         
         plt.xlabel('Time [s]')
-        plt.ylabel('Relative Delayed Neutron Rate')
+        plt.ylabel(r'Delayed Neutron Rate $[s^{-1}]$')
         plt.xscale('log')
         plt.legend()
         plt.tight_layout()
@@ -279,7 +283,7 @@ class PostProcess(BaseClass):
                      linestyle='--', marker=self.markers[nuci%len(self.markers)], markevery=5,
                      markersize=3)
         plt.xlabel('Time [s]')
-        plt.ylabel('Relative Delayed Neutron Emission')
+        plt.ylabel('Total Delayed Neutron Counts')
         plt.xscale('log')
         plt.yscale('log')
         plt.legend()

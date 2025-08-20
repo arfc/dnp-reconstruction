@@ -28,7 +28,7 @@ name = 'chem_long'
 chemical_long_analysis = {
     'meta': {
         'name': name,
-        'run_full': True,
+        'run_full': False,
         'run_post': False,
         'overwrite': True
     },
@@ -44,7 +44,7 @@ name = 'chem_bool'
 chemical_bool_analysis = {
     'meta': {
         'name': name,
-        'run_full': True,
+        'run_full': False,
         'run_post': False,
         'overwrite': True
     },
@@ -56,11 +56,58 @@ chemical_bool_analysis = {
 }
 analysis_list.append(chemical_bool_analysis)
 
+name = 'spacing_times'
+spacing_times_analysis = {
+    'meta': {
+        'name': name,
+        'run_full': False,
+        'run_post': False,
+        'overwrite': True
+    },
+    'decay_time_spacing': ['log', 'linear'],
+    'multi_id': [name]
+}
+analysis_list.append(spacing_times_analysis)
 
+name = 'decay_time_nodes'
+decay_times_analysis = {
+    'meta': {
+        'name': name,
+        'run_full': False,
+        'run_post': False,
+        'overwrite': True
+    },
+    'num_decay_times': [50, 100, 200, 400],
+    'multi_id': [name]
+}
+analysis_list.append(decay_times_analysis)
 
+name = 'total_decay_time'
+total_decay_analysis = {
+    'meta': {
+        'name': name,
+        'run_full': False,
+        'run_post': False,
+        'overwrite': True
+    },
+    'decay_time': [60, 120, 240, 480, 600, 1000],
+    'multi_id': [name]
+}
+analysis_list.append(total_decay_analysis)
 
-
-
+name = 'detailed_decay'
+detailed_decay_analysis = {
+    'meta': {
+        'name': name,
+        'run_full': True,
+        'run_post': False,
+        'overwrite': True
+    },
+    'decay_time': [600, 1200],
+    'num_decay_times': [400, 800],
+    'multi_id': [name]
+}
+analysis_list.append(detailed_decay_analysis)
 
 
 
