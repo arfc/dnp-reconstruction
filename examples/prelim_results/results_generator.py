@@ -10,24 +10,25 @@ from mosden.utils.chemical_schemes import MSBR_scheme
 base_input_file = './input.json'
 analysis_list = list()
 
+name = 'tintex'
 residence_time_analysis = {
     'meta': {
-        'name': 'tintex',
+        'name': name,
         'run_full': False,
         'run_post': False,
         'overwrite': True,
     },
     'incore_s': [0.1, 1, 10, 100],
     'excore_s': [1],
-    'multi_id': ['residence_time']
+    'multi_id': [name]
 }
 analysis_list.append(residence_time_analysis)
 
-
+name = 'chem_long'
 chemical_long_analysis = {
     'meta': {
-        'name': 'chem_long',
-        'run_full': False,
+        'name': name,
+        'run_full': True,
         'run_post': False,
         'overwrite': True
     },
@@ -35,13 +36,14 @@ chemical_long_analysis = {
                      MSBR_scheme(include_long=False)],
     'incore_s': [10],
     'excore_s': [10],
-    'multi_id': ['chem_long']
+    'multi_id': [name]
 }
 analysis_list.append(chemical_long_analysis)
 
+name = 'chem_bool'
 chemical_bool_analysis = {
     'meta': {
-        'name': 'chem_bool',
+        'name': name,
         'run_full': True,
         'run_post': False,
         'overwrite': True
@@ -50,7 +52,7 @@ chemical_bool_analysis = {
                      MSBR_scheme(rate_scaling=0.0)],
     'incore_s': [10],
     'excore_s': [10],
-    'multi_id': ['chem_bool']
+    'multi_id': [name]
 }
 analysis_list.append(chemical_bool_analysis)
 
