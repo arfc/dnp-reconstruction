@@ -262,6 +262,7 @@ class PostProcess(BaseClass):
                 nuc_names.append(self._convert_nuc_to_latex(max_nuc))
                 del cur_t_counts[max_nuc]
         biggest_nucs = list(dict.fromkeys(biggest_nucs_list))
+        nuc_names = list(dict.fromkeys(nuc_names))
 
         for nuci, nuc in enumerate(biggest_nucs):
             rate_n = unumpy.nominal_values(count_rates[nuc])
