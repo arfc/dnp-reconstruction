@@ -96,10 +96,11 @@ dependencies:
   - numpy=2.3.2=py312h33ff503_0
   - openjpeg=2.5.3=h55fea9a_1
   - openmc=0.15.2=dagmc_nompi_py312h5423474_100
-  - openssl=3.5.1=h7b32b05_0
+  - openssl=3.5.2=h26f9b46_0
   - packaging=25.0=pyh29332c3_1
   - pandas=2.3.1=py312hf79963d_0
   - parso=0.8.4=pyhd8ed1ab_1
+  - patsy=1.0.1=pyhd8ed1ab_1
   - pexpect=4.9.0=pyhd8ed1ab_1
   - pickleshare=0.7.5=pyhd8ed1ab_1004
   - pillow=11.3.0=py312h80c1187_0
@@ -120,10 +121,13 @@ dependencies:
   - qhull=2020.2=h434a139_5
   - readline=8.2=h8c095d6_2
   - scipy=1.16.0=py312hf734454_0
+  - seaborn=0.13.2=hd8ed1ab_3
+  - seaborn-base=0.13.2=pyhd8ed1ab_3
   - setuptools=80.9.0=pyhff2d567_0
   - six=1.17.0=pyhe01879c_1
   - snappy=1.2.2=h03e3b7b_0
   - stack_data=0.6.3=pyhd8ed1ab_1
+  - statsmodels=0.14.5=py312h8b63200_0
   - tempest-remap=2.2.0=heeae502_5
   - tk=8.6.13=noxft_hd72426e_102
   - tomli=2.2.1=pyhe01879c_2
