@@ -172,7 +172,8 @@ class Grouper(BaseClass):
                     cycle_sum += np.exp(exponent)
                 except TypeError:
                     if exponent.n > 709:
-                        self.logger.critical(f'{exponent=} {self.t_net=} {lam=}')
+                        msg = 'Exponent too large in group fitting'
+                        self.logger.critical(f'{msg} \n {exponent=} {self.t_net=} {lam=}')
                         continue
                     cycle_sum += unumpy.exp(exponent)
             try:
@@ -182,7 +183,8 @@ class Grouper(BaseClass):
                                        )))
             except TypeError:
                 if lam.n * self.t_ex > 709:
-                    self.logger.critical(f'{self.t_ex=} {lam=}')
+                    msg = 'Exponent too large in group fitting'
+                    self.logger.critical(f'{msg} \n {self.t_ex=} {lam=}')
                     continue
                 if group == 0:
                     counts: np.ndarray[object] = np.zeros(

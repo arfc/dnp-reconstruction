@@ -34,8 +34,8 @@ class Concentrations(BaseClass):
         self.t_ex: float = modeling_options.get('excore_s', 0.0)
         self.t_net: float = modeling_options.get('net_irrad_s', 0.0)
         self.irrad_type: str = modeling_options.get('irrad_type', 'saturation')
-        self.f_in = 0.0
-        self.f_ex = 0.0
+        self.f_in = 1.0
+        self.f_ex = 1.0
         try:
             self.f_in: float = self.t_in / (self.t_in + self.t_ex)
             self.f_ex: float = self.t_ex / (self.t_in + self.t_ex)
@@ -55,7 +55,7 @@ class Concentrations(BaseClass):
                 self.repr_scale += self.f_ex
         else:
             raise NotImplementedError(f'{self.spatial_scaling} not implemented')
-
+        self.fission_term = 1.0 * self.f_in
 
 
         return None

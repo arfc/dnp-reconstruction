@@ -4,6 +4,7 @@ import numpy as np
 import os
 from mosden.utils.literature_handler import Literature
 from mosden.countrate import CountRate
+from mosden.concentrations import Concentrations
 from mosden.utils.csv_handler import CSVHandler
 from mosden.base import BaseClass
 import matplotlib.ticker as ticker
@@ -52,8 +53,10 @@ class PostProcess(BaseClass):
         self.group_data = None
 
         self.MC_yields, self.MC_half_lives = self._get_MC_group_params()
+        self.fission_term = Concentrations(self.input_path).fission_term
 
         return None
+
     
     def _convert_nuc_to_latex(self, nuc: str) -> str:
         match = re.match(r"([A-Za-z]+)(\d+)", nuc)
@@ -710,7 +713,7 @@ class PostProcess(BaseClass):
             N = data_dict['nucs'][nuc]['concentration']
             hl = data_dict['nucs'][nuc]['half_life']
             lam_val = np.log(2) / hl
-            nuc_yield[nuc] = Pn * N * lam_val
+            nuc_yield[nuc] = Pn * N * lam_val / self.fission_term
             self.total_delayed_neutrons += (Pn * N).n
             halflife_times_yield[nuc] = nuc_yield[nuc] * np.log(2) / lam_val
 

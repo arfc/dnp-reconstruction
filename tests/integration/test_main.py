@@ -12,6 +12,8 @@ from mosden.base import BaseClass
     pytest.param("tests/integration/test-data/input4.json", "tests/integration/test-data/reference/test4", "tests/integration/output4", marks=pytest.mark.slow),
     pytest.param("tests/integration/test-data/input5.json", "tests/integration/test-data/reference/test5", "tests/integration/output5", marks=pytest.mark.slow),
     pytest.param("tests/integration/test-data/input6.json", "tests/integration/test-data/reference/test6", "tests/integration/output6", marks=pytest.mark.slow),
+    ("tests/integration/test-data/input7.json", "tests/integration/test-data/reference/test7", "tests/integration/output7"),
+    ("tests/integration/test-data/input8.json", "tests/integration/test-data/reference/test8", "tests/integration/output8"),
 ])
 def test_mosden_cli(input_path, reference_output_path, output_path):
 
