@@ -64,8 +64,33 @@ class PostProcess(BaseClass):
 
     def run(self) -> None:
         self.compare_yields()
+        self.compare_group_to_data()
         self.MC_NLLS_analysis()
         return None
+    
+    def compare_group_to_data(self) -> None:
+        self._plot_group_vs_counts()
+        return None
+
+    def _plot_group_vs_counts(self) -> None:
+        group_data = CSVHandler(
+            self.group_path,
+            create=False).read_vector_csv()
+        countrate = CountRate(self.input_path)
+        countrate.group_params = group_data
+        group_counts = countrate._count_rate_from_groups()['counts']
+        summed_counts = CSVHandler(self.countrate_path).read_vector_csv()['counts']
+        pcnt_diff = (summed_counts - group_counts) / summed_counts * 100
+        plt.plot(self.decay_times, pcnt_diff)
+        plt.xlabel('Time [s]')
+        plt.xscale('log')
+        plt.ylabel('Relative Difference [\\%]')
+        plt.tight_layout()
+        plt.savefig(f'{self.output_dir}pcnt_diff_counts.png')
+        plt.close()
+        return None
+        
+
 
     def MC_NLLS_analysis(self) -> None:
         """
@@ -709,7 +734,7 @@ class PostProcess(BaseClass):
                 f'Writing nuclide emission times concentration (net yield)')
             for nuc, yield_val in sorted_yields.items():
                 self.logger.info(
-                    f'{nuc} - {round(yield_val.n, 3)} +/- {round(yield_val.s, 3)}')
+                    f'{nuc} - {round(yield_val.n, 5)} +/- {round(yield_val.s, 5)}')
                 sizes.append(yield_val.n)
                 labels.append(self._convert_nuc_to_latex(nuc))
                 running_sum += yield_val
