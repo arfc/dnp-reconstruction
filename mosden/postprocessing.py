@@ -104,7 +104,7 @@ class PostProcess(BaseClass):
         if self.MC_samples > 1:
             self._plot_MC_group_params()
             self._get_sens_coeffs(write=True)
-            self._plot_sensitivities(off_nominal=True, relative_diff=True)
+            self._plot_sensitivities(off_nominal=True, relative_diff=True, subplot=True)
         return None
     
     def _get_sens_coeffs(self, write=False) -> tuple[list[dict[str, float]], list[dict[str, float]], list[dict[str, float]], list[str]]:
@@ -137,14 +137,110 @@ class PostProcess(BaseClass):
                         result = linregress(data_val, group_val)
                         if abs(result.rvalue) > pcc_val and write:
                             self.logger.info(f'{nuc = } | {group+1 = } | {gname = } | {name =} | {result.slope = } | {result.rvalue = }')
+                        elif abs(result.rvalue) > pcc_val:
                             nucs_with_pcc.append(nuc)
         if write:
             self.logger.info('Completed writing nuclides \n')
         return Pn_data, hl_data, conc_data, nucs_with_pcc
+    
+    def _configure_x_y_labels(self, xlab, ylab, off_nominal, relative_diff) -> tuple[str, str]:
+        xlabel_replace = {
+            "Half-life": fr"$T_i [s]$",
+            "Decay Constant": fr"$\lambda_i [s^{{-1}}]$",
+            "Concentration": fr"$N_i [-]$",
+            "Emission Probability": fr'$P_{{n, i}} [-]$'
+        }
+        ylabel_replace = {
+            "Half-life": fr"$T_k [s]$",
+            "Decay Constant": fr"$\lambda_k [s^{{-1}}]$",
+            "Yield": fr"$\bar{{\nu}}_{{d, k}} [-]$",
+        }
+        offnom_ylabel_replace = {
+            "Half-life": fr"$\Delta T_k [s]$",
+            "Decay Constant": fr"$\Delta \lambda_k [s^{{-1}}]$",
+            "Yield": fr"$\Delta \bar{{\nu}}_{{d, k}} [-]$",
+        }
+        pcnt_ylabel_replace = {
+            "Half-life": fr"$\Delta T_k / T_k [\%]$",
+            "Decay Constant": fr"$\Delta \lambda_k / \lambda_k [\%]$",
+            "Yield": fr"$\Delta \bar{{\nu}}_{{d, k}} / \bar{{\nu}}_{{d, k}} [\%]$",
+        }
+        pcnt_xlabel_replace = {
+            "Half-life": fr"$\Delta T_i / T_i [\%]$",
+            "Decay Constant": fr"$\Delta \lambda_i / \lambda_i [\%]$",
+            "Concentration": fr"$\Delta N_i / N_i [\%]$",
+            "Emission Probability": fr'$\Delta P_{{n, i}} / P_{{n, i}} [\%]$'
+        }
 
+        if off_nominal:
+            if relative_diff:
+                ylab = pcnt_ylabel_replace[ylab]
+            else:
+                ylab = offnom_ylabel_replace[ylab]
+        else:
+            ylab = ylabel_replace[ylab]
+        if not (off_nominal and relative_diff):
+            xlab = xlabel_replace[xlab]
+        else:
+            xlab = pcnt_xlabel_replace[xlab]
+        return xlab, ylab
+    
+    def _get_sens_data(self, nuc: str,
+                       off_nominal: bool,
+                       relative_diff: bool,
+                       group_params: np.ndarray,
+                       group: int,
+                       indiv_dnp_data: dict) -> tuple[list[float, list[float]]]:
+        data_vals = [data[nuc] for data in indiv_dnp_data]
+        group_vals = group_params[group, 1:]
+        plot_val = group_vals
+        mean_group_val = np.mean(group_vals)
+        mean_data_val = np.mean(data_vals)
+        if off_nominal:
+            plot_val = group_vals - mean_group_val
+            if relative_diff:
+                data_val = ((data_vals - mean_data_val) / mean_data_val) * 100
+                plot_val = ((group_vals - mean_group_val) / mean_group_val) * 100
+        return data_val, plot_val
+
+    def _scatter_helper(self,
+                data: dict,
+                group_params: np.ndarray[float],
+                xlab: str,
+                ylab: str,
+                savename: str,
+                savedir: str,
+                off_nominal: bool = True,
+                nuclides: list[str] = None,
+                relative_diff: bool = True) -> None:
+
+            nuclides = nuclides or self.nuclides or list(data[0].keys())
+
+            xlab, ylab = self._configure_x_y_labels(xlab, ylab, off_nominal, relative_diff)
+            for nuc in nuclides:
+                for group in range(self.num_groups):
+                    data_val, plot_val = self._get_sens_data(nuc, off_nominal,
+                                                             relative_diff,
+                                                             group_params, group,
+                                                             data)
+                    plt.scatter(
+                        data_val,
+                        plot_val,
+                        label=f'Group {group + 1}',
+                        alpha=0.5,
+                        s=4,
+                        marker=self.markers[group],
+                        color=f'C{group}')
+                    #plt.legend(markerscale=2)
+                    plt.xlabel(xlab)
+                    plt.ylabel(ylab)
+                    plt.savefig(f'{savedir}{savename}_{nuc}_{group+1}.png')
+                    plt.close()
+            return None
 
     def _plot_sensitivities(self, off_nominal: bool = True,
-                            relative_diff: bool=True) -> None:
+                            relative_diff: bool=True,
+                            subplot: bool = True) -> None:
         """
         Plot the sensitivities of emission probabilities, concentrations,
           and half-lives
@@ -156,83 +252,6 @@ class PostProcess(BaseClass):
         relative_diff : bool, optional
             Whether to use the relative difference, by default False
         """
-        def scatter_helper(
-                data: dict,
-                group_params: np.ndarray[float],
-                xlab: str,
-                ylab: str,
-                savename: str,
-                savedir: str,
-                off_nominal: bool = True,
-                nuclides: list[str] = None) -> None:
-            markers = self.markers
-            nuclides = nuclides or self.nuclides or list(data[0].keys())
-            xlabel_replace = {
-                "Half-life": fr"$T_i [s]$",
-                "Decay Constant": fr"$\lambda_i [s^{{-1}}]$",
-                "Concentration": fr"$N_i [-]$",
-                "Emission Probability": fr'$P_{{n, i}} [-]$'
-            }
-            ylabel_replace = {
-                "Half-life": fr"$T_k [s]$",
-                "Decay Constant": fr"$\lambda_k [s^{{-1}}]$",
-                "Yield": fr"$\bar{{\nu}}_{{d, k}} [-]$",
-            }
-            offnom_ylabel_replace = {
-                "Half-life": fr"$\Delta T_k [s]$",
-                "Decay Constant": fr"$\Delta \lambda_k [s^{{-1}}]$",
-                "Yield": fr"$\Delta \bar{{\nu}}_{{d, k}} [-]$",
-            }
-            pcnt_ylabel_replace = {
-                "Half-life": fr"$\Delta T_k / T_k [\%]$",
-                "Decay Constant": fr"$\Delta \lambda_k / \lambda_k [\%]$",
-                "Yield": fr"$\Delta \bar{{\nu}}_{{d, k}} / \bar{{\nu}}_{{d, k}} [\%]$",
-            }
-            pcnt_xlabel_replace = {
-                "Half-life": fr"$\Delta T_i / T_i [\%]$",
-                "Decay Constant": fr"$\Delta \lambda_i / \lambda_i [\%]$",
-                "Concentration": fr"$\Delta N_i / N_i [\%]$",
-                "Emission Probability": fr'$\Delta P_{{n, i}} / P_{{n, i}} [\%]$'
-            }
-
-            if off_nominal:
-                if relative_diff:
-                    ylab = pcnt_ylabel_replace[ylab]
-                else:
-                    ylab = offnom_ylabel_replace[ylab]
-            else:
-                ylab = ylabel_replace[ylab]
-            if not (off_nominal and relative_diff):
-                xlab = xlabel_replace[xlab]
-            else:
-                xlab = pcnt_xlabel_replace[xlab]
-
-            for nuc in nuclides:
-                for group in range(self.num_groups):
-                    data_vals = [data[nuc] for data in data]
-                    group_vals = group_params[group, 1:]
-                    plot_val = group_vals
-                    mean_group_val = np.mean(group_vals)
-                    mean_data_val = np.mean(data_vals)
-                    if off_nominal:
-                        plot_val = group_vals - mean_group_val
-                        if relative_diff:
-                            data_vals = ((data_vals - mean_data_val) / mean_data_val) * 100
-                            plot_val = ((group_vals - mean_group_val) / mean_group_val) * 100
-                    plt.scatter(
-                        data_vals,
-                        plot_val,
-                        label=f'Group {group + 1}',
-                        alpha=0.5,
-                        s=4,
-                        marker=markers[group],
-                        color=f'C{group}')
-                    #plt.legend(markerscale=2)
-                    plt.xlabel(xlab)
-                    plt.ylabel(ylab)
-                    plt.savefig(f'{savedir}{savename}_{nuc}_{group+1}.png')
-                    plt.close()
-            return None
 
         pn_save_dir = os.path.join(self.output_dir, 'sens_pn/')
         if not os.path.exists(pn_save_dir):
@@ -243,61 +262,111 @@ class PostProcess(BaseClass):
         conc_save_dir = os.path.join(self.output_dir, 'sens_conc/')
         if not os.path.exists(conc_save_dir):
             os.makedirs(conc_save_dir)
+
         Pn_data, hl_data, conc_data, nuclides = self._get_sens_coeffs()
-        scatter_helper(
-            Pn_data,
-            self.MC_yields,
-            'Emission Probability',
-            'Yield',
-            'sens_pn_yield',
-            pn_save_dir,
-            off_nominal=off_nominal,
-            nuclides=nuclides)
-        scatter_helper(
-            hl_data,
-            self.MC_yields,
-            'Half-life',
-            'Yield',
-            'sens_lam_yield',
-            lam_save_dir,
-            off_nominal=off_nominal,
-            nuclides=nuclides)
-        scatter_helper(
-            conc_data,
-            self.MC_yields,
-            'Concentration',
-            'Yield',
-            'sens_conc_yield',
-            conc_save_dir,
-            off_nominal=off_nominal,
-            nuclides=nuclides)
-        scatter_helper(
-            Pn_data,
-            self.MC_half_lives,
-            'Emission Probability',
-            'Half-life',
-            'sens_pn_halflife',
-            pn_save_dir,
-            off_nominal=off_nominal,
-            nuclides=nuclides)
-        scatter_helper(
-            hl_data,
-            self.MC_half_lives,
-            'Half-life',
-            'Half-life',
-            'sens_lam_halflife',
-            lam_save_dir,
-            off_nominal=off_nominal,
-            nuclides=nuclides)
-        scatter_helper(
-            conc_data,
-            self.MC_half_lives,
-            'Concentration',
-            'Half-life',
-            'sens_conc_halflife',
-            conc_save_dir,
-            off_nominal=off_nominal,
-            nuclides=nuclides)
+        if not subplot:
+            self._scatter_helper(
+                Pn_data,
+                self.MC_yields,
+                'Emission Probability',
+                'Yield',
+                'sens_pn_yield',
+                pn_save_dir,
+                off_nominal=off_nominal,
+                nuclides=nuclides,
+                relative_diff=relative_diff)
+            self._scatter_helper(
+                hl_data,
+                self.MC_yields,
+                'Half-life',
+                'Yield',
+                'sens_lam_yield',
+                lam_save_dir,
+                off_nominal=off_nominal,
+                nuclides=nuclides,
+                relative_diff=relative_diff)
+            self._scatter_helper(
+                conc_data,
+                self.MC_yields,
+                'Concentration',
+                'Yield',
+                'sens_conc_yield',
+                conc_save_dir,
+                off_nominal=off_nominal,
+                nuclides=nuclides,
+                relative_diff=relative_diff)
+            self._scatter_helper(
+                Pn_data,
+                self.MC_half_lives,
+                'Emission Probability',
+                'Half-life',
+                'sens_pn_halflife',
+                pn_save_dir,
+                off_nominal=off_nominal,
+                nuclides=nuclides,
+                relative_diff=relative_diff)
+            self._scatter_helper(
+                hl_data,
+                self.MC_half_lives,
+                'Half-life',
+                'Half-life',
+                'sens_lam_halflife',
+                lam_save_dir,
+                off_nominal=off_nominal,
+                nuclides=nuclides,
+                relative_diff=relative_diff)
+            self._scatter_helper(
+                conc_data,
+                self.MC_half_lives,
+                'Concentration',
+                'Half-life',
+                'sens_conc_halflife',
+                conc_save_dir,
+                off_nominal=off_nominal,
+                nuclides=nuclides,
+                relative_diff=relative_diff)
+        else:
+            subplot_save_dir = os.path.join(self.output_dir, 'sens_subplots/')
+            if not os.path.exists(subplot_save_dir):
+                os.makedirs(subplot_save_dir)
+            group_data = [self.MC_yields, self.MC_half_lives]
+            group_name = ['Yield', 'Half-life']
+            dnp_data = [Pn_data, hl_data, conc_data]
+            dnp_name = ['Emission Probability', 'Half-life', 'Concentration']
+            for nuc in nuclides:
+                for group_val, gname in zip(group_data, group_name):
+                    fig = plt.figure()
+                    gs = fig.add_gridspec(self.num_groups, 3, hspace=0.1)
+                    axs = gs.subplots(sharex='col')
+                    for group_i in range(self.num_groups):
+                        for dnp_i, (dnp, name_dnp) in enumerate(zip(dnp_data, dnp_name)):
+                            dataval, plotval = self._get_sens_data(nuc, off_nominal, relative_diff, group_val, group_i, dnp)
+                            cur_ax = axs[group_i, dnp_i]
+                            cur_ax.scatter(
+                                dataval,
+                                plotval,
+                                label=f'Group {group_i + 1}',
+                                alpha=0.5,
+                                s=4,
+                                marker=self.markers[group_i],
+                                color=f'C{group_i}')
+                            xlab, ylab = self._configure_x_y_labels(name_dnp, gname, off_nominal, relative_diff)
+                            if group_i == self.num_groups - 1:
+                                cur_ax.set_xlabel(xlab, fontsize=8)
+                            else:
+                                cur_ax.set_xlabel('')
+                            cur_ax.tick_params(axis='both', which='major', labelsize=8)
+                    lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
+                    lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
+
+                    unique = dict(zip(labels, lines))
+                    fig.legend(unique.values(), unique.keys(),
+                            loc='center right', fontsize=8)
+
+                    plt.subplots_adjust(right=0.85)
+                    fig.supylabel(ylab)
+                    plt.savefig(f'{subplot_save_dir}{gname}_{nuc}.png')
+                    plt.close()
         return None
 
     def compare_yields(self) -> None:
