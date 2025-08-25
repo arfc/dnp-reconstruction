@@ -336,8 +336,8 @@ class PostProcess(BaseClass):
             for nuc in nuclides:
                 for group_val, gname in zip(group_data, group_name):
                     fig = plt.figure()
-                    gs = fig.add_gridspec(self.num_groups, 3, hspace=0.1)
-                    axs = gs.subplots(sharex='col')
+                    gs = fig.add_gridspec(self.num_groups, 3, hspace=0.1, wspace=0.05)
+                    axs = gs.subplots(sharex='col', sharey='row')
                     for group_i in range(self.num_groups):
                         for dnp_i, (dnp, name_dnp) in enumerate(zip(dnp_data, dnp_name)):
                             dataval, plotval = self._get_sens_data(nuc, off_nominal, relative_diff, group_val, group_i, dnp)
