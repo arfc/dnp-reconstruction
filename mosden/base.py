@@ -50,6 +50,7 @@ class BaseClass:
                                 filemode=log_mode)
 
         self.name: str = self.input_data['name']
+        self.logger.info(f'{self.name = }')
         data_options: dict = self.input_data.get('data_options', {})
         self.energy_MeV: float = data_options.get('energy_MeV', 0.0)
         self.fissiles: dict[str, float] = data_options.get(

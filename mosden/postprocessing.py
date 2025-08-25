@@ -11,6 +11,7 @@ import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 from scipy.integrate import cumulative_trapezoid
 import re
+from scipy.stats import linregress
 plt.style.use('mosden.plotting')
 
 
@@ -102,10 +103,41 @@ class PostProcess(BaseClass):
         self._plot_counts()
         if self.MC_samples > 1:
             self._plot_MC_group_params()
-            self._plot_sensitivities(off_nominal=True)
+            self._get_sens_coeffs(write=True)
+            self._plot_sensitivities(off_nominal=True, relative_diff=True)
         return None
+    
+    def _get_sens_coeffs(self, write=False) -> tuple[list[dict[str, float]]]:
+        Pn_data = self.post_data['PnMC']
+        hl_data = self.post_data['hlMC']
+        conc_data = self.post_data['concMC']
+        nuclides = list(Pn_data[0].keys())
+        data_sets = [Pn_data, hl_data, conc_data]
+        data_names = ['Emission Probability',
+                      'Half-life',
+                      'Concentration']
+        group_data = [self.MC_yields,
+                      self.MC_half_lives]
+        group_names = ['Yield',
+                       'Half-life']
+        for gname, gdata in zip(group_names, group_data):
+            for data, name in zip(data_sets, data_names):
+                for nuc in nuclides:
+                    for group in range(self.num_groups):
+                        data_vals = [data[nuc] for data in data]
+                        group_vals = gdata[group, 1:]
+                        mean_group_val = np.mean(group_vals)
+                        mean_data_val = np.mean(data_vals)
+                        data_val = ((data_vals - mean_data_val) / mean_data_val)
+                        group_val = ((group_vals - mean_group_val) / mean_group_val)
+                        result = linregress(data_val, group_val)
+                        if abs(result.slope) > 0.1 and result.rvalue > 0.2 and write:
+                            self.logger.info(f'{nuc = } | {group+1 = } | {gname = } | {name =} | {result.slope = } | {result.rvalue = }')
+        return Pn_data, hl_data, conc_data
 
-    def _plot_sensitivities(self, off_nominal: bool = True) -> None:
+
+    def _plot_sensitivities(self, off_nominal: bool = True,
+                            relative_diff: bool=True) -> None:
         """
         Plot the sensitivities of emission probabilities, concentrations,
           and half-lives
@@ -114,6 +146,8 @@ class PostProcess(BaseClass):
         ----------
         off_nominal : bool, optional
             Whether to plot off-nominal sensitivities, by default True
+        relative_diff : bool, optional
+            Whether to use the relative difference, by default False
         """
         def scatter_helper(
                 data: dict,
@@ -141,30 +175,55 @@ class PostProcess(BaseClass):
                 "Decay Constant": fr"$\Delta \lambda_k [s^{{-1}}]$",
                 "Yield": fr"$\Delta \bar{{\nu}}_{{d, k}} [-]$",
             }
-            xlab = xlabel_replace[xlab]
+            pcnt_ylabel_replace = {
+                "Half-life": fr"$\Delta T_k / T_k [\%]$",
+                "Decay Constant": fr"$\Delta \lambda_k / \lambda_k [\%]$",
+                "Yield": fr"$\Delta \bar{{\nu}}_{{d, k}} / \bar{{\nu}}_{{d, k}} [\%]$",
+            }
+            pcnt_xlabel_replace = {
+                "Half-life": fr"$\Delta T_i / T_i [\%]$",
+                "Decay Constant": fr"$\Delta \lambda_i / \lambda_i [\%]$",
+                "Concentration": fr"$\Delta N_i / N_i [\%]$",
+                "Emission Probability": fr'$\Delta P_{{n, i}} / P_{{n, i}} [\%]$'
+            }
+
             if off_nominal:
-                ylab = offnom_ylabel_replace[ylab]
+                if relative_diff:
+                    ylab = pcnt_ylabel_replace[ylab]
+                else:
+                    ylab = offnom_ylabel_replace[ylab]
             else:
                 ylab = ylabel_replace[ylab]
+            if not (off_nominal and relative_diff):
+                xlab = xlabel_replace[xlab]
+            else:
+                xlab = pcnt_xlabel_replace[xlab]
+
             for nuc in nuclides:
                 for group in range(self.num_groups):
                     data_vals = [data[nuc] for data in data]
                     group_vals = group_params[group, 1:]
                     plot_val = group_vals
+                    mean_group_val = np.mean(group_vals)
+                    mean_data_val = np.mean(data_vals)
                     if off_nominal:
-                        plot_val = group_vals - np.mean(group_vals)
+                        plot_val = group_vals - mean_group_val
+                        if relative_diff:
+                            data_vals = ((data_vals - mean_data_val) / mean_data_val) * 100
+                            plot_val = ((group_vals - mean_group_val) / mean_group_val) * 100
                     plt.scatter(
                         data_vals,
                         plot_val,
                         label=f'Group {group + 1}',
                         alpha=0.5,
                         s=4,
-                        marker=markers[group])
-                plt.legend(markerscale=2)
-                plt.xlabel(xlab)
-                plt.ylabel(ylab)
-                plt.savefig(f'{savedir}{savename}_{nuc}.png')
-                plt.close()
+                        marker=markers[group],
+                        color=f'C{group}')
+                    plt.legend(markerscale=2)
+                    plt.xlabel(xlab)
+                    plt.ylabel(ylab)
+                    plt.savefig(f'{savedir}{savename}_{nuc}_{group+1}.png')
+                    plt.close()
             return None
 
         pn_save_dir = os.path.join(self.output_dir, 'sens_pn/')
@@ -176,9 +235,7 @@ class PostProcess(BaseClass):
         conc_save_dir = os.path.join(self.output_dir, 'sens_conc/')
         if not os.path.exists(conc_save_dir):
             os.makedirs(conc_save_dir)
-        Pn_data = self.post_data['PnMC']
-        hl_data = self.post_data['hlMC']
-        conc_data = self.post_data['concMC']
+        Pn_data, hl_data, conc_data = self._get_sens_coeffs()
         scatter_helper(
             Pn_data,
             self.MC_yields,
@@ -234,7 +291,7 @@ class PostProcess(BaseClass):
         Compare the total DN yields from summing individuals and from 
           group parameters
         """
-        num_top = 7
+        num_top = 4
         num_stack = 2
         summed_yield, summed_avg_halflife = self._get_summed_params(num_top)
         group_yield, group_avg_halflife = self._get_group_params()
@@ -701,12 +758,13 @@ class PostProcess(BaseClass):
         net_yield, avg_half_life : tuple[float, float]
             net yield and average half-life of the group.
         """
-        nuc_yield: dict[str: float] = dict()
+        nuc_yield: dict[str, float] = dict()
         data_dict = self._get_data()
         net_nucs = data_dict['net_nucs']
 
-        halflife_times_yield: dict[str: float] = dict()
+        halflife_times_yield: dict[str, float] = dict()
         self.total_delayed_neutrons: float = 0.0
+        nuc_concs: dict[str, float] = dict()
 
         for nuc in net_nucs:
             Pn = data_dict['nucs'][nuc]['emission_probability']
@@ -716,74 +774,107 @@ class PostProcess(BaseClass):
             nuc_yield[nuc] = Pn * N * lam_val / self.fission_term
             self.total_delayed_neutrons += (Pn * N).n
             halflife_times_yield[nuc] = nuc_yield[nuc] * np.log(2) / lam_val
+            nuc_concs[nuc] = N
 
         sorted_yields = dict(
             sorted(
                 nuc_yield.items(),
                 key=lambda item: item[1].n,
                 reverse=True))
+        sorted_concs = dict(
+            sorted(
+                nuc_concs.items(),
+                key=lambda item: item[1].n,
+                reverse=True))
         net_yield = np.sum([i for i in sorted_yields.values()])
+        net_N = np.sum([i for i in sorted_concs.values()])
         if net_yield.n <= 0.0:
             net_yield = ufloat(1e-12, 1e-12)
+        if net_N.n <= 0.0:
+            net_N = ufloat(1e-12, 1e-12)
         # Parish 1999 uses relative alpha_i values, not yields
         avg_halflife = np.sum([i / net_yield for i in halflife_times_yield.values()])
         extracted_vals = dict()
         running_sum = 0
         sizes = list()
         labels = list()
-        if self.log_level <= INFO:
-            counter = 0
+        counter = 0
+        self.logger.info(
+            f'Writing nuclide emission times concentration (net yield)')
+        for nuc, yield_val in sorted_yields.items():
             self.logger.info(
-                f'Writing nuclide emission times concentration (net yield)')
-            for nuc, yield_val in sorted_yields.items():
-                self.logger.info(
-                    f'{nuc} - {round(yield_val.n, 5)} +/- {round(yield_val.s, 5)}')
-                sizes.append(yield_val.n)
-                labels.append(self._convert_nuc_to_latex(nuc))
-                running_sum += yield_val
-                counter += 1
-                extracted_vals[nuc] = yield_val
-                if counter > num_top:
-                    break
-            self.logger.info(
-                f'Finished nuclide emission times concentration (net yield)')
-            remainder = net_yield.n - running_sum.n
-            sizes.append(remainder)
+                f'{nuc} - {round(yield_val.n, 5)} +/- {round(yield_val.s, 5)}')
+            sizes.append(yield_val.n)
+            labels.append(self._convert_nuc_to_latex(nuc))
+            running_sum += yield_val
+            counter += 1
+            extracted_vals[nuc] = yield_val
+            if counter > num_top:
+                break
+        self.logger.info(
+            f'Finished nuclide emission times concentration (net yield)')
+        remainder = net_yield.n - running_sum.n
+        sizes.append(remainder)
+        labels.append('Other')
+        colormap = plt.cm.rainbow
+        colors = [colormap(i) for i in np.linspace(0.15, 1, num_top + 2)]
+        fig, ax = plt.subplots()
+        ax.pie(sizes, labels=labels, autopct='%1.1f%%',
+                pctdistance=0.7, labeldistance=1.1,
+                colors=colors)
+        ax.axis('equal')
+        plt.tight_layout()
+        fig.savefig(f'{self.output_dir}dnp_yield.png')
+        plt.close()
+
+        sizes = list()
+        labels = list()
+        counter = 0
+        for nuc, conc_val in sorted_concs.items():
+            N = data_dict['nucs'][nuc]['concentration']
+            sizes.append(conc_val.n)
+            labels.append(self._convert_nuc_to_latex(nuc))
+            running_sum += conc_val
+            counter += 1
+            if counter > num_top:
+                break
+        remainder = net_N.n - running_sum.n
+        sizes.append(remainder)
+        labels.append('Other')
+        colormap = plt.cm.rainbow
+        colors = [colormap(i) for i in np.linspace(0.15, 1, num_top + 2)]
+        fig, ax = plt.subplots()
+        ax.pie(sizes, labels=labels, autopct='%1.1f%%',
+                pctdistance=0.7, labeldistance=1.1,
+                colors=colors)
+        ax.axis('equal')
+        plt.tight_layout()
+        fig.savefig(f'{self.output_dir}dnp_conc.png')
+        plt.close()
+
+        labels = [i.capitalize() for i in self.fissiles.keys()]
+        sizes = list(self.fissiles.values())
+        remainder = 1 - sum(sizes)
+        if remainder > 0.0:
             labels.append('Other')
-            colormap = plt.cm.rainbow
-            colors = [colormap(i) for i in np.linspace(0.15, 1, num_top + 2)]
-            fig, ax = plt.subplots()
-            ax.pie(sizes, labels=labels, autopct='%1.1f%%',
-                   pctdistance=0.7, labeldistance=1.1,
-                   colors=colors)
-            ax.axis('equal')
-            plt.tight_layout()
-            fig.savefig(f'{self.output_dir}dnp_yield.png')
-            plt.close()
+            sizes.append(remainder)
+        colors = [colormap(i) for i in np.linspace(0.15, 1, len(labels))]
+        fig, ax = plt.subplots()
+        wedges, _, _ = ax.pie(sizes, autopct='%1.1f%%',
+                            pctdistance=0.7, labeldistance=1.1,
+                            colors=colors, textprops={'fontsize': 12})
 
-            labels = [i.capitalize() for i in self.fissiles.keys()]
-            sizes = list(self.fissiles.values())
-            remainder = 1 - sum(sizes)
-            if remainder > 0.0:
-                labels.append('Other')
-                sizes.append(remainder)
-            colors = [colormap(i) for i in np.linspace(0.15, 1, len(labels))]
-            fig, ax = plt.subplots()
-            wedges, _, _ = ax.pie(sizes, autopct='%1.1f%%',
-                             pctdistance=0.7, labeldistance=1.1,
-                             colors=colors, textprops={'fontsize': 12})
+        ax.legend(
+            wedges,
+            labels,
+            title="Relative Fission Rates",
+            loc="center left",
+            bbox_to_anchor=(1, 0, 0.5, 1)
+        )
 
-            ax.legend(
-                wedges,
-                labels,
-                title="Relative Fission Rates",
-                loc="center left",
-                bbox_to_anchor=(1, 0, 0.5, 1)
-            )
+        ax.axis('equal')
 
-            ax.axis('equal')
-
-            plt.tight_layout()
-            fig.savefig(f'{self.output_dir}fission_fraction.png')
-            plt.close()
+        plt.tight_layout()
+        fig.savefig(f'{self.output_dir}fission_fraction.png')
+        plt.close()
         return net_yield, avg_halflife

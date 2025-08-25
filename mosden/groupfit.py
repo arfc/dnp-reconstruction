@@ -70,6 +70,7 @@ class Grouper(BaseClass):
             sortby='half_life')
         self.save_postproc()
         self.time_track(start, 'Groupfit')
+        self.logger.info(f'Ran in {time() - start} s')
         return None
 
     def _residual_function(

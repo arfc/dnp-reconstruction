@@ -228,11 +228,11 @@ class CountRate(BaseClass):
                 conc = sample_parameter(conc, sampler_func)
 
                 if conc < 0.0:
-                    conc = 0.0
+                    conc = 1e-12
                 if decay_const < 0.0:
-                    decay_const = 0.0
+                    decay_const = 1e-12
                 if Pn < 0.0:
-                    Pn = 0.0
+                    Pn = 1e-12
 
                 counts = Pn * decay_const * conc * \
                     np.exp(-decay_const * self.decay_times)
