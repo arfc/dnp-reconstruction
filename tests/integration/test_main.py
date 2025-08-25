@@ -42,7 +42,9 @@ def test_mosden_cli(input_path, reference_output_path, output_path):
                 for subkey in output_data[key].keys():
                     assert np.isclose(output_data[key][subkey], reference_data[key][subkey], rtol=rtol, atol=atol), f"Data mismatch for {subkey} in {key} of {filename}"
 
-    result = subprocess.run(["mosden", "-a", input_path])
+    result = subprocess.run(["mosden", "-pre", input_path])
+    assert result.returncode == 0, f"mosden failed: {result.stderr}"
+    result = subprocess.run(["mosden", "-m", input_path])
     assert result.returncode == 0, f"mosden failed: {result.stderr}"
     files = ['group_parameters.csv',
              'concentrations.csv',
