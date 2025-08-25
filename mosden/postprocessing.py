@@ -38,7 +38,7 @@ class PostProcess(BaseClass):
         self.num_groups: int = self.input_data['group_options']['num_groups']
         self.MC_samples: int = self.input_data['group_options']['samples']
         self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
-        self.use_data: list[str] = ['keepin', 'charlton', 'endfb6', 'mills']#, 'saleh', 'synetos', 'tuttle', 'waldo']
+        self.use_data: list[str] = ['keepin', 'brady', 'synetos', 'Modified 0D Scaled']#, 'charlton', 'endfb6', 'mills']#, 'saleh', 'synetos', 'tuttle', 'waldo']
         self.nuclides: list[str] = ['Br87', 'I137', 'Br88', 'Br89', 'I138', 'Rb94', 'Rb93', 'Te136', 'Ge86', 'As86', 'Br90', 'As85']
         self.markers: list[str] = ['v', 'o', 'x', '^', 's', 'D']
         self.linestyles: list[str] = ['--', '..', '-.']
@@ -107,7 +107,7 @@ class PostProcess(BaseClass):
             self._plot_sensitivities(off_nominal=True, relative_diff=True)
         return None
     
-    def _get_sens_coeffs(self, write=False) -> tuple[list[dict[str, float]]]:
+    def _get_sens_coeffs(self, write=False) -> tuple[list[dict[str, float]], list[dict[str, float]], list[dict[str, float]], list[str]]:
         Pn_data = self.post_data['PnMC']
         hl_data = self.post_data['hlMC']
         conc_data = self.post_data['concMC']
@@ -120,6 +120,10 @@ class PostProcess(BaseClass):
                       self.MC_half_lives]
         group_names = ['Yield',
                        'Half-life']
+        nucs_with_pcc = list()
+        pcc_val = 0.2
+        if write:
+            self.logger.info(f'Writing nuclides with PCC > {pcc_val}')
         for gname, gdata in zip(group_names, group_data):
             for data, name in zip(data_sets, data_names):
                 for nuc in nuclides:
@@ -131,9 +135,12 @@ class PostProcess(BaseClass):
                         data_val = ((data_vals - mean_data_val) / mean_data_val)
                         group_val = ((group_vals - mean_group_val) / mean_group_val)
                         result = linregress(data_val, group_val)
-                        if abs(result.slope) > 0.1 and result.rvalue > 0.2 and write:
+                        if abs(result.rvalue) > pcc_val and write:
                             self.logger.info(f'{nuc = } | {group+1 = } | {gname = } | {name =} | {result.slope = } | {result.rvalue = }')
-        return Pn_data, hl_data, conc_data
+                            nucs_with_pcc.append(nuc)
+        if write:
+            self.logger.info('Completed writing nuclides \n')
+        return Pn_data, hl_data, conc_data, nucs_with_pcc
 
 
     def _plot_sensitivities(self, off_nominal: bool = True,
@@ -156,9 +163,10 @@ class PostProcess(BaseClass):
                 ylab: str,
                 savename: str,
                 savedir: str,
-                off_nominal: bool = True) -> None:
+                off_nominal: bool = True,
+                nuclides: list[str] = None) -> None:
             markers = self.markers
-            nuclides = self.nuclides or list(data[0].keys())
+            nuclides = nuclides or self.nuclides or list(data[0].keys())
             xlabel_replace = {
                 "Half-life": fr"$T_i [s]$",
                 "Decay Constant": fr"$\lambda_i [s^{{-1}}]$",
@@ -219,7 +227,7 @@ class PostProcess(BaseClass):
                         s=4,
                         marker=markers[group],
                         color=f'C{group}')
-                    plt.legend(markerscale=2)
+                    #plt.legend(markerscale=2)
                     plt.xlabel(xlab)
                     plt.ylabel(ylab)
                     plt.savefig(f'{savedir}{savename}_{nuc}_{group+1}.png')
@@ -235,7 +243,7 @@ class PostProcess(BaseClass):
         conc_save_dir = os.path.join(self.output_dir, 'sens_conc/')
         if not os.path.exists(conc_save_dir):
             os.makedirs(conc_save_dir)
-        Pn_data, hl_data, conc_data = self._get_sens_coeffs()
+        Pn_data, hl_data, conc_data, nuclides = self._get_sens_coeffs()
         scatter_helper(
             Pn_data,
             self.MC_yields,
@@ -243,7 +251,8 @@ class PostProcess(BaseClass):
             'Yield',
             'sens_pn_yield',
             pn_save_dir,
-            off_nominal=off_nominal)
+            off_nominal=off_nominal,
+            nuclides=nuclides)
         scatter_helper(
             hl_data,
             self.MC_yields,
@@ -251,7 +260,8 @@ class PostProcess(BaseClass):
             'Yield',
             'sens_lam_yield',
             lam_save_dir,
-            off_nominal=off_nominal)
+            off_nominal=off_nominal,
+            nuclides=nuclides)
         scatter_helper(
             conc_data,
             self.MC_yields,
@@ -259,7 +269,8 @@ class PostProcess(BaseClass):
             'Yield',
             'sens_conc_yield',
             conc_save_dir,
-            off_nominal=off_nominal)
+            off_nominal=off_nominal,
+            nuclides=nuclides)
         scatter_helper(
             Pn_data,
             self.MC_half_lives,
@@ -267,7 +278,8 @@ class PostProcess(BaseClass):
             'Half-life',
             'sens_pn_halflife',
             pn_save_dir,
-            off_nominal=off_nominal)
+            off_nominal=off_nominal,
+            nuclides=nuclides)
         scatter_helper(
             hl_data,
             self.MC_half_lives,
@@ -275,7 +287,8 @@ class PostProcess(BaseClass):
             'Half-life',
             'sens_lam_halflife',
             lam_save_dir,
-            off_nominal=off_nominal)
+            off_nominal=off_nominal,
+            nuclides=nuclides)
         scatter_helper(
             conc_data,
             self.MC_half_lives,
@@ -283,7 +296,8 @@ class PostProcess(BaseClass):
             'Half-life',
             'sens_conc_halflife',
             conc_save_dir,
-            off_nominal=off_nominal)
+            off_nominal=off_nominal,
+            nuclides=nuclides)
         return None
 
     def compare_yields(self) -> None:
@@ -636,6 +650,8 @@ class PostProcess(BaseClass):
         for name, lit_data in literature_data.items():
             if name == 'endfb6':
                 name = 'ENDF/B-VI'
+            elif name == 'Modified 0D Scaled':
+                pass
             else:
                 name = name.capitalize()
             countrate.group_params = lit_data

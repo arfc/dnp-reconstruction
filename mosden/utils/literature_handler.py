@@ -13,10 +13,10 @@ class Literature(BaseClass):
             Path to the input file containing fissile data.
         """
         super().__init__(input_path)
-        self.available_names: list[str] = ['keepin', 'charlton', 'endfb6', 'mills', 'saleh', 'synetos', 'tuttle', 'waldo', 'brady']
+        self.available_names: list[str] = ['keepin', 'charlton', 'endfb6', 'mills', 'saleh', 'synetos', 'tuttle', 'waldo', 'brady', 'Modified 0D Scaled']
         return None
     
-    def get_group_data(self, names:list[str]=['keepin']) -> dict[dict[str: list[float]]]:
+    def get_group_data(self, names:list[str]=None) -> dict[dict[str: list[float]]]:
         """
         Get countrate data from various sources and compile into a dictionary
 
@@ -32,6 +32,8 @@ class Literature(BaseClass):
         else:
             energy = 'fast'
 
+        if not names:
+            names = self.available_names
         for name in names:
             data_holder[name] = dict()
             for fiss, frac in self.fissiles.items():
@@ -285,6 +287,30 @@ class Literature(BaseClass):
                                     ufloat(0.3169, 0.0), ufloat(0.9886, 0.0), ufloat(2.9544, 0.0)]
                     half_lives = [np.log(2)/lam * frac for lam in decay_constants]
 
+        elif name == 'Modified 0D Scaled':
+            if fiss == 'U235':
+                if energy == 'thermal':
+                    # Microscopic
+                    net_yield = ufloat(0.0158, 0.0011)
+                    yields = [a*net_yield*frac for a in [
+                                ufloat(0.033, 0.003),
+                                ufloat(0.219, 0.005),
+                                ufloat(0.196, 0.022),
+                                ufloat(0.395, 0.011),
+                                ufloat(0.115, 0.009),
+                                ufloat(0.042, 0.008)]]
+                    decay_constants = [ufloat(0.0124, 0.0003),
+                                    ufloat(0.0305, 0.0009),
+                                    ufloat(0.111, 0.004),
+                                    ufloat(0.301, 0.012),
+                                    ufloat(1.14, 0.15),
+                                    ufloat(3.01, 0.29)]
+                    half_lives = [np.log(2)/lam*frac for lam in decay_constants]
+
+                    yields[0] = ufloat(0.00052, 0.00002)
+                    yields[1] = ufloat(0.00297, 0.00009)
+                    half_lives[0] = ufloat(55.52977, 0.15676)
+                    half_lives[1] = ufloat(23.54278, 0.12560)
 
 
 
