@@ -331,7 +331,7 @@ if __name__ == "__main__":
     input_path = "../../examples/huynh_2014/input.json"
     lit = Literature(input_path)
     data = lit.get_group_data(lit.available_names)
-    target_key = 'yield'
+    target_key = 'half_life'
     target_name = None
     for name, val in data.items():
         if name != target_name and target_name is not None:
@@ -341,9 +341,12 @@ if __name__ == "__main__":
             if key != target_key and target_key is not None:
                 continue
             print(key)
+            yield_val = sum([ufloat(val['yield'][i], val['sigma yield'][i])*100 for i in range(len(item_val))])
+            halflife_val = 1/yield_val * sum([ufloat(val['yield'][i], val['sigma yield'][i])*100*ufloat(val['half_life'][i], val['sigma half_life'][i]) for i in range(len(item_val))])
             if target_key == 'yield':
-                yield_val = sum([ufloat(val['yield'][i], val['sigma yield'][i])*100 for i in range(len(item_val))])
-                print(yield_val)
+                print(f'{yield_val = }')
+            elif target_key == 'half_life':
+                print(f'{halflife_val = }')
             for item in item_val:
                 print(f'{round(item, 5):.5f} & ', end='')
             print()

@@ -145,28 +145,28 @@ class PostProcess(BaseClass):
     
     def _configure_x_y_labels(self, xlab, ylab, off_nominal, relative_diff) -> tuple[str, str]:
         xlabel_replace = {
-            "Half-life": fr"$T_i [s]$",
+            "Half-life": fr"$\tau_i [s]$",
             "Decay Constant": fr"$\lambda_i [s^{{-1}}]$",
             "Concentration": fr"$N_i [-]$",
             "Emission Probability": fr'$P_{{n, i}} [-]$'
         }
         ylabel_replace = {
-            "Half-life": fr"$T_k [s]$",
+            "Half-life": fr"$\tau_k [s]$",
             "Decay Constant": fr"$\lambda_k [s^{{-1}}]$",
             "Yield": fr"$\bar{{\nu}}_{{d, k}} [-]$",
         }
         offnom_ylabel_replace = {
-            "Half-life": fr"$\Delta T_k [s]$",
+            "Half-life": fr"$\Delta \tau_k [s]$",
             "Decay Constant": fr"$\Delta \lambda_k [s^{{-1}}]$",
             "Yield": fr"$\Delta \bar{{\nu}}_{{d, k}} [-]$",
         }
         pcnt_ylabel_replace = {
-            "Half-life": fr"$\Delta T_k / T_k [\%]$",
+            "Half-life": fr"$\Delta \tau_k / \tau_k [\%]$",
             "Decay Constant": fr"$\Delta \lambda_k / \lambda_k [\%]$",
             "Yield": fr"$\Delta \bar{{\nu}}_{{d, k}} / \bar{{\nu}}_{{d, k}} [\%]$",
         }
         pcnt_xlabel_replace = {
-            "Half-life": fr"$\Delta T_i / T_i [\%]$",
+            "Half-life": fr"$\Delta \tau_i / \tau_i [\%]$",
             "Decay Constant": fr"$\Delta \lambda_i / \lambda_i [\%]$",
             "Concentration": fr"$\Delta N_i / N_i [\%]$",
             "Emission Probability": fr'$\Delta P_{{n, i}} / P_{{n, i}} [\%]$'
