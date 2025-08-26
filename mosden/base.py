@@ -116,8 +116,13 @@ class BaseClass:
         """
         Save post-processing data
         """
-        with open(self.postproc_path, 'r') as f:
-            existing_data = json.load(f)
+        try:
+            with open(self.postproc_path, 'r') as f:
+                existing_data = json.load(f)
+        except FileNotFoundError:
+            self.clear_post_data()
+            with open(self.postproc_path, 'r') as f:
+                existing_data = json.load(f)
         try:
             existing_data.update(self.post_data)
         except AttributeError:
