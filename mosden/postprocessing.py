@@ -11,6 +11,7 @@ import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 from scipy.integrate import cumulative_trapezoid
 import re
+import pandas as pd
 from scipy.stats import linregress
 plt.style.use('mosden.plotting')
 
@@ -122,11 +123,12 @@ class PostProcess(BaseClass):
                        'Half-life']
         nucs_with_pcc = list()
         pcc_val = 0.2
+        pcc_data = dict()
         if write:
             self.logger.info(f'Writing nuclides with PCC > {pcc_val}')
-        for gname, gdata in zip(group_names, group_data):
-            for data, name in zip(data_sets, data_names):
-                for nuc in nuclides:
+        for nuc in nuclides:
+            for gname, gdata in zip(group_names, group_data):
+                for data, name in zip(data_sets, data_names):
                     for group in range(self.num_groups):
                         data_vals = [data[nuc] for data in data]
                         group_vals = gdata[group, 1:]
@@ -135,15 +137,28 @@ class PostProcess(BaseClass):
                         data_val = ((data_vals - mean_data_val) / mean_data_val)
                         group_val = ((group_vals - mean_group_val) / mean_group_val)
                         result = linregress(data_val, group_val)
-                        if abs(result.rvalue) > pcc_val and write:
-                            self.logger.info(f'{nuc = } | {group+1 = } | {gname = } | {name =} | {result.slope = } | {result.rvalue = }')
+                        if abs(result.rvalue) > pcc_val:
+                            nuc_lab, group_lab = self._configure_x_y_labels(name,
+                                                                            gname,
+                                                                            False,
+                                                                            False,
+                                                                            group_val=group+1)
+                            nuc_name = self._convert_nuc_to_latex(nuc)
+                            pcc_data.setdefault('Nuclide', []).append(nuc_name)
+                            pcc_data.setdefault('Group Value', []).append(group_lab)
+                            pcc_data.setdefault('DNP Value', []).append(nuc_lab)
+                            pcc_data.setdefault('PCC', []).append(result.rvalue)
                         elif abs(result.rvalue) > pcc_val:
                             nucs_with_pcc.append(nuc)
+        pcc_df_data: pd.DataFrame = pd.DataFrame.from_dict(pcc_data, orient='columns')
+        pcc_latex = pcc_df_data.to_latex(index=False)
         if write:
+            self.logger.info(f'\n{pcc_latex}')
             self.logger.info('Completed writing nuclides \n')
         return Pn_data, hl_data, conc_data, nucs_with_pcc
     
-    def _configure_x_y_labels(self, xlab, ylab, off_nominal, relative_diff) -> tuple[str, str]:
+    def _configure_x_y_labels(self, xlab: str, ylab: str, off_nominal: bool, relative_diff: bool,
+                              group_val: str='k') -> tuple[str, str]:
         xlabel_replace = {
             "Half-life": fr"$\tau_i [s]$",
             "Decay Constant": fr"$\lambda_i [s^{{-1}}]$",
@@ -151,19 +166,19 @@ class PostProcess(BaseClass):
             "Emission Probability": fr'$P_{{n, i}} [-]$'
         }
         ylabel_replace = {
-            "Half-life": fr"$\tau_k [s]$",
-            "Decay Constant": fr"$\lambda_k [s^{{-1}}]$",
-            "Yield": fr"$\bar{{\nu}}_{{d, k}} [-]$",
+            "Half-life": fr"$\tau_{group_val} [s]$",
+            "Decay Constant": fr"$\lambda_{group_val} [s^{{-1}}]$",
+            "Yield": fr"$\bar{{\nu}}_{{d, {group_val}}} [-]$",
         }
         offnom_ylabel_replace = {
-            "Half-life": fr"$\Delta \tau_k [s]$",
-            "Decay Constant": fr"$\Delta \lambda_k [s^{{-1}}]$",
-            "Yield": fr"$\Delta \bar{{\nu}}_{{d, k}} [-]$",
+            "Half-life": fr"$\Delta \tau_{group_val} [s]$",
+            "Decay Constant": fr"$\Delta \lambda_{group_val} [s^{{-1}}]$",
+            "Yield": fr"$\Delta \bar{{\nu}}_{{d, {group_val}}} [-]$",
         }
         pcnt_ylabel_replace = {
-            "Half-life": fr"$\Delta \tau_k / \tau_k [\%]$",
-            "Decay Constant": fr"$\Delta \lambda_k / \lambda_k [\%]$",
-            "Yield": fr"$\Delta \bar{{\nu}}_{{d, k}} / \bar{{\nu}}_{{d, k}} [\%]$",
+            "Half-life": fr"$\Delta \tau_{group_val} / \tau_{group_val} [\%]$",
+            "Decay Constant": fr"$\Delta \lambda_{group_val} / \lambda_{group_val} [\%]$",
+            "Yield": fr"$\Delta \bar{{\nu}}_{{d, {group_val}}} / \bar{{\nu}}_{{d, {group_val}}} [\%]$",
         }
         pcnt_xlabel_replace = {
             "Half-life": fr"$\Delta \tau_i / \tau_i [\%]$",
