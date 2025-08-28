@@ -13,6 +13,8 @@ from scipy.integrate import cumulative_trapezoid
 import re
 import pandas as pd
 from scipy.stats import linregress
+from armi import configure
+from armi.nucDirectory import nuclideBases
 plt.style.use('mosden.plotting')
 
 
@@ -70,6 +72,7 @@ class PostProcess(BaseClass):
     def run(self) -> None:
         self.compare_yields()
         self.compare_group_to_data()
+        self.chart_plots()
         self.MC_NLLS_analysis()
         return None
     
@@ -94,7 +97,65 @@ class PostProcess(BaseClass):
         plt.savefig(f'{self.output_dir}pcnt_diff_counts.png')
         plt.close()
         return None
-        
+    
+    def chart_plots(self) -> None:
+        sorted_yields, sorted_concs, halflife_times_yield = self._get_sorted_dnp_data()
+        data_dict = self._get_data()
+        net_nucs = data_dict['net_nucs']
+        Pn_data = dict()
+        N_data = dict()
+        hl_data = dict()
+        CFY_data = dict()
+        yield_data = dict()
+        for nuc in net_nucs:
+            Pn_data[nuc] = data_dict['nucs'][nuc]['emission_probability'].n * 100
+            N_data[nuc] = data_dict['nucs'][nuc]['concentration'].n
+            hl_data[nuc] = data_dict['nucs'][nuc]['half_life'].n
+            CFY_data[nuc] = N_data[nuc] * np.log(2) / hl_data[nuc]
+            yield_data[nuc] = Pn_data[nuc] * CFY_data[nuc] / self.fission_term
+        self._chart_form(name='emission_probability', data=Pn_data, cbar_label='Emission Probability [\\%]')
+        self._chart_form(name='CFY', data=CFY_data, cbar_label='Cumulative Fission Yield [-]')
+        self._chart_form(name='yield', data=yield_data, cbar_label='Delayed Neutron Yield [-]')
+        return None
+    
+    def _chart_form(self, name: str, data: dict, cbar_label) -> None:
+        """
+        Create a chart of the nuclides with file name and with data
+
+        Parameters
+        ----------
+        name : str
+            Name of image
+        data : dict[str, float]
+            Data to plot, using the nuclide name as a key and the value to plot
+            (of the form "XE135")
+        """
+        configure(permissive=True)
+        plt.figure(figsize=(12, 8))
+        N = list()
+        Z = list()
+        C = list()
+        name_vals = nuclideBases.byName
+        for nuc, base in nuclideBases.byName.items():
+            try:
+                value = data[nuc.capitalize()]
+                N.append(base.a - base.z)
+                Z.append(base.z)
+                C.append(value)
+            except KeyError:
+                continue
+        norm = 'log'
+        #if name == 'CFY':
+        #    norm = 'log'
+        plt.scatter(N, Z, c=C, norm=norm, marker="s", s=60)
+        plt.set_cmap('viridis')
+        cbar = plt.colorbar()
+        cbar.set_label(cbar_label)
+        plt.xlabel("Number of neutrons (N)")
+        plt.ylabel("Number of protons (Z)")
+        plt.savefig(f'{self.output_dir}chart_{name}.png')
+        plt.close()
+        return None 
 
 
     def MC_NLLS_analysis(self) -> None:
@@ -127,9 +188,9 @@ class PostProcess(BaseClass):
         if write:
             self.logger.info(f'Writing nuclides with PCC > {pcc_val}')
         for nuc in nuclides:
-            for gname, gdata in zip(group_names, group_data):
-                for data, name in zip(data_sets, data_names):
-                    for group in range(self.num_groups):
+            for group in range(self.num_groups):
+                for gname, gdata in zip(group_names, group_data):
+                    for data, name in zip(data_sets, data_names):
                         data_vals = [data[nuc] for data in data]
                         group_vals = gdata[group, 1:]
                         mean_group_val = np.mean(group_vals)
@@ -842,27 +903,13 @@ class PostProcess(BaseClass):
             data_dict['nucs'][nuc]['concentration'] = N
             data_dict['nucs'][nuc]['half_life'] = hl
         return data_dict
-
-
-    def _get_summed_params(self, num_top: int = 10) -> tuple[float, float]:
-        """
-        Get the summed parameters from the postprocessing data
-
-        Parameters
-        ----------
-        num_top : int, optional
-            Number of top contributors to consider, by default 10
-
-        returns
-        -------
-        net_yield, avg_half_life : tuple[float, float]
-            net yield and average half-life of the group.
-        """
+    
+    def _get_sorted_dnp_data(self) -> tuple[dict, dict, dict]:
         nuc_yield: dict[str, float] = dict()
         data_dict = self._get_data()
+        halflife_times_yield: dict = dict()
         net_nucs = data_dict['net_nucs']
 
-        halflife_times_yield: dict[str, float] = dict()
         self.total_delayed_neutrons: float = 0.0
         nuc_concs: dict[str, float] = dict()
 
@@ -886,6 +933,25 @@ class PostProcess(BaseClass):
                 nuc_concs.items(),
                 key=lambda item: item[1].n,
                 reverse=True))
+        return sorted_yields, sorted_concs, halflife_times_yield
+
+
+    def _get_summed_params(self, num_top: int = 10) -> tuple[float, float]:
+        """
+        Get the summed parameters from the postprocessing data
+
+        Parameters
+        ----------
+        num_top : int, optional
+            Number of top contributors to consider, by default 10
+
+        returns
+        -------
+        net_yield, avg_half_life : tuple[float, float]
+            net yield and average half-life of the group.
+        """
+        data_dict = self._get_data()
+        sorted_yields, sorted_concs, halflife_times_yield = self._get_sorted_dnp_data()
         net_yield = np.sum([i for i in sorted_yields.values()])
         net_N = np.sum([i for i in sorted_concs.values()])
         if net_yield.n <= 0.0:
