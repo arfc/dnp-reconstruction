@@ -98,66 +98,6 @@ class PostProcess(BaseClass):
         plt.close()
         return None
     
-    def chart_plots(self) -> None:
-        sorted_yields, sorted_concs, halflife_times_yield = self._get_sorted_dnp_data()
-        data_dict = self._get_data()
-        net_nucs = data_dict['net_nucs']
-        Pn_data = dict()
-        N_data = dict()
-        hl_data = dict()
-        CFY_data = dict()
-        yield_data = dict()
-        for nuc in net_nucs:
-            Pn_data[nuc] = data_dict['nucs'][nuc]['emission_probability'].n * 100
-            N_data[nuc] = data_dict['nucs'][nuc]['concentration'].n
-            hl_data[nuc] = data_dict['nucs'][nuc]['half_life'].n
-            CFY_data[nuc] = N_data[nuc] * np.log(2) / hl_data[nuc]
-            yield_data[nuc] = Pn_data[nuc] * CFY_data[nuc] / self.fission_term
-        self._chart_form(name='emission_probability', data=Pn_data, cbar_label='Emission Probability [\\%]')
-        self._chart_form(name='CFY', data=CFY_data, cbar_label='Cumulative Fission Yield [-]')
-        self._chart_form(name='yield', data=yield_data, cbar_label='Delayed Neutron Yield [-]')
-        return None
-    
-    def _chart_form(self, name: str, data: dict, cbar_label) -> None:
-        """
-        Create a chart of the nuclides with file name and with data
-
-        Parameters
-        ----------
-        name : str
-            Name of image
-        data : dict[str, float]
-            Data to plot, using the nuclide name as a key and the value to plot
-            (of the form "XE135")
-        """
-        configure(permissive=True)
-        plt.figure(figsize=(12, 8))
-        N = list()
-        Z = list()
-        C = list()
-        name_vals = nuclideBases.byName
-        for nuc, base in nuclideBases.byName.items():
-            try:
-                value = data[nuc.capitalize()]
-                N.append(base.a - base.z)
-                Z.append(base.z)
-                C.append(value)
-            except KeyError:
-                continue
-        norm = 'log'
-        #if name == 'CFY':
-        #    norm = 'log'
-        plt.scatter(N, Z, c=C, norm=norm, marker="s", s=60)
-        plt.set_cmap('viridis')
-        cbar = plt.colorbar()
-        cbar.set_label(cbar_label)
-        plt.xlabel("Number of neutrons (N)")
-        plt.ylabel("Number of protons (Z)")
-        plt.savefig(f'{self.output_dir}chart_{name}.png')
-        plt.close()
-        return None 
-
-
     def MC_NLLS_analysis(self) -> None:
         """
         Analyze Monte Carlo Non-linear Least Squares results
