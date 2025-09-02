@@ -1,6 +1,9 @@
 # MoSDeN
 Molten Salt Delayed Neutron (MoSDeN) is a tool used for reconstruction of delayed neutron precursor groups in molten salt reactors.
 
+## History
+This tool had a previous version in this repository accessible with git hash `b56528a4`.
+https://doi.org/10.5281/zenodo.14888551
 
 ## Understanding the tool
 
