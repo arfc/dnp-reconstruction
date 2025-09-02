@@ -75,8 +75,20 @@ Alternatively, `mosden --all <input.json>` can be used to run preprocessing,
 calculations, and post-processing.
 
 ### Input file
+The input file contains the majority of parameters of interest.
+The command line arguments describe what stage of MoSDeN to run (preprocessing, 
+processing, or post-processing), while the input file describes what should 
+happen during each of those stages.
+The `default.py` and input files in `examples` can be used as a guide for 
+formatting and what parameters can be included.
 
 #### Log level
+One of the parameters is the log level, which can be useful for collecting 
+additional information about the simulation.
+This can be configured in the input file, but the default level of 20 is also 
+the suggested level for collecting useful information while not overcollecting 
+various debug outputs.
+
 - [<10] is the debug level
 - [<20] is the info level (This is the suggested level)
 - [<30] is the warning level
