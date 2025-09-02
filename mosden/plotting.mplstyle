@@ -1,0 +1,53 @@
+# To check more avaialble options see:
+# https://matplotlib.org/tutorials/introductory/customizing.html
+# From https://github.com/arfc/transition-scenarios/blob/f84fb1bdda18b99c6a58c49d00221a88c5d7d35a/scenarios/triso/plotting.mplstyle
+
+# FONT AND TEXT
+font.family : serif
+font.size : 16
+text.usetex : True
+text.color : (0, 0, 0)
+
+# AXES
+axes.labelsize : 20
+axes.labelweight : bold
+axes.edgecolor : (0, 0, 0)
+axes.labelcolor : (0, 0, 0)
+axes.linewidth : 1
+axes.spines.top : True
+axes.spines.right : True
+axes.spines.bottom : True
+axes.spines.left : True
+axes.grid : True
+axes.grid.which : major
+
+# GRID
+grid.linestyle : --
+grid.linewidth : 0.6
+
+# TICKS
+xtick.direction : in
+ytick.direction : in
+xtick.major.size : 6.0
+ytick.major.size : 6.0
+xtick.minor.size : 3.0
+ytick.minor.size : 3.0
+xtick.color : (0, 0, 0)
+ytick.color : (0, 0, 0)
+xtick.labelsize : 16
+ytick.labelsize : 16
+
+# LEGEND
+legend.fancybox : True
+legend.fontsize : 13
+legend.title_fontsize: 16
+
+# LINES
+lines.linewidth : 1.5
+lines.markersize : 1
+scatter.marker : .
+axes.prop_cycle : cycler('color', ['3B3B3B', 'E69F00', '56B4E9', '009E73', 'F0E442', '0072B2', 'D55E00', 'CC79A7'])
+
+# FIGURE OUTPUT
+figure.autolayout : True
+savefig.dpi : 300
