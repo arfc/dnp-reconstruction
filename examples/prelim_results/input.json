@@ -1,5 +1,6 @@
 {
     "name": "prelim",
+    "multi_id": null,
     "file_options": {
         "overwrite": {
             "preprocessing": true,
@@ -35,6 +36,7 @@
         "irrad_type": "saturation",
         "incore_s": 10,
         "excore_s": 0,
+        "spatial_scaling": "scaled",
         "net_irrad_s": 420,
         "decay_time": 600,
         "num_decay_times": 300
@@ -42,7 +44,7 @@
     "group_options": {
         "num_groups": 6,
         "method": "nlls",
-        "samples": 1,
+        "samples": 1000,
         "sample_func": "normal"
     }
 }
