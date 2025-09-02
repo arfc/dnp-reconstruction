@@ -14,7 +14,7 @@ plt.style.use('mosden.plotting')
 class PostProcess(BaseClass):
     def __init__(self, input_path: str) -> None:
         """
-        This class handles the postprocessing from the postprocessing json file
+        This class creates figures and performs analysis of generated data.
 
         Parameters
         ----------

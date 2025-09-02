@@ -7,7 +7,7 @@ class InputHandler:
 
     def __init__(self, input_path: str) -> None:
         """
-        This class handles the input files for all processing.
+        This class checks and parses input files.
 
         Parameters
         ----------
@@ -153,17 +153,6 @@ class InputHandler:
             raise ValueError("Fissile fractions must sum to 1.0. Current sum: "
                              f"{sum(data['data_options']['fissile_fractions'].values())}")
         return
-    
-    def _adjust_data(self, data: dict) -> dict:
-        """
-        Adjust the input data to fit desired formatting.
-
-        Parameters
-        ----------
-        data : dict
-            Dictionary containing settings and data selections.
-        """
-        return data
 
 
 

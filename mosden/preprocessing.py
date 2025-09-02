@@ -10,7 +10,7 @@ from time import time
 class Preprocess(BaseClass):
     def __init__(self, input_path: str) -> None:
         """
-        This class handles preprocessing of files into a common format.
+        This class preprocesses files into a common format.
 
         Parameters
         ----------

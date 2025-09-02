@@ -8,7 +8,7 @@ from time import time
 class Concentrations(BaseClass):
     def __init__(self, input_path: str) -> None:
         """
-        This class handles the formation of concentrations from data.
+        This class generates concentrations from data.
 
         Parameters
         ----------

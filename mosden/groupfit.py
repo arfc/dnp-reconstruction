@@ -12,7 +12,7 @@ import warnings
 class Grouper(BaseClass):
     def __init__(self, input_path: str) -> None:
         """
-        This class handles the formation of groups from count rates
+        This class forms DNP group parameters from count rates.
 
         Parameters
         ----------
