@@ -22,7 +22,6 @@ exist as processed data).
 This data is dependent on the energy of the irradiating neutrons as well as the 
 fissile nuclide target.
 
-#### Getting data
 The exact organization of raw, unprocessed data is flexible, with some notable 
 exceptions:
 - OpenMC chain files to be should all be in a subdirectory labeled with 
@@ -48,6 +47,18 @@ Processing consists of three steps:
 2. Generate the delayed neutron count rate.
 3. Fit a set of delayed neutron precursor group parameters that best fit the 
 count rate.
+
+The generation of concentrations varies based on the model used.
+The simplest model is the 0D scaled model, and uses cumulative fission yields.
+The concentration of each DNP is calculated as the cumulative fission yield over 
+the decay constant of that DNP.
+The 0D flow model (not implemented as of 2025-09-02) uses OpenMC to incorporate 
+decay chains and parasitic absorption effects, offering a better model of 
+the DNP concentrations at each point during the irradiation and subsequent 
+decay.
+
+The generation of the delayed neutron count rate and non-linear least squares
+fitting methods do not change between different models.
 
 ### Postprocessing
 Postprocessing handles plotting and data analysis from the processed results, 
