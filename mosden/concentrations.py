@@ -39,8 +39,16 @@ class Concentrations(BaseClass):
 
     def generate_concentrations(self) -> None:
         """
-        Generate the concentrations of each nuclide from based on
+        Generate the concentrations of each nuclide based on
         irradiation of the sample for the irradiation times.
+        
+        The 0D scaled model used the cumulative fission yield, which allows for 
+        calculation of the equilibrium concentration by dividing it by the 
+        decay constant.
+        
+        The independent fission yield exists as a way to collect pulse 
+        irradiation concentrations, but this is not an accurate method as it 
+        does not track decay chains. This exists primarily for testing purposes.
         """
         start = time()
         data: dict[str: dict[str: float]] = dict()
