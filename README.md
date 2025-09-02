@@ -9,7 +9,12 @@ That version has a publication associated with it, given here:
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14888551.svg)](https://doi.org/10.5281/zenodo.14888551)
 
-## Understanding the tool
+## Functionality
+MoSDeN operates in three distinct stages: preprocessing, processing, and 
+post-processing.
+Preprocessing loads in data and builds necessary files for processing.
+Processing runs the main bulk of the calculations for generating parameters.
+Post-processing handles figure generation and data analysis.
 
 ### Preprocessing
 Preprocessing should be run to generate any data needed (if it does not already 
