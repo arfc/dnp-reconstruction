@@ -5,6 +5,7 @@ delayed neutron precursor groups in molten salt reactors.
 ## History
 This tool had a previous version in this repository accessible with 
 git hash `b56528a4`.
+That version has a publication associated with it, given here:
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14888551.svg)](https://doi.org/10.5281/zenodo.14888551)
 
