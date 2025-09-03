@@ -1,5 +1,5 @@
 import matplotlib as mpl
-from pytest import Config
+from pytest import Session
 
-def pytest_configure(config: Config):
+def pytest_sessionstart(session: Session):
     mpl.rcParams["text.usetex"] = False
