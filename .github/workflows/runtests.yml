@@ -10,11 +10,6 @@ jobs:
       - name: Install wget
         run: sudo apt-get update && sudo apt-get install -y wget
 
-      #- name: Install LaTeX
-      #  run: |
-      #    sudo apt-get update
-      #    sudo apt-get install -y texlive-full
-
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -39,10 +34,11 @@ jobs:
         run: |
           pip install -e .
 
+      - name: Disable LaTeX
+        run: echo "text.usetex : False" >> ~/.config/matplotlib/matplotlibrc
+
+
       - name: Run pytest
         shell: bash -l {0}
-        env:
-          MPLBACKEND: Agg
-          MPLCONFIGDIR: /tmp
         run: |
           pytest -vv
