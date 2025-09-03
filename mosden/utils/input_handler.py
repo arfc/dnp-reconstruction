@@ -7,7 +7,7 @@ class InputHandler:
 
     def __init__(self, input_path: str) -> None:
         """
-        This class handles the input files for all processing.
+        This class checks and parses input files.
 
         Parameters
         ----------
@@ -27,7 +27,7 @@ class InputHandler:
         self.cumulative_fission_yields = ['nfy']
         return None
     
-    def read_input(self, check: bool=True, adjust_data: bool=True, apply_defaults: bool=True) -> dict:
+    def read_input(self, check: bool=True, apply_defaults: bool=True) -> dict:
         """
         Read the input file and return the data as a dictionary.
 
@@ -35,8 +35,6 @@ class InputHandler:
         ----------
         check : bool, optional
             If True, checks the behaviour of the input data. Default is True.
-        adjust_data : bool, optional
-            If True, adjusts the data to fit desired formatting. Default is True.
         apply_defaults : bool, optional
             If True, applies default values to missing keys. Default is True.
 
@@ -54,8 +52,6 @@ class InputHandler:
             output = self._apply_defaults(output, DEFAULTS)
         if check:
             self._check_behaviour(output)
-        if adjust_data:
-            output = self._adjust_data(output)
         return output
     
     def _apply_defaults(self, data: dict, defaults: dict, path: str='') -> dict:
@@ -153,17 +149,6 @@ class InputHandler:
             raise ValueError("Fissile fractions must sum to 1.0. Current sum: "
                              f"{sum(data['data_options']['fissile_fractions'].values())}")
         return
-    
-    def _adjust_data(self, data: dict) -> dict:
-        """
-        Adjust the input data to fit desired formatting.
-
-        Parameters
-        ----------
-        data : dict
-            Dictionary containing settings and data selections.
-        """
-        return data
 
 
 

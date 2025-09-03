@@ -7,7 +7,7 @@ import logging
 class CSVHandler:
     def __init__(self, file_path: str, overwrite: bool=False, create=True) -> None:
         """
-        This class handles reading and writing CSV files for MoSDeN data.
+        This class reads and writes CSV files for MoSDeN data.
 
         Parameters
         ----------
