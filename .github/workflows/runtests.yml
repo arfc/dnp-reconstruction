@@ -34,11 +34,6 @@ jobs:
         run: |
           pip install -e .
 
-      - name: Disable LaTeX
-        run: |
-          mkdir -p ~/.config/matplotlib
-          echo "text.usetex : False" >> ~/.config/matplotlib/matplotlibrc
-
       - name: Run pytest
         shell: bash -l {0}
         run: |
