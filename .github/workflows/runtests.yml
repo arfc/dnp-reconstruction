@@ -41,5 +41,8 @@ jobs:
 
       - name: Run pytest
         shell: bash -l {0}
+        env:
+          MPLBACKEND: Agg
+          MPLCONFIGDIR: /tmp
         run: |
           pytest -vv
