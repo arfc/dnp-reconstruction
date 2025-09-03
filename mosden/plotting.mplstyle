@@ -5,7 +5,7 @@
 # FONT AND TEXT
 font.family : serif
 font.size : 16
-text.usetex : True
+text.usetex : False
 text.color : (0, 0, 0)
 
 # AXES
