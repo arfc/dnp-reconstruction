@@ -13,8 +13,6 @@ from scipy.integrate import cumulative_trapezoid
 import re
 import pandas as pd
 from scipy.stats import linregress
-from armi import configure
-from armi.nucDirectory import nuclideBases
 plt.style.use('mosden.plotting')
 
 
@@ -60,7 +58,12 @@ class PostProcess(BaseClass):
         self.fission_term = Concentrations(self.input_path).fission_term
 
         return None
-
+    
+    def get_colors(self, num_colors:int, colormap:str=None,
+                   min_val:float=0.05, max_val:float=1.0) -> list[tuple[float]]:
+        cmap = plt.get_cmap(colormap)
+        colors = [cmap(i) for i in np.linspace(min_val, max_val, num_colors)]
+        return colors
     
     def _convert_nuc_to_latex(self, nuc: str) -> str:
         match = re.match(r"([A-Za-z]+)(\d+)", nuc)
@@ -72,7 +75,6 @@ class PostProcess(BaseClass):
     def run(self) -> None:
         self.compare_yields()
         self.compare_group_to_data()
-        self.chart_plots()
         self.MC_NLLS_analysis()
         return None
     
@@ -233,6 +235,8 @@ class PostProcess(BaseClass):
             nuclides = nuclides or self.nuclides or list(data[0].keys())
 
             xlab, ylab = self._configure_x_y_labels(xlab, ylab, off_nominal, relative_diff)
+            num_colors = self.num_groups
+            colors = self.get_colors(num_colors)
             for nuc in nuclides:
                 for group in range(self.num_groups):
                     data_val, plot_val = self._get_sens_data(nuc, off_nominal,
@@ -246,8 +250,7 @@ class PostProcess(BaseClass):
                         alpha=0.5,
                         s=4,
                         marker=self.markers[group],
-                        color=f'C{group}')
-                    #plt.legend(markerscale=2)
+                        color=colors[group])
                     plt.xlabel(xlab)
                     plt.ylabel(ylab)
                     plt.savefig(f'{savedir}{savename}_{nuc}_{group+1}.png')
@@ -349,6 +352,8 @@ class PostProcess(BaseClass):
             group_name = ['Yield', 'Half-life']
             dnp_data = [Pn_data, hl_data, conc_data]
             dnp_name = ['Emission Probability', 'Half-life', 'Concentration']
+            num_colors = self.num_groups
+            colors = self.get_colors(num_colors)
             for nuc in nuclides:
                 for group_val, gname in zip(group_data, group_name):
                     fig = plt.figure()
@@ -365,7 +370,7 @@ class PostProcess(BaseClass):
                                 alpha=0.5,
                                 s=4,
                                 marker=self.markers[group_i],
-                                color=f'C{group_i}')
+                                color=colors[group_i])
                             xlab, ylab = self._configure_x_y_labels(name_dnp, gname, off_nominal, relative_diff)
                             if group_i == self.num_groups - 1:
                                 cur_ax.set_xlabel(xlab, fontsize=8)
@@ -448,14 +453,15 @@ class PostProcess(BaseClass):
         biggest_nucs = list(dict.fromkeys(biggest_nucs_list))
         nuc_names = list(dict.fromkeys(nuc_names))
 
+        colors = self.get_colors(len(biggest_nucs))
         for nuci, nuc in enumerate(biggest_nucs):
             rate_n = unumpy.nominal_values(count_rates[nuc])
             rate_s = unumpy.std_devs(count_rates[nuc])
             upper = rate_n + rate_s
             lower = rate_n - rate_s
-            plt.fill_between(self.decay_times, lower, upper, color=f'C{nuci}',
+            plt.fill_between(self.decay_times, lower, upper, color=colors[nuci],
                              alpha=0.5)
-            plt.plot(self.decay_times, rate_n, color=f'C{nuci}', label=nuc_names[nuci],
+            plt.plot(self.decay_times, rate_n, color=colors[nuci], label=nuc_names[nuci],
                      linestyle='--', marker=self.markers[nuci%len(self.markers)], markevery=5,
                      markersize=3)
         
@@ -477,8 +483,8 @@ class PostProcess(BaseClass):
             rate_s = cumulative_trapezoid(rate_s, self.decay_times, initial=0)
             stacked_data.append(rate_n)
 
-            plt.fill_between(self.decay_times, lower, upper, color=f'C{nuci}', alpha=0.5)
-            plt.plot(self.decay_times, rate_n, color=f'C{nuci}', label=nuc_names[nuci],
+            plt.fill_between(self.decay_times, lower, upper, color=colors[nuci], alpha=0.5)
+            plt.plot(self.decay_times, rate_n, color=colors[nuci], label=nuc_names[nuci],
                      linestyle='--', marker=self.markers[nuci%len(self.markers)], markevery=5,
                      markersize=3)
         plt.xlabel('Time [s]')
@@ -491,7 +497,8 @@ class PostProcess(BaseClass):
         plt.close()
 
 
-        plt.stackplot(self.decay_times, stacked_data, labels=nuc_names)
+        plt.stackplot(self.decay_times, stacked_data, labels=nuc_names,
+                      colors=colors)
         plt.xlabel('Time [s]')
         plt.ylabel('Total Delayed Neutron Counts')
         plt.xscale('log')
@@ -658,21 +665,25 @@ class PostProcess(BaseClass):
             self.input_path).get_group_data(
             self.use_data)
         first: bool = True
-        for name, lit_data in literature_data.items():
+        colors = self.get_colors(len(literature_data.keys()))
+
+        for index, (name, lit_data) in enumerate(literature_data.items()):
             if name == 'endfb6':
                 name = 'ENDF/B-VI'
             else:
                 name = name.capitalize()
             countrate.group_params = lit_data
             data = countrate._count_rate_from_groups()
-            plt.plot(times, data['counts'], label=f'{name} 6-Group Fit')
+            plt.plot(times, data['counts'], label=f'{name} 6-Group Fit',
+                     color=colors[index])
             plt.fill_between(
                 times,
                 data['counts'] - data['sigma counts'],
                 data['counts'] + data['sigma counts'],
                 alpha=0.3,
                 zorder=2,
-                edgecolor='black')
+                edgecolor='black',
+                color=colors[index])
             if first:
                 base_name = name
                 base_counts = data['counts']
@@ -697,10 +708,10 @@ class PostProcess(BaseClass):
                 base_counts,
                 alpha=alpha_MC,
                 color=sample_color,
-                label=label,
-                linestyle='',
-                marker='o',
-                markersize=3)
+                label=label)#,
+                #linestyle='',
+                #marker='o',
+                #markersize=3)
         plt.errorbar(
             times,
             count_data['counts'] /
@@ -732,7 +743,7 @@ class PostProcess(BaseClass):
             alpha=0.3,
             zorder=2,
             edgecolor='black')
-        for name, lit_data in literature_data.items():
+        for index, (name, lit_data) in enumerate(literature_data.items()):
             if name == 'endfb6':
                 name = 'ENDF/B-VI'
             elif name == 'Modified 0D Scaled':
@@ -745,14 +756,16 @@ class PostProcess(BaseClass):
                 times,
                 data['counts'] /
                 base_counts,
-                label=f'{name} 6-Group Fit')
+                label=f'{name} 6-Group Fit',
+                color=colors[index])
             plt.fill_between(
                 times,
                 (data['counts'] - data['sigma counts']) / base_counts,
                 (data['counts'] + data['sigma counts']) / base_counts,
                 alpha=0.3,
                 zorder=2,
-                edgecolor='black')
+                edgecolor='black',
+                color=colors[index])
         plt.xlabel('Time [s]')
         plt.ylabel(fr'{base_name} Normalized Count Rate')
         leg = plt.legend()
@@ -922,8 +935,7 @@ class PostProcess(BaseClass):
         remainder = net_yield.n - running_sum.n
         sizes.append(remainder)
         labels.append('Other')
-        colormap = plt.cm.rainbow
-        colors = [colormap(i) for i in np.linspace(0.15, 1, num_top + 2)]
+        colors = self.get_colors(num_top+2, min_val=0.1)
         fig, ax = plt.subplots()
         ax.pie(sizes, labels=labels, autopct='%1.1f%%',
                 pctdistance=0.7, labeldistance=1.1,
@@ -947,8 +959,6 @@ class PostProcess(BaseClass):
         remainder = net_N.n - running_sum.n
         sizes.append(remainder)
         labels.append('Other')
-        colormap = plt.cm.rainbow
-        colors = [colormap(i) for i in np.linspace(0.15, 1, num_top + 2)]
         fig, ax = plt.subplots()
         ax.pie(sizes, labels=labels, autopct='%1.1f%%',
                 pctdistance=0.7, labeldistance=1.1,
@@ -958,13 +968,13 @@ class PostProcess(BaseClass):
         fig.savefig(f'{self.output_dir}dnp_conc.png')
         plt.close()
 
-        labels = [i.capitalize() for i in self.fissiles.keys()]
+        labels = [self._convert_nuc_to_latex(i.capitalize()) for i in self.fissiles.keys()]
         sizes = list(self.fissiles.values())
         remainder = 1 - sum(sizes)
         if remainder > 0.0:
             labels.append('Other')
             sizes.append(remainder)
-        colors = [colormap(i) for i in np.linspace(0.15, 1, len(labels))]
+        colors = self.get_colors(len(labels), min_val=0.1)
         fig, ax = plt.subplots()
         wedges, _, _ = ax.pie(sizes, autopct='%1.1f%%',
                             pctdistance=0.7, labeldistance=1.1,

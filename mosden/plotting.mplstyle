@@ -8,6 +8,9 @@ font.size : 16
 text.usetex : True
 text.color : (0, 0, 0)
 
+# COLORMAP
+image.cmap : viridis
+
 # AXES
 axes.labelsize : 20
 axes.labelweight : bold
