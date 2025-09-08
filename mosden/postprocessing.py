@@ -151,7 +151,6 @@ class PostProcess(BaseClass):
                             pcc_data.setdefault('Group Value', []).append(group_lab)
                             pcc_data.setdefault('DNP Value', []).append(nuc_lab)
                             pcc_data.setdefault('PCC', []).append(result.rvalue)
-                        elif abs(result.rvalue) > pcc_val:
                             nucs_with_pcc.append(nuc)
         pcc_df_data: pd.DataFrame = pd.DataFrame.from_dict(pcc_data, orient='columns')
         pcc_latex = pcc_df_data.to_latex(index=False)
@@ -271,7 +270,6 @@ class PostProcess(BaseClass):
         relative_diff : bool, optional
             Whether to use the relative difference, by default False
         """
-
         pn_save_dir = os.path.join(self.output_dir, 'sens_pn/')
         if not os.path.exists(pn_save_dir):
             os.makedirs(pn_save_dir)
