@@ -12,7 +12,7 @@ text.color : (0, 0, 0)
 image.cmap : viridis
 
 # AXES
-axes.labelsize : 20
+axes.labelsize : 18
 axes.labelweight : bold
 axes.edgecolor : (0, 0, 0)
 axes.labelcolor : (0, 0, 0)

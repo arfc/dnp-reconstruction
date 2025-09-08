@@ -39,7 +39,7 @@ class PostProcess(BaseClass):
         self.num_groups: int = self.input_data['group_options']['num_groups']
         self.MC_samples: int = self.input_data['group_options']['samples']
         self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
-        self.use_data: list[str] = ['keepin', 'brady', 'synetos', 'Modified 0D Scaled']#, 'charlton', 'endfb6', 'mills']#, 'saleh', 'synetos', 'tuttle', 'waldo']
+        self.use_data: list[str] = ['keepin', 'brady', 'synetos', 'Modified 0D Scaled']
         self.nuclides: list[str] = ['Br87', 'I137', 'Br88', 'Br89', 'I138', 'Rb94', 'Rb93', 'Te136', 'Ge86', 'As86', 'Br90', 'As85']
         self.markers: list[str] = ['v', 'o', 'x', '^', 's', 'D']
         self.linestyles: list[str] = ['--', '..', '-.']
@@ -486,7 +486,7 @@ class PostProcess(BaseClass):
                      linestyle='--', marker=self.markers[nuci%len(self.markers)], markevery=5,
                      markersize=3)
         plt.xlabel('Time [s]')
-        plt.ylabel('Total Delayed Neutron Counts')
+        plt.ylabel('Relative Delayed Neutron Counts')
         plt.xscale('log')
         plt.yscale('log')
         plt.legend()
@@ -498,7 +498,7 @@ class PostProcess(BaseClass):
         plt.stackplot(self.decay_times, stacked_data, labels=nuc_names,
                       colors=colors)
         plt.xlabel('Time [s]')
-        plt.ylabel('Total Delayed Neutron Counts')
+        plt.ylabel('Relative Delayed Neutron Counts')
         plt.xscale('log')
         plt.legend()
         plt.tight_layout()
@@ -706,10 +706,7 @@ class PostProcess(BaseClass):
                 base_counts,
                 alpha=alpha_MC,
                 color=sample_color,
-                label=label)#,
-                #linestyle='',
-                #marker='o',
-                #markersize=3)
+                label=label)
         plt.errorbar(
             times,
             count_data['counts'] /
@@ -933,7 +930,7 @@ class PostProcess(BaseClass):
         remainder = net_yield.n - running_sum.n
         sizes.append(remainder)
         labels.append('Other')
-        colors = self.get_colors(num_top+2, min_val=0.1)
+        colors = self.get_colors(num_top+2, min_val=0.15)
         fig, ax = plt.subplots()
         ax.pie(sizes, labels=labels, autopct='%1.1f%%',
                 pctdistance=0.7, labeldistance=1.1,

@@ -126,7 +126,7 @@ class MultiPostProcess():
             df.columns = [x_name, y_name, z_name]
             df[z_name] = pd.to_numeric(df[z_name])
             pivotted = df.pivot(index=x_name, columns=y_name, values=z_name)
-            color = sns.color_palette("dark:pink_r", as_cmap=True)
+            color = sns.color_palette("viridis", as_cmap=True)
             ax = sns.heatmap(pivotted, cmap=color)
             ax.invert_yaxis()
             ax.collections[0].colorbar.set_label(z_name)
@@ -178,11 +178,14 @@ class MultiPostProcess():
                 data[post.name]['Halflife Uncertainty'] = sig_halflife
         
         fig, ax = plt.subplots()
+        colors = self.posts[0].get_colors(len(self.posts))
         for post_i, post in enumerate(self.posts):
             if post.group_data is not None:
-                ax.bar(label_locations + offset(post_i), data[post.name]['Yield'], width, label=post.name, yerr=data[post.name]['Yield Uncertainty'])
+                ax.bar(label_locations + offset(post_i), data[post.name]['Yield'], width, label=post.name, yerr=data[post.name]['Yield Uncertainty'],
+                       color=colors[post_i])
             else:
-                ax.bar(label_locations + offset(post_i), data[post.name]['Yield'], width, label=post.name)
+                ax.bar(label_locations + offset(post_i), data[post.name]['Yield'], width, label=post.name,
+                       color=colors[post_i])
         ax.set_ylabel(r'$\bar{\nu}_{d, k}$')
         ax.set_xticks(label_locations)
         ax.set_xlabel('Groups')
@@ -195,9 +198,11 @@ class MultiPostProcess():
         fig, ax = plt.subplots()
         for post_i, post in enumerate(self.posts):
             if post.group_data is not None:
-                ax.bar(label_locations + offset(post_i), data[post.name]['Halflife [s]'], width, label=post.name, yerr=data[post.name]['Halflife Uncertainty'])
+                ax.bar(label_locations + offset(post_i), data[post.name]['Halflife [s]'], width, label=post.name, yerr=data[post.name]['Halflife Uncertainty'],
+                       color=colors[post_i])
             else:
-                ax.bar(label_locations + offset(post_i), data[post.name]['Halflife [s]'], width, label=post.name)
+                ax.bar(label_locations + offset(post_i), data[post.name]['Halflife [s]'], width, label=post.name,
+                       color=colors[post_i])
         ax.set_ylabel(r'$\bar{T}$')
         ax.set_xticks(label_locations)
         ax.set_xlabel('Groups')
@@ -210,6 +215,7 @@ class MultiPostProcess():
         return None
     
     def group_fit_counts(self):
+        colors = self.posts[0].get_colors(len(self.posts))
         for pi, post in enumerate(self.posts):
             times = post.decay_times
             countrate = CountRate(post.input_path)
@@ -218,7 +224,7 @@ class MultiPostProcess():
             plt.plot(
                 times,
                 group_counts['counts'],
-                color=f'C{pi}',
+                color=colors[pi],
                 alpha=0.75,
                 label=post.name,
                 linestyle='--',
@@ -232,7 +238,7 @@ class MultiPostProcess():
                 group_counts['sigma counts'],
                 group_counts['counts'] +
                 group_counts['sigma counts'],
-                color=f'C{pi}',
+                color=colors[pi],
                 alpha=0.3,
                 zorder=2,
                 edgecolor='black')
