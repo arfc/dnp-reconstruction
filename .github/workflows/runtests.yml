@@ -10,11 +10,6 @@ jobs:
       - name: Install wget
         run: sudo apt-get update && sudo apt-get install -y wget
 
-      - name: Install LaTeX
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y texlive-full
-
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:

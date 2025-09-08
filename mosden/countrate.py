@@ -9,7 +9,8 @@ from time import time
 class CountRate(BaseClass):
     def __init__(self, input_path: str) -> None:
         """
-        This class handles the delayed neutron count rate calculations
+        This class generates the delayed neutron count rate from concentrations 
+        and nuclear data.
 
         Parameters
         ----------
