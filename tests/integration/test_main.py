@@ -8,12 +8,13 @@ from mosden.base import BaseClass
 @pytest.mark.parametrize("input_path, reference_output_path, output_path", [
     ("tests/integration/test-data/input1.json", "tests/integration/test-data/reference/test1", "tests/integration/output1"),
     ("tests/integration/test-data/input2.json", "tests/integration/test-data/reference/test2", "tests/integration/output2"),
-    ("tests/integration/test-data/input3.json", "tests/integration/test-data/reference/test3", "tests/integration/output3"),
-    ("tests/integration/test-data/input4.json", "tests/integration/test-data/reference/test4", "tests/integration/output4"),
-    ("tests/integration/test-data/input5.json", "tests/integration/test-data/reference/test5", "tests/integration/output5"),
-    ("tests/integration/test-data/input6.json", "tests/integration/test-data/reference/test6", "tests/integration/output6"),
+    pytest.param("tests/integration/test-data/input3.json", "tests/integration/test-data/reference/test3", "tests/integration/output3", marks=pytest.mark.slow),
+    pytest.param("tests/integration/test-data/input4.json", "tests/integration/test-data/reference/test4", "tests/integration/output4", marks=pytest.mark.slow),
+    pytest.param("tests/integration/test-data/input5.json", "tests/integration/test-data/reference/test5", "tests/integration/output5", marks=pytest.mark.slow),
+    pytest.param("tests/integration/test-data/input6.json", "tests/integration/test-data/reference/test6", "tests/integration/output6", marks=pytest.mark.slow),
+    ("tests/integration/test-data/input7.json", "tests/integration/test-data/reference/test7", "tests/integration/output7"),
+    ("tests/integration/test-data/input8.json", "tests/integration/test-data/reference/test8", "tests/integration/output8"),
 ])
-@pytest.mark.slow
 def test_mosden_cli(input_path, reference_output_path, output_path):
 
     def check_output_file_exists_and_matches(output_path, filename, reference_path):
@@ -41,7 +42,9 @@ def test_mosden_cli(input_path, reference_output_path, output_path):
                 for subkey in output_data[key].keys():
                     assert np.isclose(output_data[key][subkey], reference_data[key][subkey], rtol=rtol, atol=atol), f"Data mismatch for {subkey} in {key} of {filename}"
 
-    result = subprocess.run(["mosden", "-a", input_path])
+    result = subprocess.run(["mosden", "-pre", input_path])
+    assert result.returncode == 0, f"mosden failed: {result.stderr}"
+    result = subprocess.run(["mosden", "-m", input_path])
     assert result.returncode == 0, f"mosden failed: {result.stderr}"
     files = ['group_parameters.csv',
              'concentrations.csv',

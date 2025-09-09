@@ -34,6 +34,29 @@ class Concentrations(BaseClass):
         self.t_ex: float = modeling_options.get('excore_s', 0.0)
         self.t_net: float = modeling_options.get('net_irrad_s', 0.0)
         self.irrad_type: str = modeling_options.get('irrad_type', 'saturation')
+        self.f_in = 1.0
+        self.f_ex = 1.0
+        try:
+            self.f_in: float = self.t_in / (self.t_in + self.t_ex)
+            self.f_ex: float = self.t_ex / (self.t_in + self.t_ex)
+        except ZeroDivisionError:
+            self.logger.error('No in-core or ex-core time')
+        self.spatial_scaling: str = modeling_options.get('spatial_scaling', 'unscaled')
+
+        if self.spatial_scaling == 'unscaled':
+            self.repr_scale = 1.0
+            self.f_in = 1.0
+            self.f_ex = 1.0
+        elif self.spatial_scaling == 'scaled':
+            self.repr_scale = 0.0
+            if 'incore' in self.reprocess_locations:
+                self.repr_scale += self.f_in
+            if 'excore' in self.reprocess_locations:
+                self.repr_scale += self.f_ex
+        else:
+            raise NotImplementedError(f'{self.spatial_scaling} not implemented')
+        self.fission_term = 1.0 * self.f_in
+
 
         return None
 
@@ -53,11 +76,6 @@ class Concentrations(BaseClass):
         start = time()
         data: dict[str: dict[str: float]] = dict()
         if self.model_method == 'CFY':
-            if self.t_ex > 0.0:
-                raise NotImplementedError(
-                    'Excore residence not available for CFY')
-            if self.reprocess:
-                raise NotImplementedError('Reprocessing not available for CFY')
             if self.irrad_type != 'saturation':
                 self.logger.error(
                     'CFY is intended for a saturation irradiation')
@@ -96,15 +114,19 @@ class Concentrations(BaseClass):
             concs = ufloat(
                 CFY_data[nuclide]['CFY'],
                 CFY_data[nuclide]['sigma CFY'])
-
             try:
                 hl = ufloat(
                     half_life_data[nuclide]['half_life'],
                     half_life_data[nuclide]['sigma half_life'])
             except KeyError:
                 continue
+            repr_term = 0.0
+            if self.reprocess:
+                nuc_element = self._get_element_from_nuclide(nuclide)
+                repr_term = self.reprocessing.get(nuc_element, 0.0)
             lam = np.log(2) / hl
-            concentrations[nuclide] = concs / lam
+            loss_term = lam + self.repr_scale * repr_term
+            concentrations[nuclide] = self.f_in * concs / loss_term
             all_nucs.add(nuclide)
 
         data: dict[str: dict[str: float]] = dict()

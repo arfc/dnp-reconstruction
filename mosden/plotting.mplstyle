@@ -5,11 +5,14 @@
 # FONT AND TEXT
 font.family : serif
 font.size : 16
-text.usetex : False
+text.usetex : True
 text.color : (0, 0, 0)
 
+# COLORMAP
+image.cmap : viridis
+
 # AXES
-axes.labelsize : 20
+axes.labelsize : 18
 axes.labelweight : bold
 axes.edgecolor : (0, 0, 0)
 axes.labelcolor : (0, 0, 0)
