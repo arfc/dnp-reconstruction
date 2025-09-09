@@ -26,6 +26,7 @@ class BaseClass:
         self.input_path: str = input_path
         self.input_handler: InputHandler = InputHandler(input_path)
         self.input_data: dict = self.input_handler.read_input()
+        self.multi_id: str = self.input_data.get('multi_id', None)
         file_options: dict = self.input_data.get('file_options', {})
         overwrite: dict = file_options.get('overwrite', {})
 
@@ -49,6 +50,7 @@ class BaseClass:
                                 filemode=log_mode)
 
         self.name: str = self.input_data['name']
+        self.logger.info(f'{self.name = }')
         data_options: dict = self.input_data.get('data_options', {})
         self.energy_MeV: float = data_options.get('energy_MeV', 0.0)
         self.fissiles: dict[str, float] = data_options.get(
@@ -114,8 +116,13 @@ class BaseClass:
         """
         Save post-processing data
         """
-        with open(self.postproc_path, 'r') as f:
-            existing_data = json.load(f)
+        try:
+            with open(self.postproc_path, 'r') as f:
+                existing_data = json.load(f)
+        except FileNotFoundError:
+            self.clear_post_data()
+            with open(self.postproc_path, 'r') as f:
+                existing_data = json.load(f)
         try:
             existing_data.update(self.post_data)
         except AttributeError:
@@ -148,3 +155,20 @@ class BaseClass:
                 f"Processed data file {data_path} does not exist.")
         data = csv_handler.read_csv()
         return data
+
+    def _get_element_from_nuclide(self, nuclide: str) -> str:
+        """
+        Get the element from a given nuclide of the form `XX##`
+
+        Parameters
+        ----------
+        nuclide : str
+            Nuclide, such as `Xe135`
+        
+        Returns
+        -------
+        element : str
+            Element, such as `Xe`
+        """
+        element = ''.join([i for i in nuclide if i.isalpha()])
+        return element

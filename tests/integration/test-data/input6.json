@@ -7,5 +7,8 @@
         "processed_data_dir": "./tests/integration/output6",
         "output_dir": "./tests/integration/output6",
         "log_file": "./tests/integration/output6/log.log"
+    },
+    "group_options": {
+        "seed": 1
     }
 }

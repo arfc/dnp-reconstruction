@@ -48,6 +48,6 @@
         "method": "nlls",
         "samples": 100,
         "sample_func": "normal",
-        "seed": 42
+        "seed": 1
     }
 }

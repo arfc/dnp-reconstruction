@@ -81,8 +81,8 @@ def test_literature_handler():
 
 
 
-    with pytest.raises(KeyError):
-        none_data = lit_data._get_group_data_helper('nonexistant', 1, 'nonexistant', 'nonexistant')
+    none_data = lit_data._get_group_data_helper('nonexistant', 1, 'nonexistant', 'nonexistant')
+    assert none_data == None
 
     return None
 
