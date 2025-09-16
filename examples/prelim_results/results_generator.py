@@ -111,10 +111,20 @@ analysis_list.append(detailed_decay_analysis)
 
 
 
-def replace_value(input_data: dict, key: str, new_val) -> bool:
+def replace_value(input_data: dict, key: str, new_val: str|float|int) -> bool:
     """
     Recursively search through dict d to find key and replace its value.
     Returns True if replacement was made, False otherwise.
+
+    Parameters
+    ----------
+    input_data : dict
+        The dictionary of input data
+    key : str
+        The key to search for
+    new_val : str|float|int
+        The new value to assign to the key
+
     """
     if key in input_data.keys():
         input_data[key] = new_val
@@ -126,13 +136,43 @@ def replace_value(input_data: dict, key: str, new_val) -> bool:
                 return True
     return False
 
-def create_directory(dir_name) -> None:
+def create_directory(dir_name: str) -> None:
+    """
+    Create directory if it does not exist. If it does exist and overwrite is
+    True, delete and recreate.
+
+    Parameters
+    ----------
+    dir_name : str
+        The name of the directory to create
+
+    """
     if os.path.isdir(dir_name) and analysis['meta']['overwrite']:
         shutil.rmtree(dir_name)
     os.makedirs(dir_name, exist_ok=analysis['meta']['overwrite'])
     return None
 
 def populate_inputs(analysis: dict, dir_path: str) -> list[str]:
+    """
+    Populate the input files for each case in the analysis dict.
+
+    Parameters
+    ----------
+    analysis : dict
+        The analysis dictionary containing the parameters for each case
+    dir_path : str
+        The directory path where the input files will be created
+
+    Returns
+    -------
+    list[str]
+        A list of paths to the created input files
+
+    Raises
+    ------
+    KeyError
+        If a key in the analysis dict is not found in the input file
+    """
     paths = []
     dir_path = Path(dir_path)
 
@@ -165,7 +205,18 @@ def populate_inputs(analysis: dict, dir_path: str) -> list[str]:
         paths.append(str(file_path))
     return paths
 
-def run_mosden(analysis: dict, input_paths: list[str]):
+def run_mosden(analysis: dict, input_paths: list[str]) -> None:
+    """
+    Run mosden for the given analysis and input paths.
+
+    Parameters
+    ----------
+    analysis : dict
+        The analysis dictionary containing the parameters for the run
+    input_paths : list[str]
+        The list of input file paths to process
+
+    """
     if analysis['meta']['run_full']:
         command = ['mosden', '-a'] + input_paths
     elif analysis['meta']['run_post']:
