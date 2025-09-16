@@ -61,11 +61,48 @@ class PostProcess(BaseClass):
     
     def get_colors(self, num_colors:int, colormap:str=None,
                    min_val:float=0.05, max_val:float=1.0) -> list[tuple[float]]:
+        """
+        Get a list of colors from a colormap
+
+        Parameters
+        ----------
+        num_colors : int
+            Number of colors to retrieve
+        colormap : str, optional
+            Name of the colormap to use, by default None
+        min_val : float, optional
+            Minimum value for the colormap, by default 0.05
+        max_val : float, optional
+            Maximum value for the colormap, by default 1.0
+
+        Returns
+        -------
+        colors : list[tuple[float]]
+            List of colors
+        """
         cmap = plt.get_cmap(colormap)
         colors = [cmap(i) for i in np.linspace(min_val, max_val, num_colors)]
         return colors
     
     def _convert_nuc_to_latex(self, nuc: str) -> str:
+        """
+        Convert a nuclide string to a LaTeX formatted string.
+
+        Parameters
+        ----------
+        nuc : str
+            Nuclide string to convert
+
+        Returns
+        -------
+        str
+            LaTeX formatted string
+
+        Raises
+        ------
+        ValueError
+            Unexpected format error
+        """
         match = re.match(r"([A-Za-z]+)(\d+)", nuc)
         if not match:
             raise ValueError(f"Unexpected format: {nuc}")
@@ -73,16 +110,26 @@ class PostProcess(BaseClass):
         return rf"$^{{{mass}}}${elem}"
 
     def run(self) -> None:
+        """
+        The main run function for postprocessing
+
+        """
         self.compare_yields()
         self.compare_group_to_data()
         self.MC_NLLS_analysis()
         return None
     
     def compare_group_to_data(self) -> None:
+        """
+        Runs functions that compare the group parameters to the data
+        """
         self._plot_group_vs_counts()
         return None
 
     def _plot_group_vs_counts(self) -> None:
+        """
+        Plot the relative difference between the group fit and the counts
+        """
         group_data = CSVHandler(
             self.group_path,
             create=False).read_vector_csv()
@@ -112,6 +159,19 @@ class PostProcess(BaseClass):
         return None
     
     def _get_sens_coeffs(self, write=False) -> tuple[list[dict[str, float]], list[dict[str, float]], list[dict[str, float]], list[str]]:
+        """
+        Get the sensitivity coefficients for the Monte Carlo samples
+
+        Parameters
+        ----------
+        write : bool, optional
+            Whether to write the results to a file, by default False
+
+        Returns
+        -------
+        tuple[list[dict[str, float]], list[dict[str, float]], list[dict[str, float]], list[str]]
+            A tuple containing the sensitivity coefficients for the Monte Carlo samples
+        """
         Pn_data = self.post_data['PnMC']
         hl_data = self.post_data['hlMC']
         conc_data = self.post_data['concMC']
@@ -161,6 +221,27 @@ class PostProcess(BaseClass):
     
     def _configure_x_y_labels(self, xlab: str, ylab: str, off_nominal: bool, relative_diff: bool,
                               group_val: str='k') -> tuple[str, str]:
+        """
+        Configure the x and y labels for the sensitivity plots
+
+        Parameters
+        ----------
+        xlab : str
+            The label for the x-axis
+        ylab : str
+            The label for the y-axis
+        off_nominal : bool
+            Whether the plot is off-nominal
+        relative_diff : bool
+            Whether to plot the relative difference
+        group_val : str, optional
+            The group value for the plot, by default 'k'
+
+        Returns
+        -------
+        xlab, ylab : tuple[str, str]
+            The configured x and y labels
+        """
         xlabel_replace = {
             "Half-life": fr"$\tau_i [s]$",
             "Decay Constant": fr"$\lambda_i [s^{{-1}}]$",
@@ -208,6 +289,29 @@ class PostProcess(BaseClass):
                        group_params: np.ndarray,
                        group: int,
                        indiv_dnp_data: dict) -> tuple[list[float, list[float]]]:
+        """
+        Get the sensitivity data for a given nuclide and group
+
+        Parameters
+        ----------
+        nuc : str
+            The nuclide to get data for
+        off_nominal : bool
+            Whether the plot is off-nominal
+        relative_diff : bool
+            Whether to plot the relative difference
+        group_params : np.ndarray
+            The group parameters for the plot
+        group : int
+            The group index
+        indiv_dnp_data : dict
+            The individual delayed neutron precursor data
+
+        Returns
+        -------
+        data_val, plot_val : tuple[list[float, list[float]]]
+            The sensitivity data for the given nuclide and group
+        """
         data_vals = [data[nuc] for data in indiv_dnp_data]
         group_vals = group_params[group, 1:]
         plot_val = group_vals
@@ -230,31 +334,56 @@ class PostProcess(BaseClass):
                 off_nominal: bool = True,
                 nuclides: list[str] = None,
                 relative_diff: bool = True) -> None:
+        """
+        Helper function to create scatter plots of sensitivity data
 
-            nuclides = nuclides or self.nuclides or list(data[0].keys())
+        Parameters
+        ----------
+        data : dict
+            The sensitivity data for the given nuclide and group
+        group_params : np.ndarray[float]
+            The group parameters for the plot
+        xlab : str
+            The label for the x-axis
+        ylab : str
+            The label for the y-axis
+        savename : str
+            The name to save the plot as
+        savedir : str
+            The directory to save the plot in
+        off_nominal : bool, optional
+            Whether the plot is off-nominal, by default True
+        nuclides : list[str], optional
+            The list of nuclides to plot, by default None
+        relative_diff : bool, optional
+            Whether to plot the relative difference, by default True
 
-            xlab, ylab = self._configure_x_y_labels(xlab, ylab, off_nominal, relative_diff)
-            num_colors = self.num_groups
-            colors = self.get_colors(num_colors)
-            for nuc in nuclides:
-                for group in range(self.num_groups):
-                    data_val, plot_val = self._get_sens_data(nuc, off_nominal,
-                                                             relative_diff,
-                                                             group_params, group,
-                                                             data)
-                    plt.scatter(
-                        data_val,
-                        plot_val,
-                        label=f'Group {group + 1}',
-                        alpha=0.5,
-                        s=4,
-                        marker=self.markers[group],
-                        color=colors[group])
-                    plt.xlabel(xlab)
-                    plt.ylabel(ylab)
-                    plt.savefig(f'{savedir}{savename}_{nuc}_{group+1}.png')
-                    plt.close()
-            return None
+        """
+
+        nuclides = nuclides or self.nuclides or list(data[0].keys())
+
+        xlab, ylab = self._configure_x_y_labels(xlab, ylab, off_nominal, relative_diff)
+        num_colors = self.num_groups
+        colors = self.get_colors(num_colors)
+        for nuc in nuclides:
+            for group in range(self.num_groups):
+                data_val, plot_val = self._get_sens_data(nuc, off_nominal,
+                                                            relative_diff,
+                                                            group_params, group,
+                                                            data)
+                plt.scatter(
+                    data_val,
+                    plot_val,
+                    label=f'Group {group + 1}',
+                    alpha=0.5,
+                    s=4,
+                    marker=self.markers[group],
+                    color=colors[group])
+                plt.xlabel(xlab)
+                plt.ylabel(ylab)
+                plt.savefig(f'{savedir}{savename}_{nuc}_{group+1}.png')
+                plt.close()
+        return None
 
     def _plot_sensitivities(self, off_nominal: bool = True,
                             relative_diff: bool=True,
@@ -269,6 +398,8 @@ class PostProcess(BaseClass):
             Whether to plot off-nominal sensitivities, by default True
         relative_diff : bool, optional
             Whether to use the relative difference, by default False
+        subplot : bool, optional
+            Whether to create subplots for each nuclide, by default True
         """
         pn_save_dir = os.path.join(self.output_dir, 'sens_pn/')
         if not os.path.exists(pn_save_dir):
@@ -506,82 +637,97 @@ class PostProcess(BaseClass):
         plt.close()
  
         return None
+    
+    def _group_param_helper(self, name: str, items: np.ndarray[float], group_data: dict[str: object]) -> None:
+        """
+
+        Parameters
+        ----------
+        name : str
+            Name of the parameter to plot ('yield' or 'half_life')
+        items : np.ndarray[float]
+            Items to plot
+        group_data : dict[str: object]
+            Group data containing parameter values and uncertainties
+
+        Raises
+        ------
+        NotImplementedError
+            If the name is not 'yield' or 'half_life'
+        """
+        if name == 'yield':
+            label_name = 'Yield'
+            xlabel = 'Yield'
+            scaler = 1
+            scale_label = ''
+        elif name == 'half_life':
+            label_name = 'Half-life'
+            xlabel = 'Half-life [s]'
+            scaler = 1
+            scale_label = ''
+        else:
+            raise NotImplementedError(f'{name} not defined')
+
+        group_item = [scaler * ufloat(y,
+                                        std) for y,
+                        std in zip(group_data[name],
+                                    group_data[f'sigma {name}'])]
+        for group, item in enumerate(items):
+            item = item * scaler
+            bins = np.linspace(
+                min(item), max(item), int(
+                    np.sqrt(
+                        len(item))))
+            counts, edges = np.histogram(item, bins=bins)
+            normalized_counts = counts
+            bin_centers = 0.5 * (edges[:-1] + edges[1:])
+            plt.bar(
+                bin_centers,
+                normalized_counts,
+                width=np.diff(edges),
+                label=f'Sampled {label_name}',
+                alpha=0.5,
+                color='red',
+                edgecolor='black')
+
+            plt.axvline(
+                group_item[group].n,
+                color='blue',
+                linestyle='--',
+                label=fr'Group {label_name} ± $1\sigma$')
+            plt.axvspan(
+                group_item[group].n -
+                group_item[group].s,
+                group_item[group].n +
+                group_item[group].s,
+                color='blue',
+                alpha=0.25)
+
+            plt.axvline(items[group, 0], color='black',
+                        linestyle='-', label=f'Nominal {label_name}')
+
+            plt.xlabel(xlabel + scale_label)
+            plt.gca().xaxis.set_major_formatter(ticker.ScalarFormatter(
+                useMathText=True))
+            plt.ticklabel_format(style='sci', axis='x', scilimits=(-2, 2))
+            plt.ylabel('Frequency')
+            plt.legend()
+            plt.tight_layout()
+            plt.savefig(f'{self.output_dir}MC_group{group + 1}_{name}.png')
+            plt.close()
+        return None
 
     def _plot_MC_group_params(self) -> None:
         """
         Plot the group parameters from the Monte Carlo NLLS analysis
         """
-        def helper_func(name: str,
-                        items: np.ndarray[float],
-                        group_data: dict[str: object]):
-            if name == 'yield':
-                label_name = 'Yield'
-                xlabel = 'Yield'
-                scaler = 1
-                scale_label = ''
-            elif name == 'half_life':
-                label_name = 'Half-life'
-                xlabel = 'Half-life [s]'
-                scaler = 1
-                scale_label = ''
-            else:
-                raise NotImplementedError(f'{name} not defined')
-
-            group_item = [scaler * ufloat(y,
-                                          std) for y,
-                          std in zip(group_data[name],
-                                     group_data[f'sigma {name}'])]
-            for group, item in enumerate(items):
-                item = item * scaler
-                bins = np.linspace(
-                    min(item), max(item), int(
-                        np.sqrt(
-                            len(item))))
-                counts, edges = np.histogram(item, bins=bins)
-                normalized_counts = counts
-                bin_centers = 0.5 * (edges[:-1] + edges[1:])
-                plt.bar(
-                    bin_centers,
-                    normalized_counts,
-                    width=np.diff(edges),
-                    label=f'Sampled {label_name}',
-                    alpha=0.5,
-                    color='red',
-                    edgecolor='black')
-
-                plt.axvline(
-                    group_item[group].n,
-                    color='blue',
-                    linestyle='--',
-                    label=fr'Group {label_name} ± $1\sigma$')
-                plt.axvspan(
-                    group_item[group].n -
-                    group_item[group].s,
-                    group_item[group].n +
-                    group_item[group].s,
-                    color='blue',
-                    alpha=0.25)
-
-                plt.axvline(items[group, 0], color='black',
-                            linestyle='-', label=f'Nominal {label_name}')
-
-                plt.xlabel(xlabel + scale_label)
-                plt.gca().xaxis.set_major_formatter(ticker.ScalarFormatter(
-                    useMathText=True))
-                plt.ticklabel_format(style='sci', axis='x', scilimits=(-2, 2))
-                plt.ylabel('Frequency')
-                plt.legend()
-                plt.tight_layout()
-                plt.savefig(f'{self.output_dir}MC_group{group + 1}_{name}.png')
-                plt.close()
-            return None
 
         self.group_data = CSVHandler(
             self.group_path,
             create=False).read_vector_csv()
 
-        helper_func('yield', self.MC_yields, self.group_data)
-        helper_func('half_life', self.MC_half_lives, self.group_data)
+        self._group_param_helper('yield', self.MC_yields, self.group_data)
+        self._group_param_helper('half_life', self.MC_half_lives, self.group_data)
 
         return None
 
@@ -853,6 +999,14 @@ class PostProcess(BaseClass):
         return data_dict
     
     def _get_sorted_dnp_data(self) -> tuple[dict, dict, dict]:
+        """
+        Get the sorted delayed neutron precursor data by yield
+
+        Returns
+        -------
+        tuple[dict, dict, dict]
+            Sorted dictionaries of yields, concentrations, and halflife times
+        """
         nuc_yield: dict[str, float] = dict()
         data_dict = self._get_data()
         halflife_times_yield: dict = dict()
