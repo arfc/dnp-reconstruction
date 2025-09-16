@@ -13,10 +13,10 @@ class Literature(BaseClass):
             Path to the input file containing fissile data.
         """
         super().__init__(input_path)
-        self.available_names: list[str] = ['keepin', 'charlton', 'endfb6', 'mills', 'saleh', 'synetos', 'tuttle', 'waldo']
+        self.available_names: list[str] = ['keepin', 'charlton', 'endfb6', 'mills', 'saleh', 'synetos', 'tuttle', 'waldo', 'brady', 'Modified 0D Scaled']
         return None
     
-    def get_group_data(self, names:list[str]=['keepin']) -> dict[dict[str: list[float]]]:
+    def get_group_data(self, names:list[str]=None) -> dict[dict[str: list[float]]]:
         """
         Get countrate data from various sources and compile into a dictionary
 
@@ -32,10 +32,16 @@ class Literature(BaseClass):
         else:
             energy = 'fast'
 
+        if not names:
+            names = self.available_names
         for name in names:
             data_holder[name] = dict()
             for fiss, frac in self.fissiles.items():
-                data_holder[name][fiss] = self._get_group_data_helper(fiss, frac, name, energy)
+                data = self._get_group_data_helper(fiss, frac, name, energy)
+                if data is None:
+                    del data_holder[name]
+                    continue
+                data_holder[name][fiss] = data
         data_holder = self._merge_fiss(data_holder)
         return data_holder
     
@@ -175,16 +181,20 @@ class Literature(BaseClass):
             if fiss == 'U235':
                 if energy == 'thermal':
                     # Parish et al. 1999
-                    net_yield = ufloat(0.0164, 0.0)
+                    #  (this actually has a typo in group 5 0.115 instead of 0.1745)
+                    #  (several typos actually, group 1 uncert)
+                    # Pulling from Mills et al. 1992
+                    # Microscopic
+                    net_yield = ufloat(0.0164484, 0.00114)
                     yields = [a * net_yield * frac for a in [
-                        ufloat(0.0343, 0.003),
-                        ufloat(0.197, 0.002),
-                        ufloat(0.119, 0.009),
-                        ufloat(0.400, 0.014),
-                        ufloat(0.115, 0.017),
-                        ufloat(0.074, 0.005)]]
-                    decay_constants = [ufloat(0.0125, 0.0001), ufloat(0.0304, 0.0002), ufloat(0.0903, 0.004),
-                                    ufloat(0.25, 0.01), ufloat(0.65, 0.05), ufloat(2.46, 0.3)]
+                        ufloat(0.0343, 0.0002909),
+                        ufloat(0.1974, 0.002048),
+                        ufloat(0.1193, 0.009091),
+                        ufloat(0.4002, 0.01407),
+                        ufloat(0.1745, 0.01748),
+                        ufloat(0.0742, 0.005143)]]
+                    decay_constants = [ufloat(0.01254, 0.0000225), ufloat(0.0304, 0.0001563), ufloat(0.09027, 0.004451),
+                                    ufloat(0.2501, 0.01016), ufloat(0.6455, 0.05122), ufloat(2.46, 0.08903)]
                     half_lives = [np.log(2)/lam * frac for lam in decay_constants]
 
         elif name == 'saleh':
@@ -251,6 +261,48 @@ class Literature(BaseClass):
                                     ufloat(0.311, 0.012), ufloat(1.40, 0.12), ufloat(3.87, 0.55)]
                     half_lives = [np.log(2)/lam * frac for lam in decay_constants]
 
+        elif name == 'brady':
+            if fiss == 'U235':
+                if energy == 'thermal':
+                    # Brady and England 1989
+                    # Microscopic
+                    net_yield = ufloat(0.0178, 0.001)
+                    yields = [a * net_yield * frac for a in [
+                        ufloat(0.038, 0.0),
+                        ufloat(0.1918, 0.0),
+                        ufloat(0.1638, 0.0),
+                        ufloat(0.3431, 0.0),
+                        ufloat(0.1744, 0.0),
+                        ufloat(0.0890, 0.0)]]
+                    decay_constants = [ufloat(0.0133, 0.0), ufloat(0.0325, 0.0), ufloat(0.1219, 0.0),
+                                    ufloat(0.3169, 0.0), ufloat(0.9886, 0.0), ufloat(2.9544, 0.0)]
+                    half_lives = [np.log(2)/lam * frac for lam in decay_constants]
+
+        elif name == 'Modified 0D Scaled':
+            if fiss == 'U235':
+                if energy == 'thermal':
+                    # Microscopic
+                    net_yield = ufloat(0.0158, 0.0011)
+                    yields = [a*net_yield*frac for a in [
+                                ufloat(0.033, 0.003),
+                                ufloat(0.219, 0.005),
+                                ufloat(0.196, 0.022),
+                                ufloat(0.395, 0.011),
+                                ufloat(0.115, 0.009),
+                                ufloat(0.042, 0.008)]]
+                    decay_constants = [ufloat(0.0124, 0.0003),
+                                    ufloat(0.0305, 0.0009),
+                                    ufloat(0.111, 0.004),
+                                    ufloat(0.301, 0.012),
+                                    ufloat(1.14, 0.15),
+                                    ufloat(3.01, 0.29)]
+                    half_lives = [np.log(2)/lam*frac for lam in decay_constants]
+
+                    yields[0] = ufloat(0.00052, 0.00002)
+                    yields[1] = ufloat(0.00297, 0.00009)
+                    half_lives[0] = ufloat(55.52977, 0.15676)
+                    half_lives[1] = ufloat(23.54278, 0.12560)
+
 
 
         try:
@@ -261,7 +313,32 @@ class Literature(BaseClass):
                 'sigma half_life': [hl.s for hl in half_lives]
             }
         except UnboundLocalError:
-            raise KeyError(f"Data for {fiss} in {name} at {energy} energy not found")
+            self.logger.warning(f"Data for {fiss} in {name} at {energy} energy not found")
+            return None
         return group_params
 
             
+if __name__ == "__main__":
+    input_path = "../../examples/huynh_2014/input.json"
+    lit = Literature(input_path)
+    data = lit.get_group_data(lit.available_names)
+    target_key = 'half_life'
+    target_name = None
+    for name, val in data.items():
+        if name != target_name and target_name is not None:
+            continue
+        print(name)
+        for key, item_val in val.items():
+            if key != target_key and target_key is not None:
+                continue
+            print(key)
+            yield_val = sum([ufloat(val['yield'][i], val['sigma yield'][i])*100 for i in range(len(item_val))])
+            halflife_val = 1/yield_val * sum([ufloat(val['yield'][i], val['sigma yield'][i])*100*ufloat(val['half_life'][i], val['sigma half_life'][i]) for i in range(len(item_val))])
+            if target_key == 'yield':
+                print(f'{yield_val = }')
+            elif target_key == 'half_life':
+                print(f'{halflife_val = }')
+            for item in item_val:
+                print(f'{round(item, 5):.5f} & ', end='')
+            print()
+        print('\n')

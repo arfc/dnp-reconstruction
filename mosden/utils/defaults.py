@@ -6,6 +6,7 @@ current_dir = os.getcwd()
 seed = np.random.randint(0, 2**32 - 1)
 DEFAULTS = {
     "name": "default",
+    "multi_id": None,
     "file_options": {
         "overwrite": {
             "preprocessing": True,
