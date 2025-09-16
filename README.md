@@ -64,15 +64,19 @@ fitting methods do not change between different models.
 Postprocessing handles plotting and data analysis from the processed results, 
 including analysis of each step.
 
-## Using the tool
-
-`pip install .` or `pip install -e .` can be used to make the package available 
-to use on the command line as `mosden` (or in an editable version for 
-development purposes).
-Use `mosden -i <input.json>` to do a normal run, `mosden -pre <input.json>` for 
+## Using the tool from source
+Download the repository from GitHub.
+The environment will also to be created by running 
+`conda env create -f environment.yml`.
+This should be followed with `conda activate mosdenv` to activate 
+the environment.
+Run `pip install -e .` to make the package available to use on the command line 
+as `mosden` in the `mosdenv` environment.
+Download the data used in tests by running `bash download_data.sh`.
+Check that tests pass by running `pytest` or `pytest -m "not slow"` for the 
+faster version.
+Use `mosden -a <input.json>` to do a full run, `mosden -pre <input.json>` for 
 preprocessing, or `mosden -post <input.json>` for post-processing.
-Alternatively, `mosden --all <input.json>` can be used to run preprocessing, 
-calculations, and post-processing.
 
 ### Input file
 The input file contains the majority of parameters of interest.
