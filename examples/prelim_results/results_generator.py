@@ -152,6 +152,41 @@ def create_directory(dir_name: str) -> None:
     os.makedirs(dir_name, exist_ok=analysis['meta']['overwrite'])
     return None
 
+def set_data(new_data: dict, dir_path: str, idx: int, combination: tuple) -> tuple[dict, str]:
+    """
+    Set the data for the new input file.
+
+    Parameters
+    ----------
+    new_data : dict
+        The new data to write to the input file
+    dir_path : str
+        The directory path where the input file will be created
+    idx : int
+        The index of the current input file
+    combination : tuple
+        The combination of parameters for this input file
+
+    Returns
+    -------
+    tuple[dict, str]
+        The updated data and the path to the input file
+    """
+    filename = 'input.json'
+    file_dir = dir_path / str(idx)
+    file_path = file_dir / filename
+    new_data['file_options']['processed_data_dir'] = str(file_dir)
+    new_data['file_options']['output_dir'] = str(file_dir)
+    new_data['file_options']['log_file'] = str(file_dir) + '/log.log'
+    new_data['name'] = str(combination)
+    if analysis['meta']['run_full']:
+        create_directory(file_dir)
+
+    with open(file_path, "w") as f:
+        json.dump(new_data, f, indent=2)
+
+    return new_data, file_path
+
 def populate_inputs(analysis: dict, dir_path: str) -> list[str]:
     """
     Populate the input files for each case in the analysis dict.
@@ -182,25 +217,15 @@ def populate_inputs(analysis: dict, dir_path: str) -> list[str]:
     component_keys = [k for k in analysis.keys() if k != "meta"]
     value_combinations = itertools.product(*(analysis[k] for k in component_keys))
     for idx, combination in enumerate(value_combinations, start=1):
+    
         new_data = deepcopy(base_data)
 
         for key, val in zip(component_keys, combination):
             replaced = replace_value(new_data, key, val)
             if not replaced:
                 raise KeyError(f'{key} not found in input file')
-
-        filename = 'input.json'
-        file_dir = dir_path / str(idx)
-        file_path = file_dir / filename
-        new_data['file_options']['processed_data_dir'] = str(file_dir)
-        new_data['file_options']['output_dir'] = str(file_dir)
-        new_data['file_options']['log_file'] = str(file_dir) + '/log.log'
-        new_data['name'] = str(combination)
-        if analysis['meta']['run_full']:
-            create_directory(file_dir)
-
-        with open(file_path, "w") as f:
-            json.dump(new_data, f, indent=2)
+        
+        new_data, file_path = set_data(new_data, dir_path, idx, combination)
 
         paths.append(str(file_path))
     return paths
