@@ -73,7 +73,7 @@ name = 'decay_time_nodes'
 decay_times_analysis = {
     'meta': {
         'name': name,
-        'run_full': True,
+        'run_full': False,
         'run_post': False,
         'overwrite': True
     },
@@ -90,7 +90,7 @@ total_decay_analysis = {
         'run_post': False,
         'overwrite': True
     },
-    'decay_time': [60, 120, 240, 480, 600, 1000],
+    'decay_time': [150, 300, 600, 1200, 2400, 4800],
     'multi_id': [name]
 }
 analysis_list.append(total_decay_analysis)
@@ -99,12 +99,12 @@ name = 'detailed_decay'
 detailed_decay_analysis = {
     'meta': {
         'name': name,
-        'run_full': False,
+        'run_full': True,
         'run_post': False,
         'overwrite': True
     },
-    'decay_time': [600, 1200],
-    'num_decay_times': [400, 800],
+    'decay_time': [1200, 2400],
+    'num_decay_times': [800, 1600],
     'multi_id': [name]
 }
 analysis_list.append(detailed_decay_analysis)

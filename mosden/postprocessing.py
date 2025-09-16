@@ -930,7 +930,7 @@ class PostProcess(BaseClass):
         remainder = net_yield.n - running_sum.n
         sizes.append(remainder)
         labels.append('Other')
-        colors = self.get_colors(num_top+2, min_val=0.15)
+        colors = self.get_colors(num_top+2, min_val=0.25)
         fig, ax = plt.subplots()
         ax.pie(sizes, labels=labels, autopct='%1.1f%%',
                 pctdistance=0.7, labeldistance=1.1,

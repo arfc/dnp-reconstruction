@@ -54,10 +54,10 @@ class MultiPostProcess():
                 post.name = f'{post.num_decay_times} nodes'
         elif self._is_name('total_decay_time'):
             for post in self.posts:
-                post.name = f'T = {post.total_decay_time}'
+                post.name = f'T = {post.total_decay_time}s'
         elif self._is_name('detailed_decay'):
             for post in self.posts:
-                post.name = f'T = {post.total_decay_time} with {post.num_decay_times} nodes'
+                post.name = f'T = {post.total_decay_time}s with {post.num_decay_times} nodes'
         return None
     
     def _post_heatmap_setup(self):
@@ -178,7 +178,7 @@ class MultiPostProcess():
                 data[post.name]['Halflife Uncertainty'] = sig_halflife
         
         fig, ax = plt.subplots()
-        colors = self.posts[0].get_colors(len(self.posts))
+        colors = self.posts[0].get_colors(len(self.posts), min_val=0.25)
         for post_i, post in enumerate(self.posts):
             if post.group_data is not None:
                 ax.bar(label_locations + offset(post_i), data[post.name]['Yield'], width, label=post.name, yerr=data[post.name]['Yield Uncertainty'],
