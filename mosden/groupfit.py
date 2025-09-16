@@ -40,6 +40,25 @@ class Grouper(BaseClass):
         return None
 
     def _calculate_fission_term(self) -> float:
+        """
+        Calculate the fission rate or number of fissions.
+        The fission rate is used for saturation irradiations, while the number 
+        of fissions is used for pulse irradiations.
+
+        Returns
+        -------
+        fission_term : float
+            The number/rate of fissions in the sample.
+
+        Raises
+        ------
+        NotImplementedError
+            Pulse irradiation not yet available.
+
+        NameError
+            Type of irradiation provided does not match any of the available 
+            irradiation types.
+        """
         conc_handler = Concentrations(self.input_path)
         fission_term = 1.0
         if self.irrad_type == 'pulse':
