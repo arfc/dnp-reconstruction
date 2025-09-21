@@ -187,3 +187,4 @@ cython_debug/
 !/examples/prelim_results/results_generator.py
 !/examples/prelim_results/appendixD/input_pulse.json
 !/examples/prelim_results/appendixD/input_sat.json
+!/examples/prelim_results/appendixD/README.md

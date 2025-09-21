@@ -8,11 +8,10 @@
             "group_fitting": true,
             "postprocessing": true
         },
-        "unprocessed_data_dir": "./tests/integration/test-data",
-        "processed_data_dir": "./tests/integration/output_appendixD_pulse",
-        "output_dir": "./tests/integration/output_appendixD_pulse",
-        "log_level": 15,
-        "log_file": "./tests/integration/output_appendixD_pulse/log.log"
+        "unprocessed_data_dir": "../../../tests/integration/test-data",
+        "processed_data_dir": "./",
+        "output_dir": "./",
+        "log_level": 15
     },
     "data_options": {
         "half_life": "iaea/four_dnp_test.csv",
