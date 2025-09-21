@@ -6,6 +6,8 @@ from mosden.utils.csv_handler import CSVHandler
 from mosden.base import BaseClass
 
 @pytest.mark.parametrize("input_path, reference_output_path, output_path", [
+    ("tests/integration/test-data/input_appendixD_pulse.json", "tests/integration/test-data/reference/test_appendixD_pulse", "tests/integration/output_appendixD_pulse"),
+    ("tests/integration/test-data/input_appendixD_sat.json", "tests/integration/test-data/reference/test_appendixD_sat", "tests/integration/output_appendixD_sat"),
     ("tests/integration/test-data/input1.json", "tests/integration/test-data/reference/test1", "tests/integration/output1"),
     ("tests/integration/test-data/input2.json", "tests/integration/test-data/reference/test2", "tests/integration/output2"),
     pytest.param("tests/integration/test-data/input3.json", "tests/integration/test-data/reference/test3", "tests/integration/output3", marks=pytest.mark.slow),

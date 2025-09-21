@@ -62,7 +62,7 @@ class Grouper(BaseClass):
         conc_handler = Concentrations(self.input_path)
         fission_term = 1.0
         if self.irrad_type == 'pulse':
-            raise NotImplementedError('Fission term not implemented')
+            self.logger.error('Pulse irradiation fission term not treated')
         elif self.irrad_type == 'saturation':
             if conc_handler.model_method == 'CFY' and conc_handler.spatial_scaling == 'scaled':
                 fission_term = conc_handler.f_in
