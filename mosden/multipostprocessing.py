@@ -8,6 +8,15 @@ import os
 
 class MultiPostProcess():
     def __init__(self, input_paths: list[str]) -> None:
+        """
+        This class creates figures and performs analysis on multiple PostProcess
+        objects.
+
+        Parameters
+        ----------
+        input_paths : list[str]
+            A list of file paths to the input data files.
+        """
         self.posts: list[PostProcess] = [PostProcess(p) for p in input_paths]
         self.output_dir = self.posts[0].output_dir
         self.fig_post_name = ''
@@ -34,6 +43,19 @@ class MultiPostProcess():
         return None
     
     def _is_name(self, name: str) -> bool:
+        """
+        Check if all PostProcess objects have the same multi_id.
+
+        Parameters
+        ----------
+        name : str
+            The multi_id to check against.
+
+        Returns
+        -------
+        bool
+            True if all PostProcess objects have the same multi_id, False otherwise.
+        """
         return np.all([post.multi_id == name for post in self.posts])
     
     def _set_post_names(self):
@@ -60,7 +82,10 @@ class MultiPostProcess():
                 post.name = f'T = {post.total_decay_time}s with {post.num_decay_times} nodes'
         return None
     
-    def _post_heatmap_setup(self):
+    def _post_heatmap_setup(self) -> None:
+        """
+        Setup heatmap parameters based on the multi_id of the PostProcess objects.
+        """
         if np.all([post.multi_id == 'tintex' for post in self.posts]):
             self.heatmap_key: str = 'modeling_options'
             self.heatmap_x: str = 'incore_s'
@@ -72,7 +97,10 @@ class MultiPostProcess():
             self.do_heatmap = True
         return None
  
-    def _initialize_posts(self):
+    def _initialize_posts(self) -> None:
+        """
+        Setup heatmap parameters based on the multi_id of the PostProcess objects.
+        """
         for post in self.posts:
             post.run()
             try:
@@ -86,6 +114,9 @@ class MultiPostProcess():
         return None
     
     def run(self):
+        """
+        Run the multi-post processing analysis and generate figures.
+        """
         if len(self.posts) <= 1:
             return None
         if self.do_heatmap:
@@ -95,6 +126,15 @@ class MultiPostProcess():
         return None
     
     def _collect_post_data(self) -> dict[str: list[float]]:
+        """
+        Collect data from each PostProcess object and return it as a dictionary.
+
+        Returns
+        -------
+        dict[str: list[float]]
+            A dictionary containing lists of data from each PostProcess object.
+        """
+
         post_data = dict()
         summed_yield = list()
         summed_avg_halflife = list()
@@ -112,7 +152,10 @@ class MultiPostProcess():
         return post_data
 
 
-    def heatmap_gen(self):
+    def heatmap_gen(self) -> None:
+        """
+        Generate heatmaps and ratio plots for the collected data.
+        """
         z_values: dict[str, list[float]] = self._collect_post_data()
         for z_id in self.hm_z_names.keys():
             x_name = self.hm_x_name + self.hm_x_units
@@ -148,7 +191,10 @@ class MultiPostProcess():
             plt.close()
         return None
     
-    def group_param_histogram(self):
+    def group_param_histogram(self) -> None:
+        """
+        Generate histograms for group parameters (yield and half-life) from each PostProcess object.
+        """
         data = dict()
 
         label_locations = np.arange(self.posts[0].num_groups)
@@ -214,7 +260,10 @@ class MultiPostProcess():
         plt.close()
         return None
     
-    def group_fit_counts(self):
+    def group_fit_counts(self) -> None:
+        """
+        Generate count rate plots for each PostProcess object using group fitting. 
+        """
         colors = self.posts[0].get_colors(len(self.posts))
         for pi, post in enumerate(self.posts):
             times = post.decay_times
