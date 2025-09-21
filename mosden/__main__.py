@@ -8,16 +8,19 @@ from mosden.multipostprocessing import MultiPostProcess
 from mosden.base import BaseClass
 from . import __version__
 
+
 def _run_all(file):
     BaseClass(file).clear_post_data()
     _run_pre(file)
     _run_main(file, clear=False)
     return None
 
+
 def _run_pre(file):
     preprocess = Preprocess(file)
     preprocess.run()
     return None
+
 
 def _run_main(file, clear=True):
     if clear:
@@ -30,10 +33,12 @@ def _run_main(file, clear=True):
     grouper.generate_groups()
     return None
 
+
 def _run_post(file):
     postprocess = PostProcess(file)
     postprocess.run()
     return None
+
 
 def _run_multi_post(files):
     multipost = MultiPostProcess(files)
@@ -51,18 +56,26 @@ def main():
         action="version",
         version=f"MoSDeN {__version__}")
 
-    group.add_argument("-m", "--main", nargs='+', help="Input file for main run")
+    group.add_argument(
+        "-m",
+        "--main",
+        nargs='+',
+        help="Input file for main run")
     group.add_argument(
         "-pre",
         "--preprocess",
-        nargs='+', 
+        nargs='+',
         help="Input file for preprocessing")
     group.add_argument(
         "-post",
         "--postprocess",
-        nargs='+', 
+        nargs='+',
         help="Input file for postprocessing")
-    group.add_argument("-a", "--all", nargs='+', help="Input file for all processes")
+    group.add_argument(
+        "-a",
+        "--all",
+        nargs='+',
+        help="Input file for all processes")
 
     args = parser.parse_args()
 

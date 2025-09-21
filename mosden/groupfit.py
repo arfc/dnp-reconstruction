@@ -42,7 +42,7 @@ class Grouper(BaseClass):
     def _calculate_fission_term(self) -> float:
         """
         Calculate the fission rate or number of fissions.
-        The fission rate is used for saturation irradiations, while the number 
+        The fission rate is used for saturation irradiations, while the number
         of fissions is used for pulse irradiations.
 
         Returns
@@ -56,7 +56,7 @@ class Grouper(BaseClass):
             Pulse irradiation not yet available.
 
         NameError
-            Type of irradiation provided does not match any of the available 
+            Type of irradiation provided does not match any of the available
             irradiation types.
         """
         conc_handler = Concentrations(self.input_path)
@@ -69,7 +69,6 @@ class Grouper(BaseClass):
         else:
             raise NameError(f'{self.irrad_type = } not available')
         return fission_term
-
 
     def generate_groups(self) -> None:
         """
@@ -185,20 +184,21 @@ class Grouper(BaseClass):
             a = yields[group]
             cycle_sum = 0
             for j in range(1, tot_cycles + 1):
-                exponent = (-lam * (self.t_net - 
-                                    j * self.t_in - 
+                exponent = (-lam * (self.t_net -
+                                    j * self.t_in -
                                     (j - 1) * self.t_ex))
                 try:
                     cycle_sum += np.exp(exponent)
                 except TypeError:
                     if exponent.n > 709:
                         msg = 'Exponent too large in group fitting'
-                        self.logger.critical(f'{msg} \n {exponent=} {self.t_net=} {lam=}')
+                        self.logger.critical(
+                            f'{msg} \n {exponent=} {self.t_net=} {lam=}')
                         continue
                     cycle_sum += unumpy.exp(exponent)
             try:
-                counts += (a * np.exp(-lam * times) * 
-                           (1 - np.exp(-lam * self.t_net + 
+                counts += (a * np.exp(-lam * times) *
+                           (1 - np.exp(-lam * self.t_net +
                                        (1 - np.exp(lam * self.t_ex) * cycle_sum)
                                        )))
             except TypeError:
@@ -209,10 +209,10 @@ class Grouper(BaseClass):
                 if group == 0:
                     counts: np.ndarray[object] = np.zeros(
                         len(times), dtype=object)
-                counts += (a * unumpy.exp(-lam * times) * 
+                counts += (a * unumpy.exp(-lam * times) *
                            (1 - unumpy.exp(-lam * self.t_net +
                                            (1 - unumpy.exp(lam * self.t_ex)
-                                             * cycle_sum))))
+                                            * cycle_sum))))
         return counts * self.fission_term
 
     def _nonlinear_least_squares(self,

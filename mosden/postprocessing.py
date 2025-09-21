@@ -39,8 +39,21 @@ class PostProcess(BaseClass):
         self.num_groups: int = self.input_data['group_options']['num_groups']
         self.MC_samples: int = self.input_data['group_options']['samples']
         self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
-        self.use_data: list[str] = ['keepin', 'brady', 'synetos', 'Modified 0D Scaled']
-        self.nuclides: list[str] = ['Br87', 'I137', 'Br88', 'Br89', 'I138', 'Rb94', 'Rb93', 'Te136', 'Ge86', 'As86', 'Br90', 'As85']
+        self.use_data: list[str] = [
+            'keepin', 'brady', 'synetos', 'Modified 0D Scaled']
+        self.nuclides: list[str] = [
+            'Br87',
+            'I137',
+            'Br88',
+            'Br89',
+            'I138',
+            'Rb94',
+            'Rb93',
+            'Te136',
+            'Ge86',
+            'As86',
+            'Br90',
+            'As85']
         self.markers: list[str] = ['v', 'o', 'x', '^', 's', 'D']
         self.linestyles: list[str] = ['--', '..', '-.']
         self.load_post_data()
@@ -58,9 +71,9 @@ class PostProcess(BaseClass):
         self.fission_term = Concentrations(self.input_path).fission_term
 
         return None
-    
-    def get_colors(self, num_colors:int, colormap:str=None,
-                   min_val:float=0.05, max_val:float=1.0) -> list[tuple[float]]:
+
+    def get_colors(self, num_colors: int, colormap: str = None,
+                   min_val: float = 0.05, max_val: float = 1.0) -> list[tuple[float]]:
         """
         Get a list of colors from a colormap
 
@@ -83,7 +96,7 @@ class PostProcess(BaseClass):
         cmap = plt.get_cmap(colormap)
         colors = [cmap(i) for i in np.linspace(min_val, max_val, num_colors)]
         return colors
-    
+
     def _convert_nuc_to_latex(self, nuc: str) -> str:
         """
         Convert a nuclide string to a LaTeX formatted string.
@@ -118,7 +131,7 @@ class PostProcess(BaseClass):
         self.compare_group_to_data()
         self.MC_NLLS_analysis()
         return None
-    
+
     def compare_group_to_data(self) -> None:
         """
         Runs functions that compare the group parameters to the data
@@ -136,7 +149,8 @@ class PostProcess(BaseClass):
         countrate = CountRate(self.input_path)
         countrate.group_params = group_data
         group_counts = countrate._count_rate_from_groups()['counts']
-        summed_counts = CSVHandler(self.countrate_path).read_vector_csv()['counts']
+        summed_counts = CSVHandler(
+            self.countrate_path).read_vector_csv()['counts']
         pcnt_diff = (summed_counts - group_counts) / summed_counts * 100
         plt.plot(self.decay_times, pcnt_diff)
         plt.xlabel('Time [s]')
@@ -146,7 +160,7 @@ class PostProcess(BaseClass):
         plt.savefig(f'{self.output_dir}pcnt_diff_counts.png')
         plt.close()
         return None
-    
+
     def MC_NLLS_analysis(self) -> None:
         """
         Analyze Monte Carlo Non-linear Least Squares results
@@ -155,10 +169,14 @@ class PostProcess(BaseClass):
         if self.MC_samples > 1:
             self._plot_MC_group_params()
             self._get_sens_coeffs(write=True)
-            self._plot_sensitivities(off_nominal=True, relative_diff=True, subplot=True)
+            self._plot_sensitivities(
+                off_nominal=True,
+                relative_diff=True,
+                subplot=True)
         return None
-    
-    def _get_sens_coeffs(self, write=False) -> tuple[list[dict[str, float]], list[dict[str, float]], list[dict[str, float]], list[str]]:
+
+    def _get_sens_coeffs(self, write=False) -> tuple[list[dict[str, float]],
+                                                     list[dict[str, float]], list[dict[str, float]], list[str]]:
         """
         Get the sensitivity coefficients for the Monte Carlo samples
 
@@ -197,30 +215,37 @@ class PostProcess(BaseClass):
                         group_vals = gdata[group, 1:]
                         mean_group_val = np.mean(group_vals)
                         mean_data_val = np.mean(data_vals)
-                        data_val = ((data_vals - mean_data_val) / mean_data_val)
-                        group_val = ((group_vals - mean_group_val) / mean_group_val)
+                        data_val = (
+                            (data_vals - mean_data_val) / mean_data_val)
+                        group_val = (
+                            (group_vals - mean_group_val) / mean_group_val)
                         result = linregress(data_val, group_val)
                         if abs(result.rvalue) > pcc_val:
                             nuc_lab, group_lab = self._configure_x_y_labels(name,
                                                                             gname,
                                                                             False,
                                                                             False,
-                                                                            group_val=group+1)
+                                                                            group_val=group + 1)
                             nuc_name = self._convert_nuc_to_latex(nuc)
                             pcc_data.setdefault('Nuclide', []).append(nuc_name)
-                            pcc_data.setdefault('Group Value', []).append(group_lab)
-                            pcc_data.setdefault('DNP Value', []).append(nuc_lab)
-                            pcc_data.setdefault('PCC', []).append(result.rvalue)
+                            pcc_data.setdefault(
+                                'Group Value', []).append(group_lab)
+                            pcc_data.setdefault(
+                                'DNP Value', []).append(nuc_lab)
+                            pcc_data.setdefault(
+                                'PCC', []).append(
+                                result.rvalue)
                             nucs_with_pcc.append(nuc)
-        pcc_df_data: pd.DataFrame = pd.DataFrame.from_dict(pcc_data, orient='columns')
+        pcc_df_data: pd.DataFrame = pd.DataFrame.from_dict(
+            pcc_data, orient='columns')
         pcc_latex = pcc_df_data.to_latex(index=False)
         if write:
             self.logger.info(f'\n{pcc_latex}')
             self.logger.info('Completed writing nuclides \n')
         return Pn_data, hl_data, conc_data, nucs_with_pcc
-    
+
     def _configure_x_y_labels(self, xlab: str, ylab: str, off_nominal: bool, relative_diff: bool,
-                              group_val: str='k') -> tuple[str, str]:
+                              group_val: str = 'k') -> tuple[str, str]:
         """
         Configure the x and y labels for the sensitivity plots
 
@@ -282,7 +307,7 @@ class PostProcess(BaseClass):
         else:
             xlab = pcnt_xlabel_replace[xlab]
         return xlab, ylab
-    
+
     def _get_sens_data(self, nuc: str,
                        off_nominal: bool,
                        relative_diff: bool,
@@ -321,19 +346,20 @@ class PostProcess(BaseClass):
             plot_val = group_vals - mean_group_val
             if relative_diff:
                 data_val = ((data_vals - mean_data_val) / mean_data_val) * 100
-                plot_val = ((group_vals - mean_group_val) / mean_group_val) * 100
+                plot_val = (
+                    (group_vals - mean_group_val) / mean_group_val) * 100
         return data_val, plot_val
 
     def _scatter_helper(self,
-                data: dict,
-                group_params: np.ndarray[float],
-                xlab: str,
-                ylab: str,
-                savename: str,
-                savedir: str,
-                off_nominal: bool = True,
-                nuclides: list[str] = None,
-                relative_diff: bool = True) -> None:
+                        data: dict,
+                        group_params: np.ndarray[float],
+                        xlab: str,
+                        ylab: str,
+                        savename: str,
+                        savedir: str,
+                        off_nominal: bool = True,
+                        nuclides: list[str] = None,
+                        relative_diff: bool = True) -> None:
         """
         Helper function to create scatter plots of sensitivity data
 
@@ -362,15 +388,16 @@ class PostProcess(BaseClass):
 
         nuclides = nuclides or self.nuclides or list(data[0].keys())
 
-        xlab, ylab = self._configure_x_y_labels(xlab, ylab, off_nominal, relative_diff)
+        xlab, ylab = self._configure_x_y_labels(
+            xlab, ylab, off_nominal, relative_diff)
         num_colors = self.num_groups
         colors = self.get_colors(num_colors)
         for nuc in nuclides:
             for group in range(self.num_groups):
                 data_val, plot_val = self._get_sens_data(nuc, off_nominal,
-                                                            relative_diff,
-                                                            group_params, group,
-                                                            data)
+                                                         relative_diff,
+                                                         group_params, group,
+                                                         data)
                 plt.scatter(
                     data_val,
                     plot_val,
@@ -386,7 +413,7 @@ class PostProcess(BaseClass):
         return None
 
     def _plot_sensitivities(self, off_nominal: bool = True,
-                            relative_diff: bool=True,
+                            relative_diff: bool = True,
                             subplot: bool = True) -> None:
         """
         Plot the sensitivities of emission probabilities, concentrations,
@@ -486,11 +513,14 @@ class PostProcess(BaseClass):
             for nuc in nuclides:
                 for group_val, gname in zip(group_data, group_name):
                     fig = plt.figure()
-                    gs = fig.add_gridspec(self.num_groups, 3, hspace=0.1, wspace=0.05)
+                    gs = fig.add_gridspec(
+                        self.num_groups, 3, hspace=0.1, wspace=0.05)
                     axs = gs.subplots(sharex='col', sharey='row')
                     for group_i in range(self.num_groups):
-                        for dnp_i, (dnp, name_dnp) in enumerate(zip(dnp_data, dnp_name)):
-                            dataval, plotval = self._get_sens_data(nuc, off_nominal, relative_diff, group_val, group_i, dnp)
+                        for dnp_i, (dnp, name_dnp) in enumerate(
+                                zip(dnp_data, dnp_name)):
+                            dataval, plotval = self._get_sens_data(
+                                nuc, off_nominal, relative_diff, group_val, group_i, dnp)
                             cur_ax = axs[group_i, dnp_i]
                             cur_ax.scatter(
                                 dataval,
@@ -500,18 +530,22 @@ class PostProcess(BaseClass):
                                 s=4,
                                 marker=self.markers[group_i],
                                 color=colors[group_i])
-                            xlab, ylab = self._configure_x_y_labels(name_dnp, gname, off_nominal, relative_diff)
+                            xlab, ylab = self._configure_x_y_labels(
+                                name_dnp, gname, off_nominal, relative_diff)
                             if group_i == self.num_groups - 1:
                                 cur_ax.set_xlabel(xlab, fontsize=8)
                             else:
                                 cur_ax.set_xlabel('')
-                            cur_ax.tick_params(axis='both', which='major', labelsize=8)
-                    lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
-                    lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
+                            cur_ax.tick_params(
+                                axis='both', which='major', labelsize=8)
+                    lines_labels = [ax.get_legend_handles_labels()
+                                    for ax in fig.axes]
+                    lines, labels = [sum(lol, [])
+                                     for lol in zip(*lines_labels)]
 
                     unique = dict(zip(labels, lines))
                     fig.legend(unique.values(), unique.keys(),
-                            loc='center right', fontsize=8)
+                               loc='center right', fontsize=8)
 
                     plt.subplots_adjust(right=0.85)
                     fig.supylabel(ylab)
@@ -521,7 +555,7 @@ class PostProcess(BaseClass):
 
     def compare_yields(self) -> None:
         """
-        Compare the total DN yields from summing individuals and from 
+        Compare the total DN yields from summing individuals and from
           group parameters
         """
         num_top = 4
@@ -540,8 +574,8 @@ class PostProcess(BaseClass):
         self.logger.info(f'{group_yield = }')
         self.logger.info(f'{group_avg_halflife = } s')
         return None
-    
-    def _plot_nuclide_count_rates(self, num_stack: int=1):
+
+    def _plot_nuclide_count_rates(self, num_stack: int = 1):
         """
         Plot the most important nuclide (by delayed neutron counts emitted) at
             each time step.
@@ -591,9 +625,9 @@ class PostProcess(BaseClass):
             plt.fill_between(self.decay_times, lower, upper, color=colors[nuci],
                              alpha=0.5)
             plt.plot(self.decay_times, rate_n, color=colors[nuci], label=nuc_names[nuci],
-                     linestyle='--', marker=self.markers[nuci%len(self.markers)], markevery=5,
+                     linestyle='--', marker=self.markers[nuci % len(self.markers)], markevery=5,
                      markersize=3)
-        
+
         plt.xlabel('Time [s]')
         plt.ylabel(r'Delayed Neutron Rate $[s^{-1}]$')
         plt.xscale('log')
@@ -606,15 +640,22 @@ class PostProcess(BaseClass):
         for nuci, nuc in enumerate(biggest_nucs):
             rate_n = unumpy.nominal_values(count_rates[nuc])
             rate_s = unumpy.std_devs(count_rates[nuc])
-            upper = cumulative_trapezoid(rate_n + rate_s, self.decay_times, initial=0)
-            lower = cumulative_trapezoid(rate_n - rate_s, self.decay_times, initial=0)
+            upper = cumulative_trapezoid(
+                rate_n + rate_s, self.decay_times, initial=0)
+            lower = cumulative_trapezoid(
+                rate_n - rate_s, self.decay_times, initial=0)
             rate_n = cumulative_trapezoid(rate_n, self.decay_times, initial=0)
             rate_s = cumulative_trapezoid(rate_s, self.decay_times, initial=0)
             stacked_data.append(rate_n)
 
-            plt.fill_between(self.decay_times, lower, upper, color=colors[nuci], alpha=0.5)
+            plt.fill_between(
+                self.decay_times,
+                lower,
+                upper,
+                color=colors[nuci],
+                alpha=0.5)
             plt.plot(self.decay_times, rate_n, color=colors[nuci], label=nuc_names[nuci],
-                     linestyle='--', marker=self.markers[nuci%len(self.markers)], markevery=5,
+                     linestyle='--', marker=self.markers[nuci % len(self.markers)], markevery=5,
                      markersize=3)
         plt.xlabel('Time [s]')
         plt.ylabel('Relative Delayed Neutron Counts')
@@ -625,7 +666,6 @@ class PostProcess(BaseClass):
         plt.savefig(f'{self.output_dir}individual_nuclide_counts.png')
         plt.close()
 
-
         plt.stackplot(self.decay_times, stacked_data, labels=nuc_names,
                       colors=colors)
         plt.xlabel('Time [s]')
@@ -635,10 +675,13 @@ class PostProcess(BaseClass):
         plt.tight_layout()
         plt.savefig(f'{self.output_dir}individual_nuclide_counts_stacked.png')
         plt.close()
- 
+
         return None
-    
-    def _group_param_helper(self, name: str, items: np.ndarray[float], group_data: dict[str: object]) -> None:
+
+    def _group_param_helper(self,
+                            name: str,
+                            items: np.ndarray[float],
+                            group_data: dict[str: object]) -> None:
         """
 
         Parameters
@@ -669,9 +712,9 @@ class PostProcess(BaseClass):
             raise NotImplementedError(f'{name} not defined')
 
         group_item = [scaler * ufloat(y,
-                                        std) for y,
-                        std in zip(group_data[name],
-                                    group_data[f'sigma {name}'])]
+                                      std) for y,
+                      std in zip(group_data[name],
+                                 group_data[f'sigma {name}'])]
         for group, item in enumerate(items):
             item = item * scaler
             bins = np.linspace(
@@ -727,7 +770,10 @@ class PostProcess(BaseClass):
             create=False).read_vector_csv()
 
         self._group_param_helper('yield', self.MC_yields, self.group_data)
-        self._group_param_helper('half_life', self.MC_half_lives, self.group_data)
+        self._group_param_helper(
+            'half_life',
+            self.MC_half_lives,
+            self.group_data)
 
         return None
 
@@ -947,7 +993,7 @@ class PostProcess(BaseClass):
         lam_vals = np.log(2) / halflives
         avg_halflife = sum(yields * np.asarray(halflives) / (net_yield))
         return net_yield, avg_halflife
-    
+
     def _get_data(self) -> dict[str: dict]:
         """
         Collect the data from the processed data files and add them to a
@@ -997,7 +1043,7 @@ class PostProcess(BaseClass):
             data_dict['nucs'][nuc]['concentration'] = N
             data_dict['nucs'][nuc]['half_life'] = hl
         return data_dict
-    
+
     def _get_sorted_dnp_data(self) -> tuple[dict, dict, dict]:
         """
         Get the sorted delayed neutron precursor data by yield
@@ -1037,7 +1083,6 @@ class PostProcess(BaseClass):
                 reverse=True))
         return sorted_yields, sorted_concs, halflife_times_yield
 
-
     def _get_summed_params(self, num_top: int = 10) -> tuple[float, float]:
         """
         Get the summed parameters from the postprocessing data
@@ -1061,7 +1106,8 @@ class PostProcess(BaseClass):
         if net_N.n <= 0.0:
             net_N = ufloat(1e-12, 1e-12)
         # Parish 1999 uses relative alpha_i values, not yields
-        avg_halflife = np.sum([i / net_yield for i in halflife_times_yield.values()])
+        avg_halflife = np.sum(
+            [i / net_yield for i in halflife_times_yield.values()])
         extracted_vals = dict()
         running_sum = 0
         sizes = list()
@@ -1084,11 +1130,11 @@ class PostProcess(BaseClass):
         remainder = net_yield.n - running_sum.n
         sizes.append(remainder)
         labels.append('Other')
-        colors = self.get_colors(num_top+2, min_val=0.25)
+        colors = self.get_colors(num_top + 2, min_val=0.25)
         fig, ax = plt.subplots()
         ax.pie(sizes, labels=labels, autopct='%1.1f%%',
-                pctdistance=0.7, labeldistance=1.1,
-                colors=colors)
+               pctdistance=0.7, labeldistance=1.1,
+               colors=colors)
         ax.axis('equal')
         plt.tight_layout()
         fig.savefig(f'{self.output_dir}dnp_yield.png')
@@ -1111,14 +1157,16 @@ class PostProcess(BaseClass):
         labels.append('Other')
         fig, ax = plt.subplots()
         ax.pie(sizes, labels=labels, autopct='%1.1f%%',
-                pctdistance=0.7, labeldistance=1.1,
-                colors=colors)
+               pctdistance=0.7, labeldistance=1.1,
+               colors=colors)
         ax.axis('equal')
         plt.tight_layout()
         fig.savefig(f'{self.output_dir}dnp_conc.png')
         plt.close()
 
-        labels = [self._convert_nuc_to_latex(i.capitalize()) for i in self.fissiles.keys()]
+        labels = [
+            self._convert_nuc_to_latex(
+                i.capitalize()) for i in self.fissiles.keys()]
         sizes = list(self.fissiles.values())
         remainder = 1 - sum(sizes)
         if remainder > 0.0:
@@ -1127,8 +1175,8 @@ class PostProcess(BaseClass):
         colors = self.get_colors(len(labels), min_val=0.1)
         fig, ax = plt.subplots()
         wedges, _, _ = ax.pie(sizes, autopct='%1.1f%%',
-                            pctdistance=0.7, labeldistance=1.1,
-                            colors=colors, textprops={'fontsize': 12})
+                              pctdistance=0.7, labeldistance=1.1,
+                              colors=colors, textprops={'fontsize': 12})
 
         ax.legend(
             wedges,

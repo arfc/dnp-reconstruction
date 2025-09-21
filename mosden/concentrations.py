@@ -41,7 +41,8 @@ class Concentrations(BaseClass):
             self.f_ex: float = self.t_ex / (self.t_in + self.t_ex)
         except ZeroDivisionError:
             self.logger.error('No in-core or ex-core time')
-        self.spatial_scaling: str = modeling_options.get('spatial_scaling', 'unscaled')
+        self.spatial_scaling: str = modeling_options.get(
+            'spatial_scaling', 'unscaled')
 
         if self.spatial_scaling == 'unscaled':
             self.repr_scale = 1.0
@@ -54,9 +55,9 @@ class Concentrations(BaseClass):
             if 'excore' in self.reprocess_locations:
                 self.repr_scale += self.f_ex
         else:
-            raise NotImplementedError(f'{self.spatial_scaling} not implemented')
+            raise NotImplementedError(
+                f'{self.spatial_scaling} not implemented')
         self.fission_term = 1.0 * self.f_in
-
 
         return None
 
@@ -64,13 +65,13 @@ class Concentrations(BaseClass):
         """
         Generate the concentrations of each nuclide based on
         irradiation of the sample for the irradiation times.
-        
-        The 0D scaled model used the cumulative fission yield, which allows for 
-        calculation of the equilibrium concentration by dividing it by the 
+
+        The 0D scaled model used the cumulative fission yield, which allows for
+        calculation of the equilibrium concentration by dividing it by the
         decay constant.
-        
-        The independent fission yield exists as a way to collect pulse 
-        irradiation concentrations, but this is not an accurate method as it 
+
+        The independent fission yield exists as a way to collect pulse
+        irradiation concentrations, but this is not an accurate method as it
         does not track decay chains. This exists primarily for testing purposes.
         """
         start = time()

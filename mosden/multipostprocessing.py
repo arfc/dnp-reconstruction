@@ -6,6 +6,7 @@ import numpy as np
 from mosden.countrate import CountRate
 import os
 
+
 class MultiPostProcess():
     def __init__(self, input_paths: list[str]) -> None:
         """
@@ -28,7 +29,6 @@ class MultiPostProcess():
 
         self.do_heatmap = False
 
-
         self.hm_x_vals: list = list()
         self.hm_y_vals: list = list()
         self._post_heatmap_setup()
@@ -41,7 +41,7 @@ class MultiPostProcess():
         }
         self._set_post_names()
         return None
-    
+
     def _is_name(self, name: str) -> bool:
         """
         Check if all PostProcess objects have the same multi_id.
@@ -57,7 +57,7 @@ class MultiPostProcess():
             True if all PostProcess objects have the same multi_id, False otherwise.
         """
         return np.all([post.multi_id == name for post in self.posts])
-    
+
     def _set_post_names(self):
         if self._is_name('tintex'):
             for post in self.posts:
@@ -81,7 +81,7 @@ class MultiPostProcess():
             for post in self.posts:
                 post.name = f'T = {post.total_decay_time}s with {post.num_decay_times} nodes'
         return None
-    
+
     def _post_heatmap_setup(self) -> None:
         """
         Setup heatmap parameters based on the multi_id of the PostProcess objects.
@@ -96,7 +96,7 @@ class MultiPostProcess():
             self.hm_y_units = r'$[s]$'
             self.do_heatmap = True
         return None
- 
+
     def _initialize_posts(self) -> None:
         """
         Setup heatmap parameters based on the multi_id of the PostProcess objects.
@@ -104,7 +104,8 @@ class MultiPostProcess():
         for post in self.posts:
             post.run()
             try:
-                modeling_options: dict = post.input_data.get(self.heatmap_key, {})
+                modeling_options: dict = post.input_data.get(
+                    self.heatmap_key, {})
                 post.hm_x = modeling_options.get(self.heatmap_x, 0.0)
                 post.hm_y = modeling_options.get(self.heatmap_y, 0.0)
                 self.hm_x_vals.append(post.hm_x)
@@ -112,7 +113,7 @@ class MultiPostProcess():
             except AttributeError:
                 self.do_heatmap = False
         return None
-    
+
     def run(self):
         """
         Run the multi-post processing analysis and generate figures.
@@ -124,7 +125,7 @@ class MultiPostProcess():
         self.group_param_histogram()
         self.group_fit_counts()
         return None
-    
+
     def _collect_post_data(self) -> dict[str: list[float]]:
         """
         Collect data from each PostProcess object and return it as a dictionary.
@@ -151,7 +152,6 @@ class MultiPostProcess():
         post_data['group_avg_halflife'] = group_avg_halflife
         return post_data
 
-
     def heatmap_gen(self) -> None:
         """
         Generate heatmaps and ratio plots for the collected data.
@@ -177,7 +177,7 @@ class MultiPostProcess():
             plt.savefig(f'{self.output_dir}surf_{z_id}.png')
             plt.close()
 
-            x_to_y_ratio = np.asarray(X)/np.asarray(Y)
+            x_to_y_ratio = np.asarray(X) / np.asarray(Y)
             sorted_indices = np.argsort(x_to_y_ratio)
             x_to_y_ratio = np.array(x_to_y_ratio)[sorted_indices]
             sorted_z = np.array(Z)[sorted_indices]
@@ -190,7 +190,7 @@ class MultiPostProcess():
             plt.savefig(f'{self.output_dir}ratio_{z_id}.png')
             plt.close()
         return None
-    
+
     def group_param_histogram(self) -> None:
         """
         Generate histograms for group parameters (yield and half-life) from each PostProcess object.
@@ -201,10 +201,11 @@ class MultiPostProcess():
         n_bars = len(self.posts)
         base_width = 0.8
         width = base_width / n_bars
-        offset = lambda index: np.linspace(-base_width/2 + width/2,
-                                           base_width/2 - width/2,
-                                           n_bars)[index]
-        group_labels = [f'{x}' for x in range(1,self.posts[0].num_groups+1)]
+
+        def offset(index): return np.linspace(-base_width / 2 + width / 2,
+                                              base_width / 2 - width / 2,
+                                              n_bars)[index]
+        group_labels = [f'{x}' for x in range(1, self.posts[0].num_groups + 1)]
         for post in self.posts:
             data[post.name] = {}
             if post.group_data is not None:
@@ -222,7 +223,7 @@ class MultiPostProcess():
             if post.group_data is not None:
                 data[post.name]['Yield Uncertainty'] = sig_yield
                 data[post.name]['Halflife Uncertainty'] = sig_halflife
-        
+
         fig, ax = plt.subplots()
         colors = self.posts[0].get_colors(len(self.posts), min_val=0.25)
         for post_i, post in enumerate(self.posts):
@@ -259,10 +260,11 @@ class MultiPostProcess():
         plt.savefig(f'{self.output_dir}halflives_{self.fig_post_name}.png')
         plt.close()
         return None
-    
+
     def group_fit_counts(self) -> None:
         """
-        Generate count rate plots for each PostProcess object using group fitting. 
+        Generate count rate plots for each PostProcess object
+        using group fitting.
         """
         colors = self.posts[0].get_colors(len(self.posts))
         for pi, post in enumerate(self.posts):
@@ -278,7 +280,7 @@ class MultiPostProcess():
                 label=post.name,
                 linestyle='--',
                 zorder=3,
-                marker=post.markers[pi%len(post.markers)],
+                marker=post.markers[pi % len(post.markers)],
                 markersize=3,
                 markevery=5)
             plt.fill_between(
@@ -298,5 +300,3 @@ class MultiPostProcess():
         plt.tight_layout()
         plt.savefig(f'{self.output_dir}group_counts_{self.fig_post_name}.png')
         plt.close()
-
-

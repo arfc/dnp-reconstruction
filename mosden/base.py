@@ -164,7 +164,7 @@ class BaseClass:
         ----------
         nuclide : str
             Nuclide, such as `Xe135`
-        
+
         Returns
         -------
         element : str
