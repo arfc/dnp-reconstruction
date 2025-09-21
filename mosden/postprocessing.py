@@ -1097,6 +1097,7 @@ class PostProcess(BaseClass):
         sizes = list()
         labels = list()
         counter = 0
+        running_sum = 0
         for nuc, conc_val in sorted_concs.items():
             N = data_dict['nucs'][nuc]['concentration']
             sizes.append(conc_val.n)
