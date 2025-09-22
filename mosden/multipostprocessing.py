@@ -225,7 +225,7 @@ class MultiPostProcess():
                 data[post.name]['Halflife Uncertainty'] = sig_halflife
 
         fig, ax = plt.subplots()
-        colors = self.posts[0].get_colors(len(self.posts), min_val=0.25)
+        colors = self.posts[0].get_colors(len(self.posts))
         for post_i, post in enumerate(self.posts):
             if post.group_data is not None:
                 ax.bar(label_locations + offset(post_i), data[post.name]['Yield'], width, label=post.name, yerr=data[post.name]['Yield Uncertainty'],

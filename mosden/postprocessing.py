@@ -73,7 +73,7 @@ class PostProcess(BaseClass):
         return None
 
     def get_colors(self, num_colors: int, colormap: str = None,
-                   min_val: float = 0.05, max_val: float = 1.0) -> list[tuple[float]]:
+                   min_val: float = 0.0, max_val: float = 1.0) -> list[tuple[float]]:
         """
         Get a list of colors from a colormap
 
@@ -94,8 +94,8 @@ class PostProcess(BaseClass):
             List of colors
         """
         cmap = plt.get_cmap(colormap)
-        colors = [cmap(i) for i in np.linspace(min_val, max_val, num_colors)]
-        return colors
+        colors = [cmap(i) for i in np.linspace(min_val, max_val, num_colors+2)]
+        return colors[1:-1]
 
     def _convert_nuc_to_latex(self, nuc: str) -> str:
         """
@@ -1130,7 +1130,7 @@ class PostProcess(BaseClass):
         remainder = net_yield.n - running_sum.n
         sizes.append(remainder)
         labels.append('Other')
-        colors = self.get_colors(num_top + 2, min_val=0.25)
+        colors = self.get_colors(num_top + 2)
         fig, ax = plt.subplots()
         ax.pie(sizes, labels=labels, autopct='%1.1f%%',
                pctdistance=0.7, labeldistance=1.1,
