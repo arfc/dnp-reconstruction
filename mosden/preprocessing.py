@@ -179,7 +179,7 @@ class Preprocess(BaseClass):
             pre_treated_data: dict[str: dict[str: dict[str: float]]]
             ) -> dict[str: dict[str: float]]:
         """
-        Take endf data for each nuclide and scale it by fissile fraction 
+        Take endf data for each nuclide and scale it by fissile fraction
           for each nuclide
 
         Parameters

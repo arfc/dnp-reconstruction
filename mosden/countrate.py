@@ -9,7 +9,7 @@ from time import time
 class CountRate(BaseClass):
     def __init__(self, input_path: str) -> None:
         """
-        This class generates the delayed neutron count rate from concentrations 
+        This class generates the delayed neutron count rate from concentrations
         and nuclear data.
 
         Parameters
@@ -36,8 +36,8 @@ class CountRate(BaseClass):
             self.decay_times: np.ndarray = np.linspace(
                 0, self.decay_time, self.num_times)
         elif decay_time_spacing == 'log':
-            self.decay_times: np.ndarray = np.logspace(
-                0, np.log10(self.decay_time), self.num_times)
+            self.decay_times: np.ndarray = np.geomspace(
+                1e-2, self.decay_time, self.num_times)
         else:
             raise ValueError(
                 f"Decay time spacing '{decay_time_spacing}' not supported.")
@@ -229,11 +229,11 @@ class CountRate(BaseClass):
                 conc = sample_parameter(conc, sampler_func)
 
                 if conc < 0.0:
-                    conc = 0.0
+                    conc = 1e-12
                 if decay_const < 0.0:
-                    decay_const = 0.0
+                    decay_const = 1e-12
                 if Pn < 0.0:
-                    Pn = 0.0
+                    Pn = 1e-12
 
                 counts = Pn * decay_const * conc * \
                     np.exp(-decay_const * self.decay_times)
@@ -245,18 +245,18 @@ class CountRate(BaseClass):
                 sigma_count_rate += unumpy.std_devs(counts)
 
             Pn_post_data[nuc] = Pn
-            lam_post_data[nuc] = decay_const
+            lam_post_data[nuc] = np.log(2) / decay_const
             conc_post_data[nuc] = conc
 
         if MC_run:
             if 'PnMC' not in self.post_data.keys():
                 self.post_data['PnMC'] = list()
-            if 'lamMC' not in self.post_data.keys():
-                self.post_data['lamMC'] = list()
+            if 'hlMC' not in self.post_data.keys():
+                self.post_data['hlMC'] = list()
             if 'concMC' not in self.post_data.keys():
                 self.post_data['concMC'] = list()
             self.post_data['PnMC'].append(Pn_post_data)
-            self.post_data['lamMC'].append(lam_post_data)
+            self.post_data['hlMC'].append(lam_post_data)
             self.post_data['concMC'].append(conc_post_data)
             self.save_postproc()
 

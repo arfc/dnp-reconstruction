@@ -1,5 +1,6 @@
 import numpy as np
 from mosden.utils.csv_handler import CSVHandler
+from mosden.concentrations import Concentrations
 from uncertainties import unumpy
 from mosden.base import BaseClass
 from scipy.optimize import least_squares
@@ -34,7 +35,40 @@ class Grouper(BaseClass):
         self.t_net: float = self.input_data['modeling_options']['net_irrad_s']
         self.irrad_type: str = self.input_data['modeling_options']['irrad_type']
         self.sample_func: str = self.input_data['group_options']['sample_func']
+
+        self.fission_term: float = self._calculate_fission_term()
         return None
+
+    def _calculate_fission_term(self) -> float:
+        """
+        Calculate the fission rate or number of fissions.
+        The fission rate is used for saturation irradiations, while the number
+        of fissions is used for pulse irradiations.
+
+        Returns
+        -------
+        fission_term : float
+            The number/rate of fissions in the sample.
+
+        Raises
+        ------
+        NotImplementedError
+            Pulse irradiation not yet available.
+
+        NameError
+            Type of irradiation provided does not match any of the available
+            irradiation types.
+        """
+        conc_handler = Concentrations(self.input_path)
+        fission_term = 1.0
+        if self.irrad_type == 'pulse':
+            self.logger.error('Pulse irradiation fission term not treated')
+        elif self.irrad_type == 'saturation':
+            if conc_handler.model_method == 'CFY' and conc_handler.spatial_scaling == 'scaled':
+                fission_term = conc_handler.f_in
+        else:
+            raise NameError(f'{self.irrad_type = } not available')
+        return fission_term
 
     def generate_groups(self) -> None:
         """
@@ -54,6 +88,7 @@ class Grouper(BaseClass):
             sortby='half_life')
         self.save_postproc()
         self.time_track(start, 'Groupfit')
+        self.logger.info(f'Ran in {time() - start} s')
         return None
 
     def _residual_function(
@@ -116,7 +151,7 @@ class Grouper(BaseClass):
                     counts: np.ndarray[object] = np.zeros(
                         len(times), dtype=object)
                 counts += (a * lam * unumpy.exp(-lam * times))
-        return counts
+        return counts * self.fission_term
 
     def _saturation_fit_function(self,
                                  times: np.ndarray[float | object],
@@ -140,33 +175,45 @@ class Grouper(BaseClass):
         yields = parameters[:self.num_groups]
         half_lives = parameters[self.num_groups:]
         counts: np.ndarray[float] = np.zeros(len(times))
-        tot_cycles: int = ceil(self.t_net / (self.t_in + self.t_ex))
+        try:
+            tot_cycles: int = ceil(self.t_net / (self.t_in + self.t_ex))
+        except ZeroDivisionError:
+            tot_cycles = 0
         for group in range(self.num_groups):
             lam = np.log(2) / half_lives[group]
             a = yields[group]
             cycle_sum = 0
             for j in range(1, tot_cycles + 1):
-                exponent = (-lam * (self.t_net - 
-                                    j * self.t_in - 
+                exponent = (-lam * (self.t_net -
+                                    j * self.t_in -
                                     (j - 1) * self.t_ex))
                 try:
                     cycle_sum += np.exp(exponent)
                 except TypeError:
+                    if exponent.n > 709:
+                        msg = 'Exponent too large in group fitting'
+                        self.logger.critical(
+                            f'{msg} \n {exponent=} {self.t_net=} {lam=}')
+                        continue
                     cycle_sum += unumpy.exp(exponent)
             try:
-                counts += (a * np.exp(-lam * times) * 
-                           (1 - np.exp(-lam * self.t_net + 
+                counts += (a * np.exp(-lam * times) *
+                           (1 - np.exp(-lam * self.t_net +
                                        (1 - np.exp(lam * self.t_ex) * cycle_sum)
                                        )))
             except TypeError:
+                if lam.n * self.t_ex > 709:
+                    msg = 'Exponent too large in group fitting'
+                    self.logger.critical(f'{msg} \n {self.t_ex=} {lam=}')
+                    continue
                 if group == 0:
                     counts: np.ndarray[object] = np.zeros(
                         len(times), dtype=object)
-                counts += (a * unumpy.exp(-lam * times) * 
+                counts += (a * unumpy.exp(-lam * times) *
                            (1 - unumpy.exp(-lam * self.t_net +
                                            (1 - unumpy.exp(lam * self.t_ex)
-                                             * cycle_sum))))
-        return counts
+                                            * cycle_sum))))
+        return counts * self.fission_term
 
     def _nonlinear_least_squares(self,
                                  count_data: dict[str: np.ndarray[float]] = None

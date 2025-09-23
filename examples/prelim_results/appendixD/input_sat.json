@@ -1,5 +1,5 @@
 {
-    "name": "split_fission_test",
+    "name": "saturation_four_dnp",
     "file_options": {
         "overwrite": {
             "preprocessing": true,
@@ -8,24 +8,22 @@
             "group_fitting": true,
             "postprocessing": true
         },
-        "unprocessed_data_dir": "./tests/integration/test-data",
-        "processed_data_dir": "./tests/integration/output2",
-        "output_dir": "./tests/integration/output2",
-        "log_level": 15,
-        "log_file": "./tests/integration/output2/log.log"
+        "unprocessed_data_dir": "../../../tests/integration/test-data",
+        "processed_data_dir": "./",
+        "output_dir": "./",
+        "log_level": 15
     },
     "data_options": {
-        "half_life": "omcchain/chain_test.xml",
+        "half_life": "iaea/four_dnp_test.csv",
         "cross_section": "",
-        "emission_probability": "iaea/eval_test.csv",
-        "fission_yield": "omcchain/chain_test.xml",
+        "emission_probability": "iaea/four_dnp_test.csv",
+        "fission_yield": "omcchain/four_dnp_test.xml",
         "decay_time_spacing": "linear",
         "temperature_K": 920,
         "density_g_cm3": 2.3275,
         "energy_MeV": 0.0253e-6,
         "fissile_fractions": {
-            "U235": 0.5,
-            "U238": 0.5
+            "U235": 1.0
         }
     },
     "modeling_options": {
@@ -44,7 +42,7 @@
         "num_decay_times": 100
     },
     "group_options": {
-        "num_groups": 6,
+        "num_groups": 2,
         "method": "nlls",
         "samples": 1,
         "sample_func": "normal",
