@@ -19,3 +19,9 @@ Uses 1000 Monte Carlo samples of the data to generate uncertainties.
 
 ### Test 6
 Tests a mostly empty input file.
+
+### Test 7
+Tests log time with a non-zero ex-core residence time.
+
+### Test 8
+Tests a non-zero chemical removal rate.
